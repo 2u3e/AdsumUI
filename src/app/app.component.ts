@@ -19,13 +19,7 @@ export class AppComponent {
   private metronicInitService = inject(MetronicInitService);
 
   private demoClassMap: Record<string, string> = {
-    demo1: 'demo1 kt-sidebar-fixed kt-header-fixed',
-    demo2: '[--header-height:100px] data-[kt-sticky-header=on]:[--header-height:60px]',
-    demo3: '[--header-height:58px] [--sidebar-width:58px] [--navbar-height:56px] lg:overflow-hidden bg-muted',
-    demo4: '[--header-height:60px] [--sidebar-width:290px] bg-muted! lg:overflow-hidden',
-    demo5: '[--header-height:54px] [--sidebar-width:200px]',
-    demo6: '[--header-height:60px] [--sidebar-width:270px] lg:overflow-hidden bg-muted',
-    demo7: '[--header-height-default:95px] data-kt-[sticky-header=on]:[--header-height:60px] [--header-height:var(--header-height-default)] [--header-height-mobile:70px]'
+    demo1: 'demo1 kt-sidebar-fixed kt-header-fixed'
   };
   private currentDemo = signal('demo1');
 
