@@ -25,8 +25,7 @@ export class AppComponent {
     demo4: '[--header-height:60px] [--sidebar-width:290px] bg-muted! lg:overflow-hidden',
     demo5: '[--header-height:54px] [--sidebar-width:200px]',
     demo6: '[--header-height:60px] [--sidebar-width:270px] lg:overflow-hidden bg-muted',
-    demo7: '[--header-height-default:95px] data-kt-[sticky-header=on]:[--header-height:60px] [--header-height:var(--header-height-default)] [--header-height-mobile:70px]',
-    demo8: '[--header-height:60px] [--sidebar-width:90px] bg-muted'
+    demo7: '[--header-height-default:95px] data-kt-[sticky-header=on]:[--header-height:60px] [--header-height:var(--header-height-default)] [--header-height-mobile:70px]'
   };
   private currentDemo = signal('demo1');
 

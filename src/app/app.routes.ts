@@ -13,8 +13,6 @@ import { Demo6Component } from './layouts/demo6/demo6.component';
 import { IndexComponent as Demo6IndexComponent } from './pages/demo6/index/index.component';
 import { Demo7Component } from './layouts/demo7/demo7.component';
 import { IndexComponent as Demo7IndexComponent } from './pages/demo7/index/index.component';
-import { Demo8Component } from './layouts/demo8/demo8.component';
-import { IndexComponent as Demo8IndexComponent } from './pages/demo8/index/index.component';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'demo1' },
@@ -65,13 +63,6 @@ export const routes: Routes = [
     component: Demo7Component,
     children: [
       { path: '', component: Demo7IndexComponent },
-    ],
-  },
-  {
-    path: 'demo8',
-    component: Demo8Component,
-    children: [
-      { path: '', component: Demo8IndexComponent },
     ],
   }
 ];
