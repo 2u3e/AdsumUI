@@ -15,8 +15,6 @@ import { Demo7Component } from './layouts/demo7/demo7.component';
 import { IndexComponent as Demo7IndexComponent } from './pages/demo7/index/index.component';
 import { Demo8Component } from './layouts/demo8/demo8.component';
 import { IndexComponent as Demo8IndexComponent } from './pages/demo8/index/index.component';
-import { Demo9Component } from './layouts/demo9/demo9.component';
-import { IndexComponent as Demo9IndexComponent } from './pages/demo9/index/index.component';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'demo1' },
@@ -74,13 +72,6 @@ export const routes: Routes = [
     component: Demo8Component,
     children: [
       { path: '', component: Demo8IndexComponent },
-    ],
-  },
-  {
-    path: 'demo9',
-    component: Demo9Component,
-    children: [
-      { path: '', component: Demo9IndexComponent },
     ],
   }
 ];
