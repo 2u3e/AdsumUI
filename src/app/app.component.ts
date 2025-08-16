@@ -28,7 +28,6 @@ export class AppComponent {
     demo7: '[--header-height-default:95px] data-kt-[sticky-header=on]:[--header-height:60px] [--header-height:var(--header-height-default)] [--header-height-mobile:70px]',
     demo8: '[--header-height:60px] [--sidebar-width:90px] bg-muted',
     demo9: '[--header-height:78px]',
-    demo10: '[--header-height:60px] [--sidebar-width:270px] lg:overflow-hidden bg-mono dark:bg-background',
   };
   private currentDemo = signal('demo1');
 
