@@ -1,4 +1,8 @@
 import { Routes } from '@angular/router';
+
+import { LayoutsComponent } from './layouts/layouts.component';
+import { IndexComponent } from './pages/index/index.component';
+
 import { Demo1Component } from './layouts/demo1/demo1.component';
 import { IndexComponent as Demo1IndexComponent } from './pages/demo1/index/index.component';
 import { Demo2Component } from './layouts/demo2/demo2.component';
@@ -15,7 +19,17 @@ import { Demo7Component } from './layouts/demo7/demo7.component';
 import { IndexComponent as Demo7IndexComponent } from './pages/demo7/index/index.component';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'demo1' },
+  { 
+    path: '', 
+    pathMatch: 'full', 
+    component: LayoutsComponent,
+    children: [
+      {
+        path: '', 
+        component: IndexComponent
+      }
+    ]
+  },
   {
     path: 'demo1',
     component: Demo1Component,
