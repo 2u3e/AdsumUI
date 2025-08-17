@@ -11,7 +11,7 @@ import { MetronicInitService } from './core/services/metronic-init.service';
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  title = 'metronic-tailwind-angular';
+  title = 'Malatya Büyükşehir Belediyesi';
 
   private router = inject(Router);
   private document = inject(DOCUMENT);
