@@ -1,11 +1,9 @@
 import { Component, HostBinding, AfterViewInit, inject } from '@angular/core';
-import { ThemeToggleComponent } from '../../partials/theme-toggle/theme-toggle.component';
-import { RouterOutlet } from '@angular/router';
 import { MetronicInitService } from '../../core/services/metronic-init.service';
 
 @Component({
   selector: 'app-login',
-  imports: [RouterOutlet, ThemeToggleComponent],
+  imports: [],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
