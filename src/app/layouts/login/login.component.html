@@ -1,78 +1,95 @@
 <div class="flex items-center justify-center grow bg-center bg-no-repeat page-bg">
     <div class="kt-card max-w-[370px] w-full">
-        <form action="#" class="kt-card-content flex flex-col gap-5 p-10" id="sign_in_form" method="get">
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="kt-card-content flex flex-col gap-5 p-10" id="sign_in_form">
             <div class="text-center mb-1">
                 <h3 class="text-lg font-medium text-mono leading-none mb-2.5">
                     Giriş Yap
                 </h3>
-                <!-- <div class="flex items-center justify-center font-medium">
-                    <span class="text-sm text-secondary-foreground me-1.5">
-                        Need an account?
-                    </span>
-                    <a class="text-sm link" href="html/demo1/authentication/classic/sign-up.html">
-                        Sign up
-                    </a>
-                </div> -->
             </div>
-            <!-- <div class="grid grid-cols-2 gap-2.5">
-                <a class="kt-btn kt-btn-outline justify-center" href="#">
-                    <img alt="" class="size-3.5 shrink-0" src="assets/media/brand-logos/google.svg" />
-                    Use Google
-                </a>
-                <a class="kt-btn kt-btn-outline justify-center" href="#">
-                    <img alt="" class="size-3.5 shrink-0 dark:hidden" src="assets/media/brand-logos/apple-black.svg" />
-                    <img alt="" class="size-3.5 shrink-0 light:hidden" src="assets/media/brand-logos/apple-white.svg" />
-                    Use Apple
-                </a>
-            </div> -->
-            <!-- <div class="flex items-center gap-2">
-                <span class="border-t border-border w-full">
-                </span>
-                <span class="text-xs text-muted-foreground font-medium uppercase">
-                    Or
-                </span>
-                <span class="border-t border-border w-full">
-                </span>
-            </div> -->
+
+            <!-- Hata mesajı -->
+            @if (errorMessage()) {
+                <div class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
+                    {{ errorMessage() }}
+                </div>
+            }
+
+            <!-- Kullanıcı Adı alanı -->
             <div class="flex flex-col gap-1">
                 <label class="kt-form-label font-normal text-mono">
-                    Email
+                    Kullanıcı Adı
                 </label>
-                <input class="kt-input" placeholder="email@email.com" type="text" value="" />
+                <input 
+                    class="kt-input"
+                    [class.border-red-500]="isFieldInvalid('userName')"
+                    placeholder="Kullanıcı adınızı giriniz" 
+                    type="text" 
+                    formControlName="userName"
+                    autocomplete="username" />
+                
+                @if (isFieldInvalid('userName')) {
+                    <span class="text-red-500 text-xs">{{ getFieldError('userName') }}</span>
+                }
             </div>
+
+            <!-- Şifre alanı -->
             <div class="flex flex-col gap-1">
                 <div class="flex items-center justify-between gap-1">
                     <label class="kt-form-label font-normal text-mono">
                         Şifre
                     </label>
-                    <a class="text-sm kt-link shrink-0"
-                        href="html/demo1/authentication/classic/reset-password/enter-email.html">
+                    <a class="text-sm kt-link shrink-0" href="/forgot-password">
                         Şifremi Unuttum!
                     </a>
                 </div>
-                <div class="kt-input" data-kt-toggle-password="true">
-                    <input name="user_password" placeholder="Şifreni Gir" type="password" value="" />
-                    <button class="kt-btn kt-btn-sm kt-btn-ghost kt-btn-icon bg-transparent! -me-1.5"
-                        data-kt-toggle-password-trigger="true" type="button">
-                        <span class="kt-toggle-password-active:hidden">
-                            <i class="ki-filled ki-eye text-muted-foreground">
-                            </i>
-                        </span>
-                        <span class="hidden kt-toggle-password-active:block">
-                            <i class="ki-filled ki-eye-slash text-muted-foreground">
-                            </i>
-                        </span>
+                <div class="kt-input" [class.border-red-500]="isFieldInvalid('password')" data-kt-toggle-password="true">
+                    <input 
+                        formControlName="password"
+                        placeholder="Şifreni Gir" 
+                        [type]="showPassword() ? 'text' : 'password'"
+                        autocomplete="current-password" />
+                    <button 
+                        class="kt-btn kt-btn-sm kt-btn-ghost kt-btn-icon bg-transparent! -me-1.5"
+                        type="button"
+                        (click)="togglePasswordVisibility()">
+                        @if (showPassword()) {
+                            <i class="ki-filled ki-eye-slash text-muted-foreground"></i>
+                        } @else {
+                            <i class="ki-filled ki-eye text-muted-foreground"></i>
+                        }
                     </button>
                 </div>
+                
+                @if (isFieldInvalid('password')) {
+                    <span class="text-red-500 text-xs">{{ getFieldError('password') }}</span>
+                }
             </div>
-            <label class="kt-label">
-                <input class="kt-checkbox kt-checkbox-sm" name="check" type="checkbox" value="1" />
+
+            <!-- Beni hatırla -->
+            <!-- <label class="kt-label">
+                <input 
+                    class="kt-checkbox kt-checkbox-sm" 
+                    type="checkbox" 
+                    formControlName="rememberMe" />
                 <span class="kt-checkbox-label">
                     Beni Hatırla
                 </span>
-            </label>
-            <button class="kt-btn kt-btn-primary flex justify-center grow">
-                Giriş Yap
+            </label> -->
+
+            <!-- Giriş butonu -->
+            <button 
+                class="kt-btn kt-btn-primary flex justify-center grow"
+                type="submit"
+                [disabled]="isLoading()">
+                
+                @if (isLoading()) {
+                    <span class="flex items-center gap-2">
+                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Giriş Yapılıyor...
+                    </span>
+                } @else {
+                    Giriş Yap
+                }
             </button>
         </form>
     </div>
