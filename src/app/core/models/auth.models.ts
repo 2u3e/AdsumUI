@@ -1,20 +1,26 @@
 export interface LoginRequest {
-  userName: string;  // API'nizde userName kullanılıyor
+  userNameOrEmail: string;
   password: string;
+}
+
+export interface RefreshTokenRequest {
+  refreshToken: string;
 }
 
 export interface LoginResponse {
   statusCode: number;
   message: string;
-  data: {
-    accessToken: string;
-    expiresAt: string;
-    refreshToken: string;
-  };
-  errors: any;
+  data: TokenData;
+  errors: string[];
   pagination: any;
   correlationId: string;
   timeStamp: string;
+}
+
+export interface TokenData {
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: string;
 }
 
 export interface User {
@@ -31,7 +37,7 @@ export interface ApiResponse<T = any> {
   statusCode: number;
   message: string;
   data?: T;
-  errors?: any;
+  errors?: string[];
   pagination?: any;
   correlationId: string;
   timeStamp: string;
@@ -41,4 +47,18 @@ export interface TokenInfo {
   token: string;
   refreshToken: string;
   expiresAt: Date;
+}
+
+// Role ve Permission enum'ları
+export enum UserRole {
+  Admin = 'Admin',
+  User = 'User',
+  Manager = 'Manager'
+}
+
+export enum Permission {
+  Read = 'Read',
+  Write = 'Write',
+  Delete = 'Delete',
+  Manage = 'Manage'
 }

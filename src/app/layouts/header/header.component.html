@@ -3911,10 +3911,23 @@
 							<input class="kt-switch" data-kt-theme-switch-state="dark"
 								data-kt-theme-switch-toggle="true" name="check" type="checkbox" value="1" />
 						</div>
-						<a class="kt-btn kt-btn-outline justify-center w-full"
-							href="#">
-							Log out
-						</a>
+						<button 
+    class="kt-btn kt-btn-outline w-full justify-center"
+    (click)="onLogout($event)"
+    [disabled]="isLoggingOut()">
+    
+    @if (isLoggingOut()) {
+        <span class="flex items-center gap-2">
+            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+            Çıkış Yapılıyor...
+        </span>
+    } @else {
+        <span class="flex items-center gap-2">
+            <i class="ki-filled ki-exit-right"></i>
+            Çıkış Yap
+        </span>
+    }
+</button>
 					</div>
 				</div>
 			</div>

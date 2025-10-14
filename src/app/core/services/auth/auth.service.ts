@@ -1,10 +1,29 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, BehaviorSubject, tap, catchError, of } from 'rxjs';
+import { Observable, BehaviorSubject, tap, catchError, throwError, of } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
-import { LoginRequest, LoginResponse, User, TokenInfo } from '../../models/auth.models';
+import { User } from '../../models/auth.models';
+
+/**
+ * OAuth 2.0 Token Response (OpenIddict)
+ */
+interface TokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  refresh_token?: string;
+  scope?: string;
+}
+
+/**
+ * Login Credentials
+ */
+interface LoginCredentials {
+  username: string;
+  password: string;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -24,77 +43,109 @@ export class AuthService {
   public isAuthenticated = signal<boolean>(false);
   public currentUser = signal<User | null>(null);
 
+  // Refresh token management
+  private refreshTokenTimeout?: ReturnType<typeof setTimeout>;
+
   constructor() {
     this.checkStoredAuth();
   }
 
   /**
-   * Login kullanıcısı
+   * OAuth 2.0 Password Grant
+   * https://datatracker.ietf.org/doc/html/rfc6749#section-4.3
    */
-  login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${environment.apiUrl}/auth/login`, credentials)
-      .pipe(
-        tap(response => {
-          if (response.statusCode === 200) {
-            this.setAuthData(response);
-          }
-        }),
-        catchError(error => {
-          console.error('Login error:', error);
-          throw error;
-        })
-      );
+  login(credentials: LoginCredentials): Observable<TokenResponse> {
+    // OAuth 2.0 requires application/x-www-form-urlencoded
+    const body = new URLSearchParams();
+    body.set('grant_type', 'password');
+    body.set('username', credentials.username);
+    body.set('password', credentials.password);
+    body.set('scope', 'openid email profile roles offline_access');
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/x-www-form-urlencoded'
+    });
+
+    return this.http.post<TokenResponse>(
+      `${environment.apiUrl}/connect/token`,
+      body.toString(),
+      { headers }
+    ).pipe(
+      tap(response => {
+        this.handleAuthSuccess(response);
+      }),
+      catchError(error => {
+        console.error('Login error:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * OAuth 2.0 Refresh Token Grant
+   * https://datatracker.ietf.org/doc/html/rfc6749#section-6
+   */
+  refreshToken(): Observable<TokenResponse> {
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) {
+      this.logout();
+      return throwError(() => new Error('No refresh token available'));
+    }
+
+    const body = new URLSearchParams();
+    body.set('grant_type', 'refresh_token');
+    body.set('refresh_token', refreshToken);
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/x-www-form-urlencoded'
+    });
+
+    return this.http.post<TokenResponse>(
+      `${environment.apiUrl}/connect/token`,
+      body.toString(),
+      { headers }
+    ).pipe(
+      tap(response => {
+        this.handleAuthSuccess(response);
+      }),
+      catchError((error) => {
+        console.error('Refresh token error:', error);
+        this.logout();
+        return throwError(() => error);
+      })
+    );
   }
 
   /**
    * Logout işlemi
    */
   logout(): void {
+    this.stopRefreshTokenTimer();
     this.clearAuthData();
     this.router.navigate(['/login']);
   }
 
   /**
-   * Token yenileme
+   * Token response'u işle
    */
-  refreshToken(): Observable<LoginResponse> {
-    const refreshToken = this.getRefreshToken();
-    if (!refreshToken) {
-      this.logout();
-      return of({} as LoginResponse);
+  private handleAuthSuccess(response: TokenResponse): void {
+    // Token'ları kaydet
+    localStorage.setItem(this.TOKEN_KEY, response.access_token);
+    if (response.refresh_token) {
+      localStorage.setItem(this.REFRESH_TOKEN_KEY, response.refresh_token);
     }
 
-    return this.http.post<LoginResponse>(`${environment.apiUrl}/auth/refresh`, {
-      refreshToken
-    }).pipe(
-      tap(response => {
-        if (response.statusCode === 200) {
-          this.setAuthData(response);
-        } else {
-          this.logout();
-        }
-      }),
-      catchError(() => {
-        this.logout();
-        return of({} as LoginResponse);
-      })
-    );
-  }
-
-  /**
-   * Auth verilerini kaydet
-   */
-  private setAuthData(response: LoginResponse): void {
-    localStorage.setItem(this.TOKEN_KEY, response.data.accessToken);
-    localStorage.setItem(this.REFRESH_TOKEN_KEY, response.data.refreshToken);
-    
-    // JWT token'dan user bilgilerini çıkar
-    const user = this.parseTokenToUser(response.data.accessToken);
+    // JWT'den user bilgilerini çıkar
+    const user = this.parseTokenToUser(response.access_token);
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
     
+    // State güncelle
     this.isAuthenticated.set(true);
     this.currentUser.set(user);
     this.currentUserSubject.next(user);
+
+    // Auto refresh başlat
+    this.startRefreshTokenTimer(response.expires_in);
   }
 
   /**
@@ -103,22 +154,23 @@ export class AuthService {
   private parseTokenToUser(token: string): User {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
+      
       return {
-        id: payload.sub || payload.userId || '1',
+        id: payload.sub || '',
         email: payload.email || '',
-        userName: payload.userName || payload.unique_name || '',
-        firstName: payload.given_name || payload.firstName || '',
-        lastName: payload.family_name || payload.lastName || '',
+        userName: payload.name || payload.unique_name || '',
+        firstName: payload.given_name || '',
+        lastName: payload.family_name || '',
         roles: payload.role ? (Array.isArray(payload.role) ? payload.role : [payload.role]) : [],
         permissions: payload.permissions || []
       };
     } catch (error) {
       console.error('Token parse error:', error);
       return {
-        id: '1',
+        id: '',
         email: '',
-        userName: '',
-        firstName: 'Kullanıcı',
+        userName: 'Kullanıcı',
+        firstName: '',
         lastName: '',
         roles: [],
         permissions: []
@@ -146,10 +198,21 @@ export class AuthService {
     const token = this.getToken();
     const user = this.getStoredUser();
     
-    if (token && user) {
+    if (token && user && this.isTokenValid()) {
       this.isAuthenticated.set(true);
       this.currentUser.set(user);
       this.currentUserSubject.next(user);
+      
+      // Kalan süreyi hesapla ve timer başlat
+      const remainingTime = this.getTokenRemainingTime();
+      if (remainingTime > 60) {
+        this.startRefreshTokenTimer(remainingTime);
+      } else {
+        // Token süresi çok az kaldıysa hemen refresh et
+        this.refreshToken().subscribe();
+      }
+    } else {
+      this.clearAuthData();
     }
   }
 
@@ -192,7 +255,11 @@ export class AuthService {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const expirationTime = payload.exp * 1000;
-      return Date.now() < expirationTime;
+      const currentTime = Date.now();
+      
+      // Token'ın süresinin dolmasına 1 dakika kaldıysa false döndür
+      const timeUntilExpiry = expirationTime - currentTime;
+      return timeUntilExpiry > 60000; // 60 saniye
     } catch {
       return false;
     }
@@ -207,10 +274,74 @@ export class AuthService {
   }
 
   /**
+   * Kullanıcının belirli rollerden herhangi birine sahip mi?
+   */
+  hasAnyRole(roles: string[]): boolean {
+    const user = this.currentUser();
+    if (!user?.roles) return false;
+    return roles.some(role => user.roles.includes(role));
+  }
+
+  /**
+   * Kullanıcının tüm rollere sahip mi?
+   */
+  hasAllRoles(roles: string[]): boolean {
+    const user = this.currentUser();
+    if (!user?.roles) return false;
+    return roles.every(role => user.roles.includes(role));
+  }
+
+  /**
    * Kullanıcının belirli bir izni var mı?
    */
   hasPermission(permission: string): boolean {
     const user = this.currentUser();
     return user?.permissions?.includes(permission) ?? false;
+  }
+
+  /**
+   * Token yenileme timer'ını başlat
+   * Token'ın süresinin bitmesinden 1 dakika önce otomatik yeniler
+   */
+  private startRefreshTokenTimer(expiresIn: number): void {
+    // expiresIn saniye cinsinden geliyor
+    // Token'ın süresinin bitmesinden 60 saniye önce yenile
+    const timeout = (expiresIn - 60) * 1000; // milliseconds
+
+    if (timeout > 0) {
+      this.stopRefreshTokenTimer();
+      this.refreshTokenTimeout = setTimeout(() => {
+        this.refreshToken().subscribe({
+          error: (err) => console.error('Auto refresh failed:', err)
+        });
+      }, timeout);
+    }
+  }
+
+  /**
+   * Token yenileme timer'ını durdur
+   */
+  private stopRefreshTokenTimer(): void {
+    if (this.refreshTokenTimeout) {
+      clearTimeout(this.refreshTokenTimeout);
+      this.refreshTokenTimeout = undefined;
+    }
+  }
+
+  /**
+   * Token'ın kalan süresini al (saniye cinsinden)
+   */
+  private getTokenRemainingTime(): number {
+    const token = this.getToken();
+    if (!token) return 0;
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const expirationTime = payload.exp * 1000;
+      const remainingTime = Math.max(0, expirationTime - Date.now());
+      return Math.floor(remainingTime / 1000); // Saniyeye çevir
+    } catch {
+      return 0;
+    }
   }
 }

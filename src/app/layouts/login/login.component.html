@@ -1,34 +1,47 @@
 <div class="flex items-center justify-center grow bg-center bg-no-repeat page-bg">
     <div class="kt-card max-w-[370px] w-full">
-        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="kt-card-content flex flex-col gap-5 p-10" id="sign_in_form">
+        <form 
+            [formGroup]="loginForm" 
+            (ngSubmit)="onSubmit()" 
+            (keypress)="onKeyPress($event)"
+            class="kt-card-content flex flex-col gap-5 p-10" 
+            id="sign_in_form">
+            
             <div class="text-center mb-1">
                 <h3 class="text-lg font-medium text-mono leading-none mb-2.5">
                     Giriş Yap
                 </h3>
+                <div class="text-sm text-muted-foreground">
+                    Hesabınıza giriş yapın
+                </div>
             </div>
 
             <!-- Hata mesajı -->
             @if (errorMessage()) {
-                <div class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
-                    {{ errorMessage() }}
+                <div class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm flex items-start gap-2">
+                    <i class="ki-filled ki-information text-red-500 text-base mt-0.5"></i>
+                    <span>{{ errorMessage() }}</span>
                 </div>
             }
 
-            <!-- Kullanıcı Adı alanı -->
+            <!-- Kullanıcı Adı / Email alanı -->
             <div class="flex flex-col gap-1">
                 <label class="kt-form-label font-normal text-mono">
-                    Kullanıcı Adı
+                    Kullanıcı Adı veya Email
                 </label>
                 <input 
                     class="kt-input"
-                    [class.border-red-500]="isFieldInvalid('userName')"
-                    placeholder="Kullanıcı adınızı giriniz" 
+                    [class.border-red-500]="isFieldInvalid('username')"
+                    placeholder="Kullanıcı adınızı veya email adresinizi giriniz" 
                     type="text" 
-                    formControlName="userName"
+                    formControlName="username"
                     autocomplete="username" />
                 
-                @if (isFieldInvalid('userName')) {
-                    <span class="text-red-500 text-xs">{{ getFieldError('userName') }}</span>
+                @if (isFieldInvalid('username')) {
+                    <span class="text-red-500 text-xs flex items-center gap-1">
+                        <i class="ki-filled ki-information text-xs"></i>
+                        {{ getFieldError('username') }}
+                    </span>
                 }
             </div>
 
@@ -39,19 +52,23 @@
                         Şifre
                     </label>
                     <a class="text-sm kt-link shrink-0" href="/forgot-password">
-                        Şifremi Unuttum!
+                        Şifremi Unuttum
                     </a>
                 </div>
-                <div class="kt-input" [class.border-red-500]="isFieldInvalid('password')" data-kt-toggle-password="true">
+                <div 
+                    class="kt-input" 
+                    [class.border-red-500]="isFieldInvalid('password')" 
+                    data-kt-toggle-password="true">
                     <input 
                         formControlName="password"
-                        placeholder="Şifreni Gir" 
+                        placeholder="Şifrenizi girin" 
                         [type]="showPassword() ? 'text' : 'password'"
                         autocomplete="current-password" />
                     <button 
                         class="kt-btn kt-btn-sm kt-btn-ghost kt-btn-icon bg-transparent! -me-1.5"
                         type="button"
-                        (click)="togglePasswordVisibility()">
+                        (click)="togglePasswordVisibility()"
+                        [attr.aria-label]="showPassword() ? 'Şifreyi gizle' : 'Şifreyi göster'">
                         @if (showPassword()) {
                             <i class="ki-filled ki-eye-slash text-muted-foreground"></i>
                         } @else {
@@ -61,20 +78,12 @@
                 </div>
                 
                 @if (isFieldInvalid('password')) {
-                    <span class="text-red-500 text-xs">{{ getFieldError('password') }}</span>
+                    <span class="text-red-500 text-xs flex items-center gap-1">
+                        <i class="ki-filled ki-information text-xs"></i>
+                        {{ getFieldError('password') }}
+                    </span>
                 }
             </div>
-
-            <!-- Beni hatırla -->
-            <!-- <label class="kt-label">
-                <input 
-                    class="kt-checkbox kt-checkbox-sm" 
-                    type="checkbox" 
-                    formControlName="rememberMe" />
-                <span class="kt-checkbox-label">
-                    Beni Hatırla
-                </span>
-            </label> -->
 
             <!-- Giriş butonu -->
             <button 
@@ -88,7 +97,10 @@
                         Giriş Yapılıyor...
                     </span>
                 } @else {
-                    Giriş Yap
+                    <span class="flex items-center gap-2">
+                        <i class="ki-filled ki-right text-base"></i>
+                        Giriş Yap
+                    </span>
                 }
             </button>
         </form>

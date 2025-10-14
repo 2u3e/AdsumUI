@@ -1,19 +1,20 @@
-import { Component, HostBinding, AfterViewInit, inject, signal } from '@angular/core';
+import { Component, HostBinding, AfterViewInit, inject, signal, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Subject, takeUntil } from 'rxjs';
 
 import { AuthService } from '../../core/services/auth/auth.service';
 import { MetronicInitService } from '../../core/services/metronic-init.service';
-import { LoginRequest } from '../../core/models/auth.models';
 
 @Component({
   selector: 'app-login',
+  standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
-export class LoginComponent implements AfterViewInit {
+export class LoginComponent implements AfterViewInit, OnDestroy {
   @HostBinding('class') class = 'flex grow';
   
   private authService = inject(AuthService);
@@ -21,6 +22,8 @@ export class LoginComponent implements AfterViewInit {
   private route = inject(ActivatedRoute);
   private fb = inject(FormBuilder);
   private metronicInitService = inject(MetronicInitService);
+  
+  private destroy$ = new Subject<void>();
 
   // Reactive signals
   isLoading = signal(false);
@@ -31,8 +34,9 @@ export class LoginComponent implements AfterViewInit {
   returnUrl: string = '/';
 
   constructor() {
+    // OAuth 2.0 username field (email veya username)
     this.loginForm = this.fb.group({
-      userName: ['', [Validators.required, Validators.email]],
+      username: ['', [Validators.required, Validators.minLength(3)]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
 
@@ -44,46 +48,72 @@ export class LoginComponent implements AfterViewInit {
     this.metronicInitService.init();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   /**
    * Login form submit
    */
   onSubmit(): void {
-    if (this.loginForm.valid && !this.isLoading()) {
-      this.isLoading.set(true);
-      this.errorMessage.set(null);
+    // Hata mesajını temizle
+    this.errorMessage.set(null);
 
-      const credentials: LoginRequest = {
-        userName: this.loginForm.value.email,
-        password: this.loginForm.value.password
-      };
+    // Form validation
+    if (!this.loginForm.valid) {
+      this.markFormGroupTouched();
+      return;
+    }
 
-      this.authService.login(credentials).subscribe({
+    if (this.isLoading()) {
+      return;
+    }
+
+    this.isLoading.set(true);
+
+    const credentials = {
+      username: this.loginForm.value.username.trim(),
+      password: this.loginForm.value.password
+    };
+
+    this.authService.login(credentials)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
         next: (response) => {
           this.isLoading.set(false);
           
-          if (response.errors.length === 0) {
-            // Başarılı giriş - return URL'e yönlendir
+          // OAuth 2.0 başarılı response access_token içerir
+          if (response.access_token) {
+            console.log('Login successful, redirecting to:', this.returnUrl);
             this.router.navigate([this.returnUrl]);
-          } else {
-            this.errorMessage.set(response.message || 'Giriş başarısız!');
           }
         },
         error: (error) => {
           this.isLoading.set(false);
+          console.error('Login error:', error);
           
-          if (error.status === 401) {
-            this.errorMessage.set('Email veya şifre hatalı!');
+          // OAuth 2.0 error response parsing
+          let errorMsg = 'Bir hata oluştu!';
+          
+          if (error.status === 400) {
+            // OAuth 2.0 error response format
+            if (error.error?.error === 'invalid_grant') {
+              errorMsg = error.error?.error_description || 'Kullanıcı adı/email veya şifre hatalı!';
+            } else {
+              errorMsg = 'Lütfen tüm alanları doldurun!';
+            }
+          } else if (error.status === 401) {
+            errorMsg = 'Kullanıcı adı/email veya şifre hatalı!';
           } else if (error.status === 0) {
-            this.errorMessage.set('Sunucuya bağlanılamadı!');
-          } else {
-            this.errorMessage.set(error.error?.message || 'Bir hata oluştu!');
+            errorMsg = 'Sunucuya bağlanılamadı! Lütfen internet bağlantınızı kontrol edin.';
+          } else if (error.status >= 500) {
+            errorMsg = 'Sunucu hatası! Lütfen daha sonra tekrar deneyin.';
           }
+          
+          this.errorMessage.set(errorMsg);
         }
       });
-    } else {
-      // Form geçersizse hataları göster
-      this.markFormGroupTouched();
-    }
   }
 
   /**
@@ -117,18 +147,37 @@ export class LoginComponent implements AfterViewInit {
   getFieldError(fieldName: string): string {
     const field = this.loginForm.get(fieldName);
     
-    if (field?.errors && (field.dirty || field.touched)) {
+    if (!field?.errors || (!field.dirty && !field.touched)) {
+      return '';
+    }
+
+    if (fieldName === 'username') {
       if (field.errors['required']) {
-        return `${fieldName === 'email' ? 'Email' : 'Şifre'} gereklidir`;
+        return 'Kullanıcı adı veya email gereklidir';
       }
-      if (field.errors['email']) {
-        return 'Geçerli bir email adresi giriniz';
+      if (field.errors['minlength']) {
+        return 'En az 3 karakter olmalıdır';
+      }
+    }
+    
+    if (fieldName === 'password') {
+      if (field.errors['required']) {
+        return 'Şifre gereklidir';
       }
       if (field.errors['minlength']) {
         return 'Şifre en az 6 karakter olmalıdır';
       }
     }
     
-    return '';
+    return 'Geçersiz değer';
+  }
+
+  /**
+   * Enter tuşuna basıldığında form submit
+   */
+  onKeyPress(event: KeyboardEvent): void {
+    if (event.key === 'Enter' && this.loginForm.valid && !this.isLoading()) {
+      this.onSubmit();
+    }
   }
 }
