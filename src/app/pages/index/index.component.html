@@ -1,5 +1,231 @@
 <!-- Container -->
 <div class="kt-container-fixed">
-	Page content 1
+  <!-- Welcome Section -->
+  <div class="mb-5 lg:mb-7">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <!-- Welcome Message -->
+      <div>
+        <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          {{ getGreeting() }}, {{ currentUser()?.userName || 'Kullanıcı' }}! 👋
+        </h1>
+        <p class="text-base text-gray-600 dark:text-gray-400">
+          ADSUM Yönetim Paneline hoş geldiniz. İşte sistemin genel durumu.
+        </p>
+      </div>
+
+      <!-- Current Time -->
+      <div class="flex items-center gap-3 bg-white dark:bg-gray-800 rounded-lg px-5 py-3 shadow-sm border border-gray-200 dark:border-gray-700">
+        <i class="ki-filled ki-calendar text-2xl text-primary"></i>
+        <div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">Tarih & Saat</div>
+          <div class="text-base font-semibold text-gray-900 dark:text-gray-100">
+            {{ currentTime() | date:'dd.MM.yyyy HH:mm:ss' }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-7 mb-5 lg:mb-7">
+    @for (stat of statCards; track stat.title) {
+      <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow duration-200">
+        <div class="card-body p-6">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center justify-center w-12 h-12 rounded-lg"
+                 [ngClass]="stat.iconBg">
+              <i class="ki-filled ki-{{ stat.icon }} text-2xl"></i>
+            </div>
+            @if (stat.trend === 'up') {
+              <span class="flex items-center gap-1 text-success text-sm font-medium">
+                <i class="ki-filled ki-arrow-up text-xs"></i>
+                {{ stat.change }}%
+              </span>
+            } @else {
+              <span class="flex items-center gap-1 text-danger text-sm font-medium">
+                <i class="ki-filled ki-arrow-down text-xs"></i>
+                {{ stat.change * -1 }}%
+              </span>
+            }
+          </div>
+
+          <div>
+            <h3 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+              {{ stat.value }}
+            </h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">
+              {{ stat.title }}
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-500">
+              {{ stat.changeLabel }}
+            </p>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-7">
+
+    <!-- Quick Actions - 2/3 width -->
+    <div class="lg:col-span-2">
+      <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div class="card-header px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 class="card-title text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <i class="ki-filled ki-flash-circle text-primary mr-2"></i>
+            Hızlı Aksiyonlar
+          </h3>
+        </div>
+        <div class="card-body p-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            @for (action of quickActions; track action.title) {
+              <button class="flex items-start gap-4 p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700
+                           hover:border-{{ action.color }} hover:bg-{{ action.color }}-light
+                           transition-all duration-200 text-left group cursor-pointer">
+                <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-{{ action.color }}-light
+                          group-hover:bg-{{ action.color }} group-hover:text-white transition-colors">
+                  <i class="ki-filled ki-{{ action.icon }} text-2xl text-{{ action.color }} group-hover:text-white"></i>
+                </div>
+                <div class="flex-1">
+                  <h4 class="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                    {{ action.title }}
+                  </h4>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    {{ action.description }}
+                  </p>
+                </div>
+                <i class="ki-filled ki-right text-gray-400 group-hover:text-{{ action.color }} mt-1"></i>
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart Card -->
+      <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mt-5 lg:mt-7">
+        <div class="card-header px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 class="card-title text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <i class="ki-filled ki-chart-line text-success mr-2"></i>
+            Performans Özeti
+          </h3>
+        </div>
+        <div class="card-body p-6">
+          <!-- Chart Placeholder -->
+          <div class="flex items-center justify-center h-64 bg-gray-50 dark:bg-gray-900 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
+            <div class="text-center">
+              <i class="ki-filled ki-chart-line-up text-6xl text-gray-300 dark:text-gray-600 mb-4"></i>
+              <p class="text-gray-500 dark:text-gray-400">Grafik entegrasyonu yakında</p>
+              <p class="text-sm text-gray-400 dark:text-gray-500 mt-2">ApexCharts ile dinamik grafikler eklenecek</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activities - 1/3 width -->
+    <div class="lg:col-span-1">
+      <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div class="card-header px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 class="card-title text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <i class="ki-filled ki-notification-on text-warning mr-2"></i>
+            Son Aktiviteler
+          </h3>
+        </div>
+        <div class="card-body p-0">
+          <div class="max-h-[600px] overflow-y-auto">
+            @for (activity of recentActivities; track activity.id) {
+              <div class="flex items-start gap-4 px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+                <div class="flex items-center justify-center w-10 h-10 rounded-full flex-shrink-0"
+                     [ngClass]="getActivityBgColor(activity.type)">
+                  <i class="ki-filled ki-{{ getActivityIcon(activity) }} text-lg"
+                     [ngClass]="getActivityColor(activity.type)"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                    {{ activity.title }}
+                  </h4>
+                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    {{ activity.description }}
+                  </p>
+                  <div class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-500">
+                    <i class="ki-filled ki-time text-xs"></i>
+                    {{ activity.time }}
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+        <div class="card-footer px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+          <button class="btn btn-sm btn-light w-full flex items-center justify-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700">
+            <i class="ki-filled ki-eye"></i>
+            Tümünü Görüntüle
+          </button>
+        </div>
+      </div>
+
+      <!-- System Status -->
+      <div class="card bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mt-5 lg:mt-7">
+        <div class="card-header px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 class="card-title text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <i class="ki-filled ki-shield-tick text-success mr-2"></i>
+            Sistem Durumu
+          </h3>
+        </div>
+        <div class="card-body p-6">
+          <div class="space-y-4">
+            <!-- System Status Items -->
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-2 h-2 rounded-full bg-success animate-pulse"></div>
+                <span class="text-sm text-gray-700 dark:text-gray-300">Sunucu Durumu</span>
+              </div>
+              <span class="text-sm font-semibold text-success">Aktif</span>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-2 h-2 rounded-full bg-success animate-pulse"></div>
+                <span class="text-sm text-gray-700 dark:text-gray-300">Veritabanı</span>
+              </div>
+              <span class="text-sm font-semibold text-success">Aktif</span>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-2 h-2 rounded-full bg-warning"></div>
+                <span class="text-sm text-gray-700 dark:text-gray-300">Disk Kullanımı</span>
+              </div>
+              <span class="text-sm font-semibold text-warning">%78</span>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-2 h-2 rounded-full bg-success animate-pulse"></div>
+                <span class="text-sm text-gray-700 dark:text-gray-300">API Servisleri</span>
+              </div>
+              <span class="text-sm font-semibold text-success">Aktif</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Info -->
+  <div class="mt-5 lg:mt-7 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+    <div class="flex items-start gap-3">
+      <i class="ki-filled ki-information-2 text-blue-600 dark:text-blue-400 text-xl"></i>
+      <div>
+        <h4 class="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1">
+          Sistem Güncellemesi
+        </h4>
+        <p class="text-sm text-blue-700 dark:text-blue-300">
+          ADSUM sistemi düzenli olarak güncellenmektedir. Son güncelleme: <strong>16.10.2025</strong>
+        </p>
+      </div>
+    </div>
+  </div>
 </div>
 <!-- End of Container -->
