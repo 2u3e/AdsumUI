@@ -1,0 +1,99 @@
+// User Management Component Styles
+
+// Page Header Styling
+.flex {
+  &.items-center {
+    &.justify-between {
+      &.mb-6 {
+        h1 {
+          margin: 0;
+        }
+      }
+    }
+  }
+}
+
+// Filter Tabs Styling
+.border-b {
+  button {
+    position: relative;
+    transition: all 0.3s ease;
+
+    &:hover {
+      color: hsl(var(--primary));
+    }
+
+    &.active {
+      color: hsl(var(--primary));
+      border-bottom-color: hsl(var(--primary));
+    }
+  }
+}
+
+// Destructive text color for delete button
+.text-destructive {
+  color: hsl(var(--destructive));
+
+  &:hover {
+    color: hsl(var(--destructive));
+  }
+}
+
+// Dark mode specific styles
+// When <html> element has 'dark' class, these styles apply
+:host-context(html.dark) {
+  // Table body text colors
+  .kt-table {
+    tbody {
+      tr {
+        td {
+          // Text spans - make them visible in dark mode
+          span {
+            &.text-gray-700,
+            &.text-gray-900 {
+              color: #e5e7eb; // gray-100 equivalent
+            }
+
+            &.text-gray-500,
+            &.text-gray-400,
+            &.text-xs {
+              color: #9ca3af; // gray-400 equivalent
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Page header title
+  h1 {
+    &.text-gray-900 {
+      color: #e5e7eb;
+    }
+  }
+
+  // Card header title
+  h2 {
+    &.text-gray-900 {
+      color: #e5e7eb;
+    }
+  }
+
+  // Input elements
+  .kt-input {
+    &::placeholder {
+      color: #6b7280; // gray-500
+    }
+  }
+
+  // Datatable info and length text
+  .kt-datatable-info,
+  .kt-datatable-length {
+    color: #e5e7eb; // Make info text visible
+
+    select {
+      color: #e5e7eb; // Select text color
+      background-color: #1f2937; // dark background
+    }
+  }
+}

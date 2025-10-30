@@ -1,0 +1,196 @@
+<div class="kt-container-fixed">
+  <div
+    class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5"
+  >
+    <div class="flex flex-col justify-center gap-2">
+      <h1 class="text-xl font-medium leading-none text-mono">
+        Kullanıcı Yönetimi
+      </h1>
+      <div class="flex items-center flex-wrap gap-1.5 font-medium">
+        <span class="text-base text-secondary-foreground">
+          Toplam Kullanıcı:
+        </span>
+        <span class="text-base gray-800 font-semibold me-2"> 49,053 </span>
+        <span class="text-base text-secondary-foreground"> Aktif </span>
+        <span class="text-base gray-800 font-semibold"> 1724 </span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <a class="kt-btn kt-btn-primary" href="#">
+        <i class="ki-filled ki-plus text-base"></i>
+        <span>Yeni Kullanıcı</span>
+      </a>
+    </div>
+  </div>
+</div>
+<div class="kt-container-fixed">
+  <!-- DataTable Card -->
+  <div class="kt-card kt-card-grid min-w-full">
+    <!-- Card Header - Search -->
+    <div class="kt-card-header">
+      <div class="flex items-center gap-3 flex-1"></div>
+      <div class="flex items-center gap-3">
+        <input
+          type="text"
+          placeholder="Kullanıcı ara..."
+          class="kt-input sm:w-64"
+          [(ngModel)]="searchTerm"
+          [ngModelOptions]="{ standalone: true }"
+        />
+        <button class="kt-btn kt-btn-outline kt-btn-primary">
+          <i class="ki-filled ki-setting-4"> </i>
+          Filters
+        </button>
+      </div>
+    </div>
+
+    <!-- DataTable -->
+    <div class="kt-card-table">
+      <div class="kt-table-wrapper kt-scrollable">
+        <table class="kt-table">
+          <thead>
+            <tr>
+              <th scope="col" class="w-32">
+                <span class="kt-table-col">
+                  <span class="kt-table-col-label">Durum</span>
+                </span>
+              </th>
+              <th scope="col" class="min-w-[250px]">
+                <span class="kt-table-col">
+                  <span class="kt-table-col-label">Ad Soyad</span>
+                </span>
+              </th>
+              <th scope="col" class="min-w-[250px]">
+                <span class="kt-table-col">
+                  <span class="kt-table-col-label">Kullanıcı Adı</span>
+                </span>
+              </th>
+              <th scope="col" class="w-40">
+                <span class="kt-table-col">
+                  <span class="kt-table-col-label">İşlemler</span>
+                </span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of users(); track user.id) {
+              <tr>
+                <td>
+                  @if (user.status === "active") {
+                    <span class="kt-badge kt-badge-light kt-badge-success">
+                      <span class="kt-badge-dot"></span>
+                      Aktif
+                    </span>
+                  } @else {
+                    <span class="kt-badge kt-badge-light kt-badge-destructive">
+                      <span class="kt-badge-dot"></span>
+                      Pasif
+                    </span>
+                  }
+                </td>
+                <td>
+                  <div class="flex flex-col">
+                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                      {{ user.department }}
+                    </span>
+                    <span
+                      class="text-sm font-medium text-gray-900 dark:text-gray-100"
+                    >
+                      {{ user.name }}
+                    </span>
+                  </div>
+                </td>
+                <td>
+                  <div class="flex flex-col">
+                    <span
+                      class="text-sm font-medium text-gray-900 dark:text-gray-100"
+                    >
+                      {{ user.email.split("@")[0] }}
+                    </span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                      {{ user.email }}
+                    </span>
+                  </div>
+                </td>
+                <td>
+                  <div class="flex items-center gap-1">
+                    <button
+                      type="button"
+                      class="kt-btn kt-btn-ghost kt-btn-icon"
+                      (click)="onViewUser(user)"
+                      title="Görüntüle"
+                    >
+                      <i class="ki-filled ki-eye text-lg"></i>
+                    </button>
+                    <button
+                      type="button"
+                      class="kt-btn kt-btn-ghost kt-btn-icon"
+                      (click)="onEditUser(user)"
+                      title="Düzenle"
+                    >
+                      <i class="ki-filled ki-pencil text-lg"></i>
+                    </button>
+                    <button
+                      type="button"
+                      class="kt-btn kt-btn-ghost kt-btn-icon text-destructive"
+                      (click)="onDeleteUser(user)"
+                      title="Sil"
+                    >
+                      <i class="ki-filled ki-trash text-lg"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="text-center py-8">
+                  <div class="text-gray-500 dark:text-gray-400">
+                    Kullanıcı bulunamadı
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="kt-datatable-toolbar">
+        <div class="kt-datatable-length">
+          Gösterilecek kayıt sayısı
+          <select
+            class="kt-select kt-select-sm w-16"
+            [(ngModel)]="pageSize"
+            [ngModelOptions]="{ standalone: true }"
+          >
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+
+        <div class="kt-datatable-info">
+          Gösterilen: 1-{{ users().length }} / {{ users().length }}
+        </div>
+
+        <div>
+          <ol class="kt-pagination">
+            <li class="kt-pagination-item">
+              <a class="kt-btn kt-btn-ghost">Önceki</a>
+            </li>
+            <li class="kt-pagination-item">
+              <a class="kt-btn kt-btn-icon kt-btn-ghost active">1</a>
+            </li>
+            <li class="kt-pagination-item">
+              <a class="kt-btn kt-btn-icon kt-btn-ghost">2</a>
+            </li>
+            <li class="kt-pagination-item">
+              <a class="kt-btn kt-btn-ghost">Sonraki</a>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
