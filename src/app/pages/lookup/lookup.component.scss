@@ -1,0 +1,22 @@
+// Lookup Component Styles
+// Metronic theme class'larını kullanıyoruz
+
+:host {
+  display: block;
+}
+
+// Smooth transitions için
+.kt-btn {
+  transition: all 0.15s ease-in-out;
+}
+
+// Custom animations
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}

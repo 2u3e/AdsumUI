@@ -1,0 +1,293 @@
+<!-- Header -->
+<div class="kt-container-fixed">
+  <div
+    class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5"
+  >
+    <div class="flex flex-col justify-center gap-2">
+      <h1 class="text-xl font-medium leading-none text-mono">
+        Lookup Yönetimi
+      </h1>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <button
+        class="kt-btn kt-btn-primary"
+        (click)="onAddLookup()"
+        type="button"
+      >
+        <i class="ki-filled ki-plus text-base"></i>
+        <span>Yeni Lookup</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Error Alert -->
+@if (error()) {
+  <div class="kt-container-fixed mb-4">
+    <div
+      class="flex items-center justify-between gap-4 p-4 bg-red-100 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800"
+    >
+      <div class="flex items-center gap-3">
+        <i
+          class="ki-filled ki-information text-red-600 dark:text-red-400 text-xl"
+        ></i>
+        <span class="text-red-800 dark:text-red-200 text-sm font-medium">
+          {{ error() }}
+        </span>
+      </div>
+      <button
+        (click)="closeError()"
+        class="kt-btn kt-btn-ghost kt-btn-icon kt-btn-sm"
+        type="button"
+      >
+        <i class="ki-filled ki-cross text-red-600 dark:text-red-400"></i>
+      </button>
+    </div>
+  </div>
+}
+
+<!-- DataTable Card -->
+<div class="kt-container-fixed">
+  <div class="kt-card kt-card-grid min-w-full">
+    <!-- Card Header - Search -->
+    <div class="kt-card-header">
+      <div class="flex items-center gap-3 flex-1"></div>
+      <div class="flex items-center gap-3">
+        <input
+          type="text"
+          placeholder="Lookup ara..."
+          class="kt-input sm:w-64"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="onSearchChange($event)"
+          [ngModelOptions]="{ standalone: true }"
+        />
+        <button
+          class="kt-btn kt-btn-outline kt-btn-icon"
+          (click)="refresh()"
+          [disabled]="loading()"
+          type="button"
+          title="Yenile"
+        >
+          <i class="ki-filled ki-arrows-circle"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- DataTable -->
+    <div class="kt-card-table">
+      <div class="kt-table-wrapper kt-scrollable">
+        <table class="kt-table">
+          <thead>
+            <tr>
+              <th scope="col" class="w-20">
+                <span class="kt-table-col">
+                  <span class="kt-table-col-label">ID</span>
+                </span>
+              </th>
+              <th scope="col" class="w-32">
+                <span class="kt-table-col">
+                  <span class="kt-table-col-label">Durum</span>
+                </span>
+              </th>
+              <th scope="col" class="min-w-[250px]">
+                <span class="kt-table-col">
+                  <span class="kt-table-col-label">Ad</span>
+                </span>
+              </th>
+              <th scope="col" class="min-w-[200px]">
+                <span class="kt-table-col">
+                  <span class="kt-table-col-label">Kısa Ad</span>
+                </span>
+              </th>
+              <th scope="col" class="w-40">
+                <span class="kt-table-col">
+                  <span class="kt-table-col-label">İşlemler</span>
+                </span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (loading()) {
+              <tr>
+                <td colspan="5" class="text-center py-12">
+                  <div class="flex flex-col items-center gap-3">
+                    <div
+                      class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"
+                    ></div>
+                    <span class="text-sm text-muted-foreground"
+                      >Yükleniyor...</span
+                    >
+                  </div>
+                </td>
+              </tr>
+            } @else {
+              @for (lookup of lookups(); track lookup.id) {
+                <tr>
+                  <td>
+                    <span class="text-sm text-gray-900 dark:text-gray-100">
+                      {{ lookup.id }}
+                    </span>
+                  </td>
+                  <td>
+                    @if (lookup.isActive) {
+                      <span class="kt-badge kt-badge-light kt-badge-success">
+                        <span class="kt-badge-dot"></span>
+                        Aktif
+                      </span>
+                    } @else {
+                      <span
+                        class="kt-badge kt-badge-light kt-badge-destructive"
+                      >
+                        <span class="kt-badge-dot"></span>
+                        Pasif
+                      </span>
+                    }
+                  </td>
+                  <td>
+                    <div class="flex flex-col">
+                      <span
+                        class="text-sm font-medium text-gray-900 dark:text-gray-100"
+                      >
+                        {{ lookup.name }}
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="text-sm text-gray-500 dark:text-gray-400">
+                      {{ lookup.shortName || "-" }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="flex items-center gap-1">
+                      <button
+                        type="button"
+                        class="kt-btn kt-btn-ghost kt-btn-icon"
+                        (click)="onViewLookup(lookup)"
+                        title="Görüntüle"
+                      >
+                        <i class="ki-filled ki-eye text-lg"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="kt-btn kt-btn-ghost kt-btn-icon"
+                        (click)="onEditLookup(lookup)"
+                        title="Düzenle"
+                      >
+                        <i class="ki-filled ki-pencil text-lg"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="kt-btn kt-btn-ghost kt-btn-icon"
+                        (click)="toggleActive(lookup)"
+                        [title]="lookup.isActive ? 'Pasif Yap' : 'Aktif Yap'"
+                      >
+                        <i class="ki-filled ki-arrows-circle text-lg"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="kt-btn kt-btn-ghost kt-btn-icon text-destructive"
+                        (click)="deleteLookup(lookup)"
+                        title="Sil"
+                      >
+                        <i class="ki-filled ki-trash text-lg"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="text-center py-8">
+                    <div class="flex flex-col items-center gap-2">
+                      <i
+                        class="ki-filled ki-information-2 text-4xl text-muted-foreground"
+                      ></i>
+                      <span class="text-muted-foreground">
+                        @if (searchTerm()) {
+                          Arama kriterlerine uygun kayıt bulunamadı
+                        } @else {
+                          Henüz kayıt bulunmuyor
+                        }
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      @if (lookups().length > 0 && !loading()) {
+        <div class="kt-datatable-toolbar">
+          <div class="kt-datatable-length">
+            Gösterilecek kayıt sayısı
+            <select
+              class="kt-select kt-select-sm w-16"
+              [ngModel]="pageSize()"
+              (ngModelChange)="onPageSizeChange(+$event)"
+              [ngModelOptions]="{ standalone: true }"
+            >
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+              <option [value]="50">50</option>
+              <option [value]="100">100</option>
+            </select>
+          </div>
+
+          <div class="kt-datatable-info">
+            @if (displayFrom() > 0) {
+              Gösterilen: {{ displayFrom() }}-{{ displayTo() }} /
+              {{ displayTotal() }}
+            } @else {
+              Gösterilen: 0 kayıt
+            }
+          </div>
+
+          <div>
+            @if (totalPages() > 1) {
+              <ol class="kt-pagination">
+                <li class="kt-pagination-item">
+                  <button
+                    class="kt-btn kt-btn-ghost"
+                    (click)="previousPage()"
+                    [disabled]="!hasPreviousPage() || loading()"
+                    type="button"
+                  >
+                    Önceki
+                  </button>
+                </li>
+                @for (pageNum of pageNumbers(); track pageNum) {
+                  <li class="kt-pagination-item">
+                    <button
+                      class="kt-btn kt-btn-icon kt-btn-ghost"
+                      [class.active]="pageNum === currentPage()"
+                      (click)="goToPage(pageNum)"
+                      [disabled]="loading()"
+                      type="button"
+                    >
+                      {{ pageNum }}
+                    </button>
+                  </li>
+                }
+                <li class="kt-pagination-item">
+                  <button
+                    class="kt-btn kt-btn-ghost"
+                    (click)="nextPage()"
+                    [disabled]="!hasNextPage() || loading()"
+                    type="button"
+                  >
+                    Sonraki
+                  </button>
+                </li>
+              </ol>
+            } @else {
+              <div class="text-sm text-muted-foreground">1 sayfa</div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>
