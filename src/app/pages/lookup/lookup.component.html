@@ -21,6 +21,282 @@
   </div>
 </div>
 
+<!-- Create Modal -->
+@if (createModalOpen()) {
+  <!-- Modal Backdrop -->
+  <div
+    class="fixed inset-0 bg-black/50 z-[100] transition-opacity"
+    (click)="closeCreateModal()"
+  ></div>
+
+  <!-- Modal Content -->
+  <div class="fixed inset-0 z-[101] flex items-center justify-center p-4">
+    <div
+      class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full relative"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Header -->
+      <div
+        class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700"
+      >
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+          Yeni Lookup Ekle
+        </h3>
+        <button
+          type="button"
+          class="kt-btn kt-btn-ghost kt-btn-icon kt-btn-sm"
+          (click)="closeCreateModal()"
+          [disabled]="createFormSubmitting()"
+        >
+          <i class="ki-filled ki-cross"></i>
+        </button>
+      </div>
+
+      <!-- Form Content -->
+      <div class="p-6 space-y-4">
+        <!-- ID Field -->
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            ID
+            @if (createForm.id() !== null && !isIdValid()) {
+              <span class="text-red-500">*</span>
+            }
+          </label>
+          <input
+            type="number"
+            class="kt-input w-full"
+            [class.border-red-500]="createForm.id() !== null && !isIdValid()"
+            placeholder="3 basamaklı ID giriniz (100-999)"
+            [ngModel]="createForm.id()"
+            (ngModelChange)="createForm.id.set($event)"
+            [ngModelOptions]="{ standalone: true }"
+            [disabled]="createFormSubmitting()"
+            min="100"
+            max="999"
+          />
+          @if (createForm.id() !== null && !isIdValid()) {
+            <span class="text-red-500 text-xs flex items-center gap-1 mt-1">
+              <i class="ki-filled ki-information text-xs"></i>
+              ID 3 basamaklı olmalıdır (100-999)
+            </span>
+          }
+        </div>
+
+        <!-- Name Field -->
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            Ad
+            @if (!isCreateFormValid() && createForm.name().length > 0) {
+              <span class="text-red-500">*</span>
+            }
+          </label>
+          <input
+            type="text"
+            class="kt-input w-full"
+            [class.border-red-500]="
+              !isCreateFormValid() && createForm.name().length > 0
+            "
+            placeholder="Lookup adı giriniz"
+            [ngModel]="createForm.name()"
+            (ngModelChange)="createForm.name.set($event)"
+            [ngModelOptions]="{ standalone: true }"
+            [disabled]="createFormSubmitting()"
+            maxlength="100"
+          />
+          @if (!isCreateFormValid() && createForm.name().length > 0) {
+            <span class="text-red-500 text-xs flex items-center gap-1 mt-1">
+              <i class="ki-filled ki-information text-xs"></i>
+              Ad alanı boş bırakılamaz
+            </span>
+          }
+        </div>
+
+        <!-- Short Name Field -->
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            Kısa Ad
+          </label>
+          <input
+            type="text"
+            class="kt-input w-full"
+            placeholder="Kısa ad giriniz (opsiyonel)"
+            [ngModel]="createForm.shortName()"
+            (ngModelChange)="createForm.shortName.set($event)"
+            [ngModelOptions]="{ standalone: true }"
+            [disabled]="createFormSubmitting()"
+            maxlength="50"
+          />
+        </div>
+
+        <!-- Is Active Field -->
+        <div class="flex items-center gap-3 py-2">
+          <input
+            class="kt-switch"
+            type="checkbox"
+            [checked]="createForm.isActive()"
+            (change)="createForm.isActive.set($any($event.target).checked)"
+            [disabled]="createFormSubmitting()"
+            id="isActive"
+          />
+          <label
+            for="isActive"
+            class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+          >
+            Aktif
+          </label>
+        </div>
+
+        <!-- Validation Warning -->
+        @if (!isCreateFormValid() && createForm.name().length > 0) {
+          <div
+            class="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-lg"
+          >
+            <i
+              class="ki-filled ki-information text-red-600 dark:text-red-400 text-base mt-0.5 flex-shrink-0"
+            ></i>
+            <p class="text-sm text-red-800 dark:text-red-200">
+              Zorunlu alanları doldurunuz.
+            </p>
+          </div>
+        }
+      </div>
+
+      <!-- Actions -->
+      <div
+        class="flex justify-end gap-2.5 px-6 py-4 border-t border-gray-200 dark:border-gray-700"
+      >
+        <button
+          type="button"
+          class="kt-btn kt-btn-outline"
+          (click)="closeCreateModal()"
+          [disabled]="createFormSubmitting()"
+        >
+          İptal
+        </button>
+        <button
+          type="button"
+          class="kt-btn kt-btn-primary"
+          (click)="submitCreateForm()"
+          [disabled]="!isCreateFormValid() || createFormSubmitting()"
+        >
+          @if (createFormSubmitting()) {
+            <span class="flex items-center gap-2">
+              <span
+                class="spinner animate-spin border-2 border-current border-t-transparent rounded-full w-4 h-4"
+              ></span>
+              Kaydediliyor...
+            </span>
+          } @else {
+            Kaydet
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Delete Confirmation Modal -->
+@if (deleteModalOpen()) {
+  <!-- Modal Backdrop -->
+  <div
+    class="fixed inset-0 bg-black/50 z-[100] transition-opacity"
+    (click)="closeDeleteModal()"
+  ></div>
+
+  <!-- Modal Content -->
+  <div class="fixed inset-0 z-[101] flex items-center justify-center p-4">
+    <div
+      class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full relative"
+    >
+      <!-- Content Section -->
+      <div class="flex flex-col pt-6 pb-6 px-6">
+        <h3
+          class="text-xl font-semibold text-gray-900 dark:text-white mb-4 text-center"
+        >
+          Kaydı Silmek İstediğinize Emin misiniz?
+        </h3>
+
+        @if (selectedLookup()) {
+          <div class="w-full space-y-3">
+            <div
+              class="flex items-start gap-2 p-3 bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded-lg"
+            >
+              <svg
+                class="w-5 h-5 text-yellow-600 dark:text-yellow-500 mt-0.5 flex-shrink-0"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <p class="text-sm text-yellow-800 dark:text-yellow-200">
+                Bu işlem geri alınamaz. Kayıt kalıcı olarak silinecektir.
+              </p>
+            </div>
+
+            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+              <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                Silinecek Kayıt:
+              </p>
+              <p class="text-base font-semibold text-gray-900 dark:text-white">
+                {{ selectedLookup()!.name }}
+              </p>
+              @if (selectedLookup()!.shortName) {
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Kısa Ad:
+                  <span class="font-medium">{{
+                    selectedLookup()!.shortName
+                  }}</span>
+                </p>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Actions -->
+      <div class="flex gap-3 p-6 pt-0">
+        <button
+          class="flex-1 px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+          (click)="closeDeleteModal()"
+          type="button"
+        >
+          İptal
+        </button>
+        <button
+          class="flex-1 px-6 py-3 text-sm font-medium text-white bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 rounded-lg transition-colors flex items-center justify-center gap-2"
+          (click)="confirmDelete()"
+          type="button"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            />
+          </svg>
+          Evet, Sil
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
 <!-- Error Alert -->
 @if (error()) {
   <div class="kt-container-fixed mb-4">

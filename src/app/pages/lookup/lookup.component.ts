@@ -22,6 +22,18 @@ export class LookupComponent implements OnInit {
   pagination = signal<PaginationMeta | null>(null);
   loading = signal<boolean>(false);
   error = signal<string | null>(null);
+  deleteModalOpen = signal<boolean>(false);
+  createModalOpen = signal<boolean>(false);
+  selectedLookup = signal<LookupItem | null>(null);
+
+  // Create form
+  createForm = {
+    id: signal<number | null>(null),
+    name: signal<string>(""),
+    shortName: signal<string>(""),
+    isActive: signal<boolean>(true),
+  };
+  createFormSubmitting = signal<boolean>(false);
 
   // Search ve pagination parametreleri
   searchTerm = signal<string>("");
@@ -264,32 +276,124 @@ export class LookupComponent implements OnInit {
   }
 
   /**
-   * Lookup sil
+   * Lookup sil - Modal aç
    */
   deleteLookup(lookup: LookupItem): void {
-    if (
-      !confirm(`"${lookup.name}" kaydını silmek istediğinize emin misiniz?`)
-    ) {
-      return;
-    }
+    this.selectedLookup.set(lookup);
+    this.deleteModalOpen.set(true);
+  }
+
+  /**
+   * Delete modal kapat
+   */
+  closeDeleteModal(): void {
+    this.deleteModalOpen.set(false);
+    this.selectedLookup.set(null);
+  }
+
+  /**
+   * Silme işlemini onayla
+   */
+  confirmDelete(): void {
+    const lookup = this.selectedLookup();
+    if (!lookup) return;
 
     this.lookupService.deleteById(lookup.id).subscribe({
       next: () => {
+        this.closeDeleteModal();
         this.loadLookups();
       },
       error: (err) => {
         this.error.set("Silme işlemi başarısız: " + err.message);
         console.error("Delete error:", err);
+        this.closeDeleteModal();
       },
     });
   }
 
   /**
-   * Yeni lookup ekle
+   * Yeni lookup ekle - Modal aç
    */
   onAddLookup(): void {
-    console.log("Yeni lookup ekle");
-    // TODO: Ekleme modalı veya sayfası
+    this.resetCreateForm();
+    this.createModalOpen.set(true);
+  }
+
+  /**
+   * Create modal kapat
+   */
+  closeCreateModal(): void {
+    this.createModalOpen.set(false);
+    this.resetCreateForm();
+  }
+
+  /**
+   * Create form resetle
+   */
+  resetCreateForm(): void {
+    this.createForm.id.set(null);
+    this.createForm.name.set("");
+    this.createForm.shortName.set("");
+    this.createForm.isActive.set(true);
+    this.createFormSubmitting.set(false);
+  }
+
+  /**
+   * Form validation
+   */
+  isCreateFormValid(): boolean {
+    const id = this.createForm.id();
+    const name = this.createForm.name().trim();
+
+    // ID zorunlu ve 3 basamaklı (100-999) olmalı
+    if (id === null || id < 100 || id > 999) {
+      return false;
+    }
+
+    // Name zorunlu
+    if (name.length === 0) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * ID alanı geçerli mi?
+   */
+  isIdValid(): boolean {
+    const id = this.createForm.id();
+    return id !== null && id >= 100 && id <= 999;
+  }
+
+  /**
+   * Yeni lookup oluştur
+   */
+  submitCreateForm(): void {
+    if (!this.isCreateFormValid() || this.createFormSubmitting()) {
+      return;
+    }
+
+    this.createFormSubmitting.set(true);
+
+    const request = {
+      id: this.createForm.id()!,
+      name: this.createForm.name().trim(),
+      shortName: this.createForm.shortName().trim() || undefined,
+      isActive: this.createForm.isActive(),
+    };
+
+    this.lookupService.create(request).subscribe({
+      next: () => {
+        this.closeCreateModal();
+        this.loadLookups();
+      },
+      error: (err) => {
+        this.error.set("Kayıt oluşturulurken hata oluştu: " + err.message);
+        console.error("Create error:", err);
+        this.createFormSubmitting.set(false);
+      },
+    });
   }
 
   /**

@@ -33,6 +33,9 @@ export interface GetLookupsRequest {
  * Yeni Lookup oluşturma request
  */
 export interface CreateLookupRequest {
+  /** Lookup ID (3 basamaklı: 100-999) */
+  id: number;
+
   /** Lookup adı */
   name: string;
 

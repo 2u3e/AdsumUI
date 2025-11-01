@@ -54,7 +54,7 @@ export class LookupService extends BaseHttpService {
    * Yeni lookup kaydı oluşturur
    */
   create(request: CreateLookupRequest): Observable<Response<LookupItem>> {
-    return this.post<LookupItem>(this.endpoint, request);
+    return this.post<LookupItem>(`${this.endpoint}/create`, request);
   }
 
   /**
