@@ -1,0 +1,568 @@
+<!-- Header -->
+<div class="kt-container-fixed">
+  <div
+    class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5"
+  >
+    <div class="flex flex-col justify-center gap-2">
+      <h1 class="text-xl font-medium leading-none text-mono">
+        Reference Yönetimi
+      </h1>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <button
+        class="kt-btn kt-btn-primary"
+        (click)="onAddReference()"
+        type="button"
+      >
+        <i class="ki-filled ki-plus text-base"></i>
+        <span>Yeni Reference</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Create Modal -->
+@if (createModalOpen()) {
+  <!-- Modal Backdrop -->
+  <div
+    class="fixed inset-0 bg-black/50 z-[100] transition-opacity"
+    (click)="closeCreateModal()"
+  ></div>
+
+  <!-- Modal Content -->
+  <div class="fixed inset-0 z-[101] flex items-center justify-center p-4">
+    <div
+      class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full relative"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Header -->
+      <div
+        class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700"
+      >
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+          Yeni Reference Ekle
+        </h3>
+        <button
+          type="button"
+          class="kt-btn kt-btn-ghost kt-btn-icon kt-btn-sm"
+          (click)="closeCreateModal()"
+          [disabled]="createFormSubmitting()"
+        >
+          <i class="ki-filled ki-cross"></i>
+        </button>
+      </div>
+
+      <!-- Form Content -->
+      <div class="p-6 space-y-4">
+        <!-- Business ID Field -->
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            Business ID
+            @if (createForm.businessId() !== null && !isBusinessIdValid()) {
+              <span class="text-red-500">*</span>
+            }
+          </label>
+          <input
+            type="number"
+            class="kt-input w-full"
+            [class.border-red-500]="
+              createForm.businessId() !== null && !isBusinessIdValid()
+            "
+            placeholder="Business ID giriniz"
+            [ngModel]="createForm.businessId()"
+            (ngModelChange)="createForm.businessId.set($event)"
+            [ngModelOptions]="{ standalone: true }"
+            [disabled]="createFormSubmitting()"
+            min="1"
+          />
+          @if (createForm.businessId() !== null && !isBusinessIdValid()) {
+            <span class="text-red-500 text-xs flex items-center gap-1 mt-1">
+              <i class="ki-filled ki-information text-xs"></i>
+              Business ID pozitif bir sayı olmalıdır
+            </span>
+          }
+        </div>
+
+        <!-- Name Field -->
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            Ad
+            @if (!isCreateFormValid() && createForm.name().length > 0) {
+              <span class="text-red-500">*</span>
+            }
+          </label>
+          <input
+            type="text"
+            class="kt-input w-full"
+            [class.border-red-500]="
+              !isCreateFormValid() && createForm.name().length > 0
+            "
+            placeholder="Reference adı giriniz"
+            [ngModel]="createForm.name()"
+            (ngModelChange)="createForm.name.set($event)"
+            [ngModelOptions]="{ standalone: true }"
+            [disabled]="createFormSubmitting()"
+            maxlength="100"
+          />
+          @if (!isCreateFormValid() && createForm.name().length > 0) {
+            <span class="text-red-500 text-xs flex items-center gap-1 mt-1">
+              <i class="ki-filled ki-information text-xs"></i>
+              Ad alanı boş bırakılamaz
+            </span>
+          }
+        </div>
+
+        <!-- Short Name Field -->
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            Kısa Ad
+          </label>
+          <input
+            type="text"
+            class="kt-input w-full"
+            placeholder="Kısa ad giriniz (opsiyonel)"
+            [ngModel]="createForm.shortName()"
+            (ngModelChange)="createForm.shortName.set($event)"
+            [ngModelOptions]="{ standalone: true }"
+            [disabled]="createFormSubmitting()"
+            maxlength="50"
+          />
+        </div>
+
+        <!-- Is Active Field -->
+        <div class="flex items-center gap-3 py-2">
+          <input
+            class="kt-switch"
+            type="checkbox"
+            [checked]="createForm.isActive()"
+            (change)="createForm.isActive.set($any($event.target).checked)"
+            [disabled]="createFormSubmitting()"
+            id="isActive"
+          />
+          <label
+            for="isActive"
+            class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+          >
+            Aktif
+          </label>
+        </div>
+
+        <!-- Validation Warning -->
+        @if (!isCreateFormValid() && createForm.name().length > 0) {
+          <div
+            class="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-lg"
+          >
+            <i
+              class="ki-filled ki-information text-red-600 dark:text-red-400 text-base mt-0.5 flex-shrink-0"
+            ></i>
+            <p class="text-sm text-red-800 dark:text-red-200">
+              Zorunlu alanları doldurunuz.
+            </p>
+          </div>
+        }
+      </div>
+
+      <!-- Actions -->
+      <div
+        class="flex justify-end gap-2.5 px-6 py-4 border-t border-gray-200 dark:border-gray-700"
+      >
+        <button
+          type="button"
+          class="kt-btn kt-btn-outline"
+          (click)="closeCreateModal()"
+          [disabled]="createFormSubmitting()"
+        >
+          İptal
+        </button>
+        <button
+          type="button"
+          class="kt-btn kt-btn-primary"
+          (click)="submitCreateForm()"
+          [disabled]="!isCreateFormValid() || createFormSubmitting()"
+        >
+          @if (createFormSubmitting()) {
+            <span class="flex items-center gap-2">
+              <span
+                class="spinner animate-spin border-2 border-current border-t-transparent rounded-full w-4 h-4"
+              ></span>
+              Kaydediliyor...
+            </span>
+          } @else {
+            Kaydet
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Delete Confirmation Modal -->
+@if (deleteModalOpen()) {
+  <!-- Modal Backdrop -->
+  <div
+    class="fixed inset-0 bg-black/50 z-[100] transition-opacity"
+    (click)="closeDeleteModal()"
+  ></div>
+
+  <!-- Modal Content -->
+  <div class="fixed inset-0 z-[101] flex items-center justify-center p-4">
+    <div
+      class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full relative"
+    >
+      <!-- Content Section -->
+      <div class="flex flex-col pt-6 pb-6 px-6">
+        <h3
+          class="text-xl font-semibold text-gray-900 dark:text-white mb-4 text-center"
+        >
+          Kaydı Silmek İstediğinize Emin misiniz?
+        </h3>
+
+        @if (selectedReference()) {
+          <div class="w-full space-y-3">
+            <div
+              class="flex items-start gap-2 p-3 bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded-lg"
+            >
+              <svg
+                class="w-5 h-5 text-yellow-600 dark:text-yellow-500 mt-0.5 flex-shrink-0"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <p class="text-sm text-yellow-800 dark:text-yellow-200">
+                Bu işlem geri alınamaz. Kayıt kalıcı olarak silinecektir.
+              </p>
+            </div>
+
+            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+              <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                Silinecek Kayıt:
+              </p>
+              <p class="text-base font-semibold text-gray-900 dark:text-white">
+                {{ selectedReference()!.name }}
+              </p>
+              @if (selectedReference()!.shortName) {
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Kısa Ad:
+                  <span class="font-medium">{{
+                    selectedReference()!.shortName
+                  }}</span>
+                </p>
+              }
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Business ID:
+                <span class="font-medium">{{
+                  selectedReference()!.businessId
+                }}</span>
+              </p>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Actions -->
+      <div class="flex gap-3 p-6 pt-0">
+        <button
+          class="flex-1 px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+          (click)="closeDeleteModal()"
+          type="button"
+        >
+          İptal
+        </button>
+        <button
+          class="flex-1 px-6 py-3 text-sm font-medium text-white bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 rounded-lg transition-colors flex items-center justify-center gap-2"
+          (click)="confirmDelete()"
+          type="button"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            />
+          </svg>
+          Evet, Sil
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Error Alert -->
+@if (error()) {
+  <div class="kt-container-fixed mb-4">
+    <div
+      class="flex items-center justify-between gap-4 p-4 bg-red-100 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800"
+    >
+      <div class="flex items-center gap-3">
+        <i
+          class="ki-filled ki-information text-red-600 dark:text-red-400 text-xl"
+        ></i>
+        <span class="text-red-800 dark:text-red-200 text-sm font-medium">
+          {{ error() }}
+        </span>
+      </div>
+      <button
+        (click)="closeError()"
+        class="kt-btn kt-btn-ghost kt-btn-icon kt-btn-sm"
+        type="button"
+      >
+        <i class="ki-filled ki-cross text-red-600 dark:text-red-400"></i>
+      </button>
+    </div>
+  </div>
+}
+
+<!-- DataTable Card -->
+<div class="kt-container-fixed">
+  <div class="kt-card kt-card-grid min-w-full">
+    <!-- Card Header - Search -->
+    <div class="kt-card-header">
+      <div class="flex items-center gap-3 flex-1"></div>
+      <div class="flex items-center gap-3">
+        <input
+          type="text"
+          placeholder="Reference ara..."
+          class="kt-input sm:w-64"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="onSearchChange($event)"
+          [ngModelOptions]="{ standalone: true }"
+        />
+        <button
+          class="kt-btn kt-btn-outline kt-btn-icon"
+          (click)="refresh()"
+          [disabled]="loading()"
+          type="button"
+          title="Yenile"
+        >
+          <i class="ki-filled ki-arrows-circle"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- DataTable -->
+    <div class="kt-card-table">
+      <div class="kt-table-wrapper kt-scrollable">
+        <table class="kt-table">
+          <thead>
+            <tr>
+              <th scope="col" class="w-32">
+                <span class="kt-table-col">
+                  <span class="kt-table-col-label">Business ID</span>
+                </span>
+              </th>
+              <th scope="col" class="w-32">
+                <span class="kt-table-col">
+                  <span class="kt-table-col-label">Durum</span>
+                </span>
+              </th>
+              <th scope="col" class="min-w-[250px]">
+                <span class="kt-table-col">
+                  <span class="kt-table-col-label">Ad</span>
+                </span>
+              </th>
+              <th scope="col" class="min-w-[200px]">
+                <span class="kt-table-col">
+                  <span class="kt-table-col-label">Kısa Ad</span>
+                </span>
+              </th>
+              <th scope="col" class="w-40">
+                <span class="kt-table-col">
+                  <span class="kt-table-col-label">İşlemler</span>
+                </span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (loading()) {
+              <tr>
+                <td colspan="5" class="text-center py-12">
+                  <div class="flex flex-col items-center gap-3">
+                    <div
+                      class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"
+                    ></div>
+                    <span class="text-sm text-muted-foreground"
+                      >Yükleniyor...</span
+                    >
+                  </div>
+                </td>
+              </tr>
+            } @else {
+              @for (reference of references(); track reference.id) {
+                <tr>
+                  <td>
+                    <span class="text-sm text-gray-900 dark:text-gray-100">
+                      {{ reference.businessId }}
+                    </span>
+                  </td>
+                  <td>
+                    @if (reference.isActive) {
+                      <span class="kt-badge kt-badge-light kt-badge-success">
+                        <span class="kt-badge-dot"></span>
+                        Aktif
+                      </span>
+                    } @else {
+                      <span
+                        class="kt-badge kt-badge-light kt-badge-destructive"
+                      >
+                        <span class="kt-badge-dot"></span>
+                        Pasif
+                      </span>
+                    }
+                  </td>
+                  <td>
+                    <div class="flex flex-col">
+                      <span
+                        class="text-sm font-medium text-gray-900 dark:text-gray-100"
+                      >
+                        {{ reference.name }}
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="text-sm text-gray-500 dark:text-gray-400">
+                      {{ reference.shortName || "-" }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="flex items-center gap-1">
+                      <button
+                        type="button"
+                        class="kt-btn kt-btn-ghost kt-btn-icon"
+                        (click)="onViewReference(reference)"
+                        title="Görüntüle"
+                      >
+                        <i class="ki-filled ki-eye text-lg"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="kt-btn kt-btn-ghost kt-btn-icon"
+                        (click)="onEditReference(reference)"
+                        title="Düzenle"
+                      >
+                        <i class="ki-filled ki-pencil text-lg"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="kt-btn kt-btn-ghost kt-btn-icon text-destructive"
+                        (click)="deleteReference(reference)"
+                        title="Sil"
+                      >
+                        <i class="ki-filled ki-trash text-lg"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="text-center py-8">
+                    <div class="flex flex-col items-center gap-2">
+                      <i
+                        class="ki-filled ki-information-2 text-4xl text-muted-foreground"
+                      ></i>
+                      <span class="text-muted-foreground">
+                        @if (searchTerm()) {
+                          Arama kriterlerine uygun kayıt bulunamadı
+                        } @else {
+                          Henüz kayıt bulunmuyor
+                        }
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      @if (references().length > 0 && !loading()) {
+        <div class="kt-datatable-toolbar">
+          <div class="kt-datatable-length">
+            Gösterilecek kayıt sayısı
+            <select
+              class="kt-select kt-select-sm w-16"
+              [ngModel]="pageSize()"
+              (ngModelChange)="onPageSizeChange(+$event)"
+              [ngModelOptions]="{ standalone: true }"
+            >
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+              <option [value]="50">50</option>
+              <option [value]="100">100</option>
+            </select>
+          </div>
+
+          <div class="kt-datatable-info">
+            @if (displayFrom() > 0) {
+              Gösterilen: {{ displayFrom() }}-{{ displayTo() }} /
+              {{ displayTotal() }}
+            } @else {
+              Gösterilen: 0 kayıt
+            }
+          </div>
+
+          <div>
+            @if (totalPages() > 1) {
+              <ol class="kt-pagination">
+                <li class="kt-pagination-item">
+                  <button
+                    class="kt-btn kt-btn-ghost"
+                    (click)="previousPage()"
+                    [disabled]="!hasPreviousPage() || loading()"
+                    type="button"
+                  >
+                    Önceki
+                  </button>
+                </li>
+                @for (pageNum of pageNumbers(); track pageNum) {
+                  <li class="kt-pagination-item">
+                    <button
+                      class="kt-btn kt-btn-icon kt-btn-ghost"
+                      [class.active]="pageNum === currentPage()"
+                      (click)="goToPage(pageNum)"
+                      [disabled]="loading()"
+                      type="button"
+                    >
+                      {{ pageNum }}
+                    </button>
+                  </li>
+                }
+                <li class="kt-pagination-item">
+                  <button
+                    class="kt-btn kt-btn-ghost"
+                    (click)="nextPage()"
+                    [disabled]="!hasNextPage() || loading()"
+                    type="button"
+                  >
+                    Sonraki
+                  </button>
+                </li>
+              </ol>
+            } @else {
+              <div class="text-sm text-muted-foreground">1 sayfa</div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

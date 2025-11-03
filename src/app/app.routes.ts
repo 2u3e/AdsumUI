@@ -6,7 +6,7 @@ import { IndexComponent } from "./pages/index/index.component";
 import { Demo1Component } from "./layouts/demo1/demo1.component";
 import { IndexComponent as Demo1IndexComponent } from "./pages/demo1/index/index.component";
 import { UserManagementComponent } from "./pages/user-management/user-management.component";
-import { LookupComponent } from "./pages/lookup/lookup.component";
+import { ReferenceComponent } from "./pages/reference/reference.component";
 
 import { authGuard, loginGuard } from "./core/guards/auth.guard";
 
@@ -30,8 +30,8 @@ export const routes: Routes = [
         component: UserManagementComponent,
       },
       {
-        path: "lookup",
-        component: LookupComponent,
+        path: "reference",
+        component: ReferenceComponent,
       },
     ],
   },
