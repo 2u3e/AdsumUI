@@ -1,0 +1,27 @@
+// Citizen Component Styles
+
+.spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: rotate 1s linear infinite;
+}
+
+// Button transition effects
+.kt-btn {
+  transition: all 0.2s ease-in-out;
+}
+
+// Modal animations could be added here if needed
