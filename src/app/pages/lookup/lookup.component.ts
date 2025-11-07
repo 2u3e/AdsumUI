@@ -3,8 +3,8 @@ import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
-import { LookupService } from "../../core/services/lookup.service";
-import { LookupItem } from "../../core/models/lookup.models";
+import { ReferenceService } from "../../core/services/reference.service";
+import { ReferenceItem } from "../../core/models/reference.models";
 import { PaginationMeta } from "../../core/models/api.models";
 
 @Component({
@@ -15,25 +15,34 @@ import { PaginationMeta } from "../../core/models/api.models";
   styleUrls: ["./lookup.component.scss"],
 })
 export class LookupComponent implements OnInit {
-  private lookupService = inject(LookupService);
+  private referenceService = inject(ReferenceService);
 
   // Signals
-  lookups = signal<LookupItem[]>([]);
+  references = signal<ReferenceItem[]>([]);
   pagination = signal<PaginationMeta | null>(null);
   loading = signal<boolean>(false);
   error = signal<string | null>(null);
   deleteModalOpen = signal<boolean>(false);
   createModalOpen = signal<boolean>(false);
-  selectedLookup = signal<LookupItem | null>(null);
+  editModalOpen = signal<boolean>(false);
+  selectedReference = signal<ReferenceItem | null>(null);
 
   // Create form
   createForm = {
-    id: signal<number | null>(null),
     name: signal<string>(""),
     shortName: signal<string>(""),
     isActive: signal<boolean>(true),
   };
   createFormSubmitting = signal<boolean>(false);
+
+  // Edit form
+  editForm = {
+    id: signal<string>(""),
+    name: signal<string>(""),
+    shortName: signal<string>(""),
+    isActive: signal<boolean>(true),
+  };
+  editFormSubmitting = signal<boolean>(false);
 
   // Search ve pagination parametreleri
   searchTerm = signal<string>("");
@@ -49,7 +58,6 @@ export class LookupComponent implements OnInit {
     const pagination = this.pagination();
     if (!pagination) return false;
     if (pagination.hasNextPage !== undefined) return pagination.hasNextPage;
-    // Fallback: mevcut sayfa < toplam sayfa
     const current =
       pagination.page ?? pagination.currentPage ?? this.currentPage();
     return current < (pagination.totalPages ?? 0);
@@ -59,7 +67,6 @@ export class LookupComponent implements OnInit {
     if (!pagination) return false;
     if (pagination.hasPreviousPage !== undefined)
       return pagination.hasPreviousPage;
-    // Fallback: mevcut sayfa > 1
     const current =
       pagination.page ?? pagination.currentPage ?? this.currentPage();
     return current > 1;
@@ -67,7 +74,6 @@ export class LookupComponent implements OnInit {
   totalCount = computed(() => {
     const pagination = this.pagination();
     if (!pagination) return 0;
-    // API'dan gelen sırayla kontrol et: totalItems > totalItem > totalCount
     return (
       pagination.totalItems ??
       pagination.totalItem ??
@@ -75,28 +81,28 @@ export class LookupComponent implements OnInit {
       0
     );
   });
-  activeCount = computed(() => this.lookups().filter((l) => l.isActive).length);
+  activeCount = computed(
+    () => this.references().filter((r) => r.isActive).length,
+  );
 
   // Pagination display info
   displayFrom = computed(() => {
-    if (this.lookups().length === 0) return 0;
+    if (this.references().length === 0) return 0;
     return (this.currentPage() - 1) * this.pageSize() + 1;
   });
 
   displayTo = computed(() => {
-    const lookupsLength = this.lookups().length;
-    if (lookupsLength === 0) return 0;
+    const referencesLength = this.references().length;
+    if (referencesLength === 0) return 0;
 
     const from = this.displayFrom();
-    return from + lookupsLength - 1;
+    return from + referencesLength - 1;
   });
 
   displayTotal = computed(() => {
-    // totalCount artık totalItem veya totalCount'tan geliyor
     const total = this.totalCount();
-    // Eğer pagination bilgisi yoksa mevcut sayfa kayıtlarını göster
-    if (total === 0 && this.lookups().length > 0) {
-      return this.lookups().length;
+    if (total === 0 && this.references().length > 0) {
+      return this.references().length;
     }
     return total;
   });
@@ -109,16 +115,13 @@ export class LookupComponent implements OnInit {
 
     if (total <= 0) return pages;
 
-    // Başlangıç sayfası
     pages.push(1);
 
     if (total <= 5) {
-      // 5 veya daha az sayfa varsa hepsini göster
       for (let i = 2; i <= total; i++) {
         pages.push(i);
       }
     } else {
-      // Daha fazla sayfa varsa akıllı gösterim
       if (current <= 3) {
         pages.push(2, 3, 4);
       } else if (current >= total - 2) {
@@ -127,7 +130,6 @@ export class LookupComponent implements OnInit {
         pages.push(current - 1, current, current + 1);
       }
 
-      // Son sayfayı ekle
       if (!pages.includes(total)) {
         pages.push(total);
       }
@@ -143,21 +145,21 @@ export class LookupComponent implements OnInit {
       .subscribe((searchTerm) => {
         this.searchTerm.set(searchTerm);
         this.currentPage.set(1);
-        this.loadLookups();
+        this.loadReferences();
       });
 
     // İlk yükleme
-    this.loadLookups();
+    this.loadReferences();
   }
 
   /**
-   * Lookup verilerini yükler
+   * Reference verilerini yükler
    */
-  loadLookups(): void {
+  loadReferences(): void {
     this.loading.set(true);
     this.error.set(null);
 
-    this.lookupService
+    this.referenceService
       .getAllPaged({
         pageNumber: this.currentPage(),
         pageSize: this.pageSize(),
@@ -165,13 +167,11 @@ export class LookupComponent implements OnInit {
       })
       .subscribe({
         next: (response) => {
-          this.lookups.set(response.data ?? []);
+          this.references.set(response.data ?? []);
 
-          // Eğer API'dan pagination gelmediyse, fallback oluştur
           if (response.pagination) {
             this.pagination.set(response.pagination);
           } else if (response.data && response.data.length > 0) {
-            // Pagination yoksa basit bir fallback oluştur
             this.pagination.set({
               currentPage: this.currentPage(),
               pageSize: this.pageSize(),
@@ -187,7 +187,7 @@ export class LookupComponent implements OnInit {
         error: (err) => {
           this.error.set(err.message || "Veriler yüklenirken bir hata oluştu");
           this.loading.set(false);
-          console.error("Lookup loading error:", err);
+          console.error("Reference loading error:", err);
         },
       });
   }
@@ -207,7 +207,7 @@ export class LookupComponent implements OnInit {
       return;
     }
     this.currentPage.set(page);
-    this.loadLookups();
+    this.loadReferences();
   }
 
   /**
@@ -234,52 +234,41 @@ export class LookupComponent implements OnInit {
   onPageSizeChange(size: number): void {
     this.pageSize.set(size);
     this.currentPage.set(1);
-    this.loadLookups();
+    this.loadReferences();
   }
 
   /**
    * Yenile
    */
   refresh(): void {
-    this.loadLookups();
+    this.loadReferences();
   }
 
   /**
-   * Active/Inactive durumunu toggle et
+   * Reference görüntüle
    */
-  toggleActive(lookup: LookupItem): void {
-    this.lookupService.toggleActive(lookup.id).subscribe({
-      next: () => {
-        this.loadLookups();
-      },
-      error: (err) => {
-        this.error.set("Durum güncellenirken hata oluştu: " + err.message);
-        console.error("Toggle active error:", err);
-      },
-    });
-  }
-
-  /**
-   * Lookup görüntüle
-   */
-  onViewLookup(lookup: LookupItem): void {
-    console.log("Lookup görüntüle:", lookup);
+  onViewReference(reference: ReferenceItem): void {
+    console.log("Reference görüntüle:", reference);
     // TODO: Modal veya detay sayfası
   }
 
   /**
-   * Lookup düzenle
+   * Reference düzenle
    */
-  onEditLookup(lookup: LookupItem): void {
-    console.log("Lookup düzenle:", lookup);
-    // TODO: Düzenleme modalı veya sayfası
+  onEditReference(reference: ReferenceItem): void {
+    this.selectedReference.set(reference);
+    this.editForm.id.set(reference.id);
+    this.editForm.name.set(reference.name);
+    this.editForm.shortName.set(reference.shortName ?? "");
+    this.editForm.isActive.set(reference.isActive);
+    this.editModalOpen.set(true);
   }
 
   /**
-   * Lookup sil - Modal aç
+   * Reference sil - Modal aç
    */
-  deleteLookup(lookup: LookupItem): void {
-    this.selectedLookup.set(lookup);
+  deleteReference(reference: ReferenceItem): void {
+    this.selectedReference.set(reference);
     this.deleteModalOpen.set(true);
   }
 
@@ -288,20 +277,20 @@ export class LookupComponent implements OnInit {
    */
   closeDeleteModal(): void {
     this.deleteModalOpen.set(false);
-    this.selectedLookup.set(null);
+    this.selectedReference.set(null);
   }
 
   /**
    * Silme işlemini onayla
    */
   confirmDelete(): void {
-    const lookup = this.selectedLookup();
-    if (!lookup) return;
+    const reference = this.selectedReference();
+    if (!reference) return;
 
-    this.lookupService.deleteById(lookup.id).subscribe({
+    this.referenceService.deleteById(reference.id).subscribe({
       next: () => {
         this.closeDeleteModal();
-        this.loadLookups();
+        this.loadReferences();
       },
       error: (err) => {
         this.error.set("Silme işlemi başarısız: " + err.message);
@@ -312,9 +301,9 @@ export class LookupComponent implements OnInit {
   }
 
   /**
-   * Yeni lookup ekle - Modal aç
+   * Yeni reference ekle - Modal aç
    */
-  onAddLookup(): void {
+  onAddReference(): void {
     this.resetCreateForm();
     this.createModalOpen.set(true);
   }
@@ -331,7 +320,6 @@ export class LookupComponent implements OnInit {
    * Create form resetle
    */
   resetCreateForm(): void {
-    this.createForm.id.set(null);
     this.createForm.name.set("");
     this.createForm.shortName.set("");
     this.createForm.isActive.set(true);
@@ -342,32 +330,12 @@ export class LookupComponent implements OnInit {
    * Form validation
    */
   isCreateFormValid(): boolean {
-    const id = this.createForm.id();
     const name = this.createForm.name().trim();
-
-    // ID zorunlu ve 3 basamaklı (100-999) olmalı
-    if (id === null || id < 100 || id > 999) {
-      return false;
-    }
-
-    // Name zorunlu
-    if (name.length === 0) {
-      return false;
-    }
-
-    return true;
+    return name.length > 0;
   }
 
   /**
-   * ID alanı geçerli mi?
-   */
-  isIdValid(): boolean {
-    const id = this.createForm.id();
-    return id !== null && id >= 100 && id <= 999;
-  }
-
-  /**
-   * Yeni lookup oluştur
+   * Yeni reference oluştur
    */
   submitCreateForm(): void {
     if (!this.isCreateFormValid() || this.createFormSubmitting()) {
@@ -377,21 +345,79 @@ export class LookupComponent implements OnInit {
     this.createFormSubmitting.set(true);
 
     const request = {
-      id: this.createForm.id()!,
       name: this.createForm.name().trim(),
       shortName: this.createForm.shortName().trim() || undefined,
       isActive: this.createForm.isActive(),
     };
 
-    this.lookupService.create(request).subscribe({
+    this.referenceService.create(request).subscribe({
       next: () => {
         this.closeCreateModal();
-        this.loadLookups();
+        this.loadReferences();
       },
       error: (err) => {
         this.error.set("Kayıt oluşturulurken hata oluştu: " + err.message);
         console.error("Create error:", err);
         this.createFormSubmitting.set(false);
+      },
+    });
+  }
+
+  /**
+   * Edit modal kapat
+   */
+  closeEditModal(): void {
+    this.editModalOpen.set(false);
+    this.selectedReference.set(null);
+    this.resetEditForm();
+  }
+
+  /**
+   * Edit form resetle
+   */
+  resetEditForm(): void {
+    this.editForm.id.set("");
+    this.editForm.name.set("");
+    this.editForm.shortName.set("");
+    this.editForm.isActive.set(true);
+    this.editFormSubmitting.set(false);
+  }
+
+  /**
+   * Edit form validation
+   */
+  isEditFormValid(): boolean {
+    const name = this.editForm.name().trim();
+    return name.length > 0 && this.editForm.id().length > 0;
+  }
+
+  /**
+   * Reference güncelle
+   */
+  submitEditForm(): void {
+    if (!this.isEditFormValid() || this.editFormSubmitting()) {
+      return;
+    }
+
+    this.editFormSubmitting.set(true);
+
+    const request = {
+      id: this.editForm.id(),
+      businessId: 0, // API'ye göre gerekli, ama kullanılmayabilir
+      name: this.editForm.name().trim(),
+      shortName: this.editForm.shortName().trim() || undefined,
+      isActive: this.editForm.isActive(),
+    };
+
+    this.referenceService.update(request).subscribe({
+      next: () => {
+        this.closeEditModal();
+        this.loadReferences();
+      },
+      error: (err) => {
+        this.error.set("Güncelleme sırasında hata oluştu: " + err.message);
+        console.error("Update error:", err);
+        this.editFormSubmitting.set(false);
       },
     });
   }

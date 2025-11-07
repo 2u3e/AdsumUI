@@ -1,12 +1,10 @@
 /**
  * Reference kaydı (eski LookUp)
+ * GET /reference/{id} response
  */
 export interface ReferenceItem {
-  /** Reference ID (UUID) */
-  id: string;
-
-  /** Business ID */
-  businessId: number;
+  /** Reference ID (integer) */
+  id: number;
 
   /** Reference adı */
   name: string;
@@ -20,6 +18,7 @@ export interface ReferenceItem {
 
 /**
  * Reference listesi için query parametreleri
+ * GET /reference/all query params
  */
 export interface GetReferencesRequest {
   /** Sayfa numarası (1'den başlar) */
@@ -34,11 +33,9 @@ export interface GetReferencesRequest {
 
 /**
  * Yeni Reference oluşturma request
+ * POST /reference/create body
  */
 export interface CreateReferenceRequest {
-  /** Business ID */
-  businessId: number;
-
   /** Reference adı */
   name: string;
 
@@ -51,13 +48,11 @@ export interface CreateReferenceRequest {
 
 /**
  * Reference güncelleme request
+ * PUT /reference/{id} body
  */
 export interface UpdateReferenceRequest {
-  /** Reference ID (UUID) */
-  id: string;
-
-  /** Business ID */
-  businessId: number;
+  /** Reference ID (integer) */
+  id: number;
 
   /** Reference adı */
   name: string;
@@ -71,16 +66,14 @@ export interface UpdateReferenceRequest {
 
 /**
  * Reference Data kaydı (eski LookUpList)
+ * GET /referencedata/{id} response
  */
 export interface ReferenceDataItem {
   /** Reference Data ID (UUID) */
   id: string;
 
-  /** Business ID */
-  businessId: number;
-
-  /** Reference Business ID */
-  referenceBusinessId: number;
+  /** Reference ID (UUID) */
+  referenceId: string;
 
   /** Reference Name */
   referenceName?: string;
@@ -100,6 +93,7 @@ export interface ReferenceDataItem {
 
 /**
  * Reference Data listesi için query parametreleri
+ * GET /referencedata/all query params
  */
 export interface GetReferenceDataRequest {
   /** Sayfa numarası (1'den başlar) */
@@ -111,19 +105,17 @@ export interface GetReferenceDataRequest {
   /** Arama terimi */
   searchTerm?: string;
 
-  /** Reference Business ID filtresi */
-  referenceBusinessId?: number;
+  /** Reference ID filtresi (UUID) */
+  referenceId?: string;
 }
 
 /**
  * Yeni Reference Data oluşturma request
+ * POST /referencedata body
  */
 export interface CreateReferenceDataRequest {
-  /** Business ID */
-  businessId: number;
-
-  /** Reference Business ID */
-  referenceBusinessId: number;
+  /** Reference ID (UUID) */
+  referenceId: string;
 
   /** Name */
   name: string;
@@ -140,16 +132,14 @@ export interface CreateReferenceDataRequest {
 
 /**
  * Reference Data güncelleme request
+ * PUT /referencedata/{id} body
  */
 export interface UpdateReferenceDataRequest {
   /** Reference Data ID (UUID) */
   id: string;
 
-  /** Business ID */
-  businessId: number;
-
-  /** Reference Business ID */
-  referenceBusinessId: number;
+  /** Reference ID (UUID) */
+  referenceId: string;
 
   /** Name */
   name: string;
@@ -166,6 +156,7 @@ export interface UpdateReferenceDataRequest {
 
 /**
  * Select için Reference Data
+ * GET /referencedata/select/{referenceId} response item
  */
 export interface ReferenceDataSelectItem {
   /** ID (UUID) */
@@ -173,4 +164,27 @@ export interface ReferenceDataSelectItem {
 
   /** Name */
   name: string;
+}
+
+/**
+ * GET /referencedata/by-reference/{referenceId} response item
+ */
+export interface ReferenceDataByReferenceItem {
+  /** ID (UUID) */
+  id: string;
+
+  /** Reference ID (UUID) */
+  referenceId: string;
+
+  /** Name */
+  name: string;
+
+  /** Kısa adı (opsiyonel) */
+  shortName?: string;
+
+  /** Order */
+  order?: number;
+
+  /** Aktif mi? */
+  isActive: boolean;
 }

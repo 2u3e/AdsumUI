@@ -5,17 +5,17 @@
   >
     <div class="flex flex-col justify-center gap-2">
       <h1 class="text-xl font-medium leading-none text-mono">
-        Lookup Yönetimi
+        Reference Yönetimi
       </h1>
     </div>
     <div class="flex items-center gap-2.5">
       <button
         class="kt-btn kt-btn-primary"
-        (click)="onAddLookup()"
+        (click)="onAddReference()"
         type="button"
       >
         <i class="ki-filled ki-plus text-base"></i>
-        <span>Yeni Lookup</span>
+        <span>Yeni Reference</span>
       </button>
     </div>
   </div>
@@ -40,7 +40,7 @@
         class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700"
       >
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-          Yeni Lookup Ekle
+          Yeni Reference Ekle
         </h3>
         <button
           type="button"
@@ -54,36 +54,6 @@
 
       <!-- Form Content -->
       <div class="p-6 space-y-4">
-        <!-- ID Field -->
-        <div>
-          <label
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-          >
-            ID
-            @if (createForm.id() !== null && !isIdValid()) {
-              <span class="text-red-500">*</span>
-            }
-          </label>
-          <input
-            type="number"
-            class="kt-input w-full"
-            [class.border-red-500]="createForm.id() !== null && !isIdValid()"
-            placeholder="3 basamaklı ID giriniz (100-999)"
-            [ngModel]="createForm.id()"
-            (ngModelChange)="createForm.id.set($event)"
-            [ngModelOptions]="{ standalone: true }"
-            [disabled]="createFormSubmitting()"
-            min="100"
-            max="999"
-          />
-          @if (createForm.id() !== null && !isIdValid()) {
-            <span class="text-red-500 text-xs flex items-center gap-1 mt-1">
-              <i class="ki-filled ki-information text-xs"></i>
-              ID 3 basamaklı olmalıdır (100-999)
-            </span>
-          }
-        </div>
-
         <!-- Name Field -->
         <div>
           <label
@@ -100,7 +70,7 @@
             [class.border-red-500]="
               !isCreateFormValid() && createForm.name().length > 0
             "
-            placeholder="Lookup adı giriniz"
+            placeholder="Reference adı giriniz"
             [ngModel]="createForm.name()"
             (ngModelChange)="createForm.name.set($event)"
             [ngModelOptions]="{ standalone: true }"
@@ -201,6 +171,156 @@
   </div>
 }
 
+<!-- Edit Modal -->
+@if (editModalOpen()) {
+  <!-- Modal Backdrop -->
+  <div
+    class="fixed inset-0 bg-black/50 z-[100] transition-opacity"
+    (click)="closeEditModal()"
+  ></div>
+
+  <!-- Modal Content -->
+  <div class="fixed inset-0 z-[101] flex items-center justify-center p-4">
+    <div
+      class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full relative"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Header -->
+      <div
+        class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700"
+      >
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+          Reference Düzenle
+        </h3>
+        <button
+          type="button"
+          class="kt-btn kt-btn-ghost kt-btn-icon kt-btn-sm"
+          (click)="closeEditModal()"
+          [disabled]="editFormSubmitting()"
+        >
+          <i class="ki-filled ki-cross"></i>
+        </button>
+      </div>
+
+      <!-- Form Content -->
+      <div class="p-6 space-y-4">
+        <!-- Name Field -->
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            Ad
+            @if (!isEditFormValid() && editForm.name().length > 0) {
+              <span class="text-red-500">*</span>
+            }
+          </label>
+          <input
+            type="text"
+            class="kt-input w-full"
+            [class.border-red-500]="
+              !isEditFormValid() && editForm.name().length > 0
+            "
+            placeholder="Reference adı giriniz"
+            [ngModel]="editForm.name()"
+            (ngModelChange)="editForm.name.set($event)"
+            [ngModelOptions]="{ standalone: true }"
+            [disabled]="editFormSubmitting()"
+            maxlength="100"
+          />
+          @if (!isEditFormValid() && editForm.name().length > 0) {
+            <span class="text-red-500 text-xs flex items-center gap-1 mt-1">
+              <i class="ki-filled ki-information text-xs"></i>
+              Ad alanı boş bırakılamaz
+            </span>
+          }
+        </div>
+
+        <!-- Short Name Field -->
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            Kısa Ad
+          </label>
+          <input
+            type="text"
+            class="kt-input w-full"
+            placeholder="Kısa ad giriniz (opsiyonel)"
+            [ngModel]="editForm.shortName()"
+            (ngModelChange)="editForm.shortName.set($event)"
+            [ngModelOptions]="{ standalone: true }"
+            [disabled]="editFormSubmitting()"
+            maxlength="50"
+          />
+        </div>
+
+        <!-- Is Active Field -->
+        <div class="flex items-center gap-3 py-2">
+          <input
+            class="kt-switch"
+            type="checkbox"
+            [checked]="editForm.isActive()"
+            (change)="editForm.isActive.set($any($event.target).checked)"
+            [disabled]="editFormSubmitting()"
+            id="editIsActive"
+          />
+          <label
+            for="editIsActive"
+            class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+          >
+            Aktif
+          </label>
+        </div>
+
+        <!-- Validation Warning -->
+        @if (!isEditFormValid() && editForm.name().length > 0) {
+          <div
+            class="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-lg"
+          >
+            <i
+              class="ki-filled ki-information text-red-600 dark:text-red-400 text-base mt-0.5 flex-shrink-0"
+            ></i>
+            <p class="text-sm text-red-800 dark:text-red-200">
+              Zorunlu alanları doldurunuz.
+            </p>
+          </div>
+        }
+      </div>
+
+      <!-- Actions -->
+      <div
+        class="flex justify-end gap-2.5 px-6 py-4 border-t border-gray-200 dark:border-gray-700"
+      >
+        <button
+          type="button"
+          class="kt-btn kt-btn-outline"
+          (click)="closeEditModal()"
+          [disabled]="editFormSubmitting()"
+        >
+          İptal
+        </button>
+        <button
+          type="button"
+          class="kt-btn kt-btn-primary"
+          (click)="submitEditForm()"
+          [disabled]="!isEditFormValid() || editFormSubmitting()"
+        >
+          @if (editFormSubmitting()) {
+            <span class="flex items-center gap-2">
+              <span
+                class="spinner animate-spin border-2 border-current border-t-transparent rounded-full w-4 h-4"
+              ></span>
+              Güncelleniyor...
+            </span>
+          } @else {
+            Güncelle
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
 <!-- Delete Confirmation Modal -->
 @if (deleteModalOpen()) {
   <!-- Modal Backdrop -->
@@ -222,7 +342,7 @@
           Kaydı Silmek İstediğinize Emin misiniz?
         </h3>
 
-        @if (selectedLookup()) {
+        @if (selectedReference()) {
           <div class="w-full space-y-3">
             <div
               class="flex items-start gap-2 p-3 bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded-lg"
@@ -248,13 +368,13 @@
                 Silinecek Kayıt:
               </p>
               <p class="text-base font-semibold text-gray-900 dark:text-white">
-                {{ selectedLookup()!.name }}
+                {{ selectedReference()!.name }}
               </p>
-              @if (selectedLookup()!.shortName) {
+              @if (selectedReference()!.shortName) {
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   Kısa Ad:
                   <span class="font-medium">{{
-                    selectedLookup()!.shortName
+                    selectedReference()!.shortName
                   }}</span>
                 </p>
               }
@@ -331,7 +451,7 @@
       <div class="flex items-center gap-3">
         <input
           type="text"
-          placeholder="Lookup ara..."
+          placeholder="Reference ara..."
           class="kt-input sm:w-64"
           [ngModel]="searchTerm()"
           (ngModelChange)="onSearchChange($event)"
@@ -397,15 +517,15 @@
                 </td>
               </tr>
             } @else {
-              @for (lookup of lookups(); track lookup.id) {
+              @for (reference of references(); track reference.id) {
                 <tr>
                   <td>
                     <span class="text-sm text-gray-900 dark:text-gray-100">
-                      {{ lookup.id }}
+                      {{ reference.id }}
                     </span>
                   </td>
                   <td>
-                    @if (lookup.isActive) {
+                    @if (reference.isActive) {
                       <span class="kt-badge kt-badge-light kt-badge-success">
                         <span class="kt-badge-dot"></span>
                         Aktif
@@ -424,13 +544,13 @@
                       <span
                         class="text-sm font-medium text-gray-900 dark:text-gray-100"
                       >
-                        {{ lookup.name }}
+                        {{ reference.name }}
                       </span>
                     </div>
                   </td>
                   <td>
                     <span class="text-sm text-gray-500 dark:text-gray-400">
-                      {{ lookup.shortName || "-" }}
+                      {{ reference.shortName || "-" }}
                     </span>
                   </td>
                   <td>
@@ -438,7 +558,7 @@
                       <button
                         type="button"
                         class="kt-btn kt-btn-ghost kt-btn-icon"
-                        (click)="onViewLookup(lookup)"
+                        (click)="onViewReference(reference)"
                         title="Görüntüle"
                       >
                         <i class="ki-filled ki-eye text-lg"></i>
@@ -446,23 +566,15 @@
                       <button
                         type="button"
                         class="kt-btn kt-btn-ghost kt-btn-icon"
-                        (click)="onEditLookup(lookup)"
+                        (click)="onEditReference(reference)"
                         title="Düzenle"
                       >
                         <i class="ki-filled ki-pencil text-lg"></i>
                       </button>
                       <button
                         type="button"
-                        class="kt-btn kt-btn-ghost kt-btn-icon"
-                        (click)="toggleActive(lookup)"
-                        [title]="lookup.isActive ? 'Pasif Yap' : 'Aktif Yap'"
-                      >
-                        <i class="ki-filled ki-arrows-circle text-lg"></i>
-                      </button>
-                      <button
-                        type="button"
                         class="kt-btn kt-btn-ghost kt-btn-icon text-destructive"
-                        (click)="deleteLookup(lookup)"
+                        (click)="deleteReference(reference)"
                         title="Sil"
                       >
                         <i class="ki-filled ki-trash text-lg"></i>
@@ -494,7 +606,7 @@
       </div>
 
       <!-- Pagination -->
-      @if (lookups().length > 0 && !loading()) {
+      @if (references().length > 0 && !loading()) {
         <div class="kt-datatable-toolbar">
           <div class="kt-datatable-length">
             Gösterilecek kayıt sayısı

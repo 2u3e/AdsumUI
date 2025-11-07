@@ -54,37 +54,6 @@
 
       <!-- Form Content -->
       <div class="p-6 space-y-4">
-        <!-- Business ID Field -->
-        <div>
-          <label
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-          >
-            Business ID
-            @if (createForm.businessId() !== null && !isBusinessIdValid()) {
-              <span class="text-red-500">*</span>
-            }
-          </label>
-          <input
-            type="number"
-            class="kt-input w-full"
-            [class.border-red-500]="
-              createForm.businessId() !== null && !isBusinessIdValid()
-            "
-            placeholder="Business ID giriniz"
-            [ngModel]="createForm.businessId()"
-            (ngModelChange)="createForm.businessId.set($event)"
-            [ngModelOptions]="{ standalone: true }"
-            [disabled]="createFormSubmitting()"
-            min="1"
-          />
-          @if (createForm.businessId() !== null && !isBusinessIdValid()) {
-            <span class="text-red-500 text-xs flex items-center gap-1 mt-1">
-              <i class="ki-filled ki-information text-xs"></i>
-              Business ID pozitif bir sayı olmalıdır
-            </span>
-          }
-        </div>
-
         <!-- Name Field -->
         <div>
           <label
@@ -260,10 +229,8 @@
                 </p>
               }
               <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Business ID:
-                <span class="font-medium">{{
-                  selectedReference()!.businessId
-                }}</span>
+                ID:
+                <span class="font-medium">{{ selectedReference()!.id }}</span>
               </p>
             </div>
           </div>
@@ -362,9 +329,9 @@
         <table class="kt-table">
           <thead>
             <tr>
-              <th scope="col" class="w-32">
+              <th scope="col" class="w-24">
                 <span class="kt-table-col">
-                  <span class="kt-table-col-label">Business ID</span>
+                  <span class="kt-table-col-label">ID</span>
                 </span>
               </th>
               <th scope="col" class="w-32">
@@ -408,7 +375,7 @@
                 <tr>
                   <td>
                     <span class="text-sm text-gray-900 dark:text-gray-100">
-                      {{ reference.businessId }}
+                      {{ reference.id }}
                     </span>
                   </td>
                   <td>

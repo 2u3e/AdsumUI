@@ -13,11 +13,15 @@ import {
   CreateReferenceDataRequest,
   UpdateReferenceDataRequest,
   ReferenceDataSelectItem,
+  ReferenceDataByReferenceItem,
 } from "../models/reference.models";
 
 /**
  * Reference Service
  * Reference verilerini yönetmek için API servisi
+ *
+ * Reference = eski LookUp
+ * ReferenceData = eski LookUpList
  */
 @Injectable({
   providedIn: "root",
@@ -58,13 +62,14 @@ export class ReferenceService extends BaseHttpService {
    * ID'ye göre reference kaydı getirir
    * GET /reference/{id}
    */
-  getById(id: string): Observable<Response<ReferenceItem>> {
+  getById(id: number): Observable<Response<ReferenceItem>> {
     return this.get<ReferenceItem>(`${this.endpoint}/${id}`);
   }
 
   /**
    * Yeni reference kaydı oluşturur
    * POST /reference/create
+   * Returns: GuidResponse (UUID string)
    */
   create(request: CreateReferenceRequest): Observable<Response<string>> {
     return this.post<string>(`${this.endpoint}/create`, request);
@@ -73,6 +78,7 @@ export class ReferenceService extends BaseHttpService {
   /**
    * Reference kaydını günceller
    * PUT /reference/{id}
+   * Returns: GuidResponse (UUID string)
    */
   update(request: UpdateReferenceRequest): Observable<Response<string>> {
     return this.put<string>(`${this.endpoint}/${request.id}`, request);
@@ -82,7 +88,7 @@ export class ReferenceService extends BaseHttpService {
    * Reference kaydını siler
    * DELETE /reference/{id}
    */
-  deleteById(id: string): Observable<Response<void>> {
+  deleteById(id: number): Observable<Response<void>> {
     return super.delete<void>(`${this.endpoint}/${id}`);
   }
 
@@ -111,8 +117,8 @@ export class ReferenceService extends BaseHttpService {
       params.searchTerm = request.searchTerm;
     }
 
-    if (request.referenceBusinessId !== undefined) {
-      params.referenceBusinessId = request.referenceBusinessId;
+    if (request.referenceId) {
+      params.referenceId = request.referenceId;
     }
 
     return this.get<ReferenceDataItem[]>(`${this.dataEndpoint}/all`, {
@@ -133,12 +139,12 @@ export class ReferenceService extends BaseHttpService {
    * GET /referencedata/by-reference/{referenceId}
    */
   getDataByReferenceId(
-    referenceBusinessId: number,
+    referenceId: string,
     onlyActive: boolean = true,
-  ): Observable<Response<ReferenceDataItem[]>> {
-    const params: any = { referenceBusinessId, onlyActive };
-    return this.get<ReferenceDataItem[]>(
-      `${this.dataEndpoint}/by-reference/${referenceBusinessId}`,
+  ): Observable<Response<ReferenceDataByReferenceItem[]>> {
+    const params: any = { onlyActive };
+    return this.get<ReferenceDataByReferenceItem[]>(
+      `${this.dataEndpoint}/by-reference/${referenceId}`,
       { params },
     );
   }
@@ -148,12 +154,12 @@ export class ReferenceService extends BaseHttpService {
    * GET /referencedata/select/{referenceId}
    */
   getDataForSelect(
-    referenceBusinessId: number,
+    referenceId: string,
     isShortName: boolean = false,
   ): Observable<Response<ReferenceDataSelectItem[]>> {
-    const params: any = { referenceBusinessId, isShortName };
+    const params: any = { isShortName };
     return this.get<ReferenceDataSelectItem[]>(
-      `${this.dataEndpoint}/select/${referenceBusinessId}`,
+      `${this.dataEndpoint}/select/${referenceId}`,
       { params },
     );
   }
@@ -161,6 +167,7 @@ export class ReferenceService extends BaseHttpService {
   /**
    * Yeni reference data kaydı oluşturur
    * POST /referencedata
+   * Returns: Int32Response
    */
   createData(
     request: CreateReferenceDataRequest,
@@ -171,6 +178,7 @@ export class ReferenceService extends BaseHttpService {
   /**
    * Reference data kaydını günceller
    * PUT /referencedata/{id}
+   * Returns: Int32Response
    */
   updateData(
     request: UpdateReferenceDataRequest,

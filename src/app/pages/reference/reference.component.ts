@@ -28,7 +28,6 @@ export class ReferenceComponent implements OnInit {
 
   // Create form
   createForm = {
-    businessId: signal<number | null>(null),
     name: signal<string>(""),
     shortName: signal<string>(""),
     isActive: signal<boolean>(true),
@@ -307,7 +306,6 @@ export class ReferenceComponent implements OnInit {
    * Create form resetle
    */
   resetCreateForm(): void {
-    this.createForm.businessId.set(null);
     this.createForm.name.set("");
     this.createForm.shortName.set("");
     this.createForm.isActive.set(true);
@@ -318,13 +316,7 @@ export class ReferenceComponent implements OnInit {
    * Form validation
    */
   isCreateFormValid(): boolean {
-    const businessId = this.createForm.businessId();
     const name = this.createForm.name().trim();
-
-    // Business ID zorunlu ve pozitif olmalı
-    if (businessId === null || businessId <= 0) {
-      return false;
-    }
 
     // Name zorunlu
     if (name.length === 0) {
@@ -332,14 +324,6 @@ export class ReferenceComponent implements OnInit {
     }
 
     return true;
-  }
-
-  /**
-   * Business ID alanı geçerli mi?
-   */
-  isBusinessIdValid(): boolean {
-    const businessId = this.createForm.businessId();
-    return businessId !== null && businessId > 0;
   }
 
   /**
@@ -353,7 +337,6 @@ export class ReferenceComponent implements OnInit {
     this.createFormSubmitting.set(true);
 
     const request = {
-      businessId: this.createForm.businessId()!,
       name: this.createForm.name().trim(),
       shortName: this.createForm.shortName().trim() || undefined,
       isActive: this.createForm.isActive(),
