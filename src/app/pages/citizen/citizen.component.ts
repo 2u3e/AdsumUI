@@ -7,6 +7,7 @@ import { CitizenService } from "../../core/services/citizen.service";
 import { ReferenceService } from "../../core/services/reference.service";
 import { CitizenListItem } from "../../core/models/citizen.models";
 import { ReferenceDataSelectItem } from "../../core/models/reference.models";
+import { ReferenceTypes } from "../../core/constants/reference-types";
 
 @Component({
   selector: "app-citizen",
@@ -93,17 +94,19 @@ export class CitizenComponent implements OnInit {
 
   /**
    * Cinsiyet listesini yükler
-   * ReferenceId = 1 (Cinsiyet)
+   * ReferenceId = 105 (GenderType)
    */
   loadGenders(): void {
-    this.referenceService.getDataForSelect("1", false).subscribe({
-      next: (response) => {
-        this.genders.set(response.data ?? []);
-      },
-      error: (err) => {
-        console.error("Gender loading error:", err);
-      },
-    });
+    this.referenceService
+      .getDataForSelect(ReferenceTypes.GenderType.toString(), false)
+      .subscribe({
+        next: (response) => {
+          this.genders.set(response.data ?? []);
+        },
+        error: (err) => {
+          console.error("Gender loading error:", err);
+        },
+      });
   }
 
   /**

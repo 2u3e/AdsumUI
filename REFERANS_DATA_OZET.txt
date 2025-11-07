@@ -1,0 +1,198 @@
+================================================================================
+                        REFERANS DATA YAPISI - HIZLI ÖZET
+================================================================================
+
+PROJE: AdsumUI (Angular 19+)
+TARİH: 7 Kasım 2025
+
+================================================================================
+1. API SERVİSLER
+================================================================================
+
+ReferenceService (/app/core/services/reference.service.ts)
+  → Cinsiyet için: getDataForSelect("1", false)
+  → Döner: { id: string, name: string }[]
+  
+CitizenService (/app/core/services/citizen.service.ts)
+  → genderId: number alanı zorunlu
+  → POST/PUT: CreateCitizenRequest, UpdateCitizenRequest
+  
+BaseHttpService
+  → GET, POST, PUT, DELETE, PATCH metodları
+
+================================================================================
+2. ENUM'LAR
+================================================================================
+
+✓ UserRole { Admin, User, Manager }           [auth.models.ts]
+✓ Permission { Read, Write, Delete, Manage }  [auth.models.ts]
+
+✗ Cinsiyet için Enum YOK - ReferenceData API kullanılıyor
+
+================================================================================
+3. CINSIYET ALANI
+================================================================================
+
+Model:
+  CitizenItem.genderId: number (Zorunlu)
+  CitizenListItem.genderName?: string
+
+Form:
+  CreateCitizenRequest.genderId: number (Zorunlu)
+  UpdateCitizenRequest.genderId: number (Zorunlu)
+
+Select'te:
+  <select>
+    @for (gender of genders()) {
+      <option [value]="gender.id">{{ gender.name }}</option>
+    }
+  </select>
+
+================================================================================
+4. FORM COMPONENTLERI
+================================================================================
+
+Citizen Component
+  ✓ TC Kimlik (text, 11 haneli, zorunlu)
+  ✓ Ad (text, zorunlu)
+  ✓ Soyad (text, zorunlu)
+  ✓ Doğum Tarihi (date, zorunlu)
+  ✓ Doğum Yeri (text, opsiyonel)
+  ✓ Cinsiyet (SELECT, zorunlu) ← ReferenceData "1"
+  
+  Modal: Create, Delete
+  
+Reference Component
+  ✓ Ad (text, zorunlu)
+  ✓ Kısa Ad (text, opsiyonel)
+  ✓ Aktif (checkbox)
+  
+  Modal: Create, Delete
+  
+Lookup Component
+  ✓ Aynı Reference + Edit Modal desteği
+
+================================================================================
+5. SELECT DROPDOWN
+================================================================================
+
+Cinsiyet Select (Citizen):
+  class="kt-select w-full"
+  ngModel: genderId signal
+  data: genders() signal
+  
+Reference Page Size:
+  class="kt-select"
+  değişken: pageSize signal
+  değerler: 10, 25, 50, 100
+
+================================================================================
+6. DOSYA ÖZETI
+================================================================================
+
+/app/core/services/
+  ├── reference.service.ts      (Reference + ReferenceData API)
+  ├── citizen.service.ts        (Citizen API)
+  └── base-http.service.ts      (HTTP base)
+
+/app/core/models/
+  ├── reference.models.ts       (Reference, ReferenceData tipler)
+  ├── citizen.models.ts         (Citizen + genderId, genderName)
+  ├── api.models.ts             (Response<T>, PaginationMeta)
+  └── auth.models.ts            (UserRole, Permission enums)
+
+/app/pages/
+  ├── citizen/                  (Vatandaş yönetimi + Cinsiyet form)
+  ├── reference/                (Referans yönetimi)
+  └── lookup/                   (Reference/Data yönetimi + Edit)
+
+================================================================================
+7. VERİ AKIŞI
+================================================================================
+
+Cinsiyet Yükleme:
+  Component Init → loadGenders() → API getDataForSelect("1")
+  → genders signal → Template @for loop → <option>
+
+Form Submit:
+  genderId seçim → CreateCitizenRequest → POST /Citizens
+  → Success → loadCitizens() (Refresh)
+
+================================================================================
+8. CSS SINIFLARI
+================================================================================
+
+Form Elementleri:
+  kt-input      (Text input)
+  kt-select     (Dropdown)
+  kt-switch     (Checkbox)
+  
+Butonlar:
+  kt-btn
+  kt-btn-primary
+  kt-btn-outline
+  kt-btn-icon
+  
+Card/Table:
+  kt-card, kt-card-header, kt-card-table
+  kt-table, kt-scrollable
+  
+Badge/Status:
+  kt-badge, kt-badge-success, kt-badge-destructive
+
+================================================================================
+9. ÖNEMLI NOKTALAR
+================================================================================
+
+1. genderId tipi: NUMBER (UUID değil!)
+   - API response'ta numeric ID ile geliyor
+   - ReferenceDataSelectItem.id ise string (UUID)
+   - Type casting gerekebilir: +$event
+
+2. Cinsiyet Reference ID: "1" (String)
+   - getDataForSelect("1", false) çağrısında kullanılır
+   - Hard-coded olması tavsiye edilmiyor
+   - Constant'a çekmek iyidir
+
+3. Select Loader:
+   - ngOnInit'te loadGenders() çağrılmalı
+   - genders signal kullanılmalı
+   - @for loop ile iterate edilmeli
+
+4. Form Validasyon:
+   - genderId zorunlu
+   - TC No: 11 rakam kontrolü
+   - isCreateFormValid() metoduyla kontrol
+
+================================================================================
+10. HIZLI REFERANS
+================================================================================
+
+Cinsiyet Dropdown Kodlanması:
+
+TypeScript:
+  genders = signal<ReferenceDataSelectItem[]>([]);
+  
+  loadGenders(): void {
+    this.referenceService.getDataForSelect("1", false).subscribe({
+      next: (response) => {
+        this.genders.set(response.data ?? []);
+      }
+    });
+  }
+
+HTML:
+  <select class="kt-select"
+    [ngModel]="createForm.genderId()"
+    (ngModelChange)="createForm.genderId.set($event ? +$event : null)"
+  >
+    <option [value]="null">Seçiniz</option>
+    @for (gender of genders(); track gender.id) {
+      <option [value]="gender.id">{{ gender.name }}</option>
+    }
+  </select>
+
+================================================================================
+Rapor Hazırlayan: Claude Code Analysis Agent
+Versiyon: 1.0 | Tarih: 7 Kasım 2025
+================================================================================

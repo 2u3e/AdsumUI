@@ -37,7 +37,7 @@ export class LookupComponent implements OnInit {
 
   // Edit form
   editForm = {
-    id: signal<string>(""),
+    id: signal<number>(0),
     name: signal<string>(""),
     shortName: signal<string>(""),
     isActive: signal<boolean>(true),
@@ -376,7 +376,7 @@ export class LookupComponent implements OnInit {
    * Edit form resetle
    */
   resetEditForm(): void {
-    this.editForm.id.set("");
+    this.editForm.id.set(0);
     this.editForm.name.set("");
     this.editForm.shortName.set("");
     this.editForm.isActive.set(true);
@@ -388,7 +388,7 @@ export class LookupComponent implements OnInit {
    */
   isEditFormValid(): boolean {
     const name = this.editForm.name().trim();
-    return name.length > 0 && this.editForm.id().length > 0;
+    return name.length > 0 && this.editForm.id() > 0;
   }
 
   /**
