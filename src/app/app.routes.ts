@@ -7,6 +7,7 @@ import { Demo1Component } from "./layouts/demo1/demo1.component";
 import { IndexComponent as Demo1IndexComponent } from "./pages/demo1/index/index.component";
 import { UserManagementComponent } from "./pages/user-management/user-management.component";
 import { ReferenceComponent } from "./pages/reference/reference.component";
+import { CitizenComponent } from "./pages/citizen/citizen.component";
 
 import { authGuard, loginGuard } from "./core/guards/auth.guard";
 
@@ -32,6 +33,10 @@ export const routes: Routes = [
       {
         path: "reference",
         component: ReferenceComponent,
+      },
+      {
+        path: "citizen",
+        component: CitizenComponent,
       },
     ],
   },
