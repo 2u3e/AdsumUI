@@ -341,6 +341,195 @@
   </div>
 }
 
+<!-- Edit Modal -->
+@if (editModalOpen()) {
+  <!-- Modal Backdrop -->
+  <div
+    class="fixed inset-0 bg-black/50 z-[100] transition-opacity"
+    (click)="closeEditModal()"
+  ></div>
+
+  <!-- Modal Content -->
+  <div class="fixed inset-0 z-[101] flex items-center justify-center p-4">
+    <div
+      class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full relative max-h-[90vh] overflow-y-auto"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Header -->
+      <div
+        class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10"
+      >
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+          Vatandaş Düzenle
+        </h3>
+        <button
+          type="button"
+          class="kt-btn kt-btn-ghost kt-btn-icon kt-btn-sm"
+          (click)="closeEditModal()"
+          [disabled]="editFormSubmitting()"
+        >
+          <i class="ki-filled ki-cross"></i>
+        </button>
+      </div>
+
+      <!-- Form Content -->
+      <div class="p-6 space-y-4">
+        <!-- Name and LastName Row -->
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Name Field -->
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Ad
+              <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              class="kt-input w-full"
+              placeholder="Ad"
+              [ngModel]="editForm.name()"
+              (ngModelChange)="editForm.name.set($event)"
+              [ngModelOptions]="{ standalone: true }"
+              [disabled]="editFormSubmitting()"
+            />
+          </div>
+
+          <!-- LastName Field -->
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Soyad
+              <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              class="kt-input w-full"
+              placeholder="Soyad"
+              [ngModel]="editForm.lastName()"
+              (ngModelChange)="editForm.lastName.set($event)"
+              [ngModelOptions]="{ standalone: true }"
+              [disabled]="editFormSubmitting()"
+            />
+          </div>
+        </div>
+
+        <!-- Birth Date and Gender Row -->
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Birth Date Field -->
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Doğum Tarihi
+              <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="date"
+              class="kt-input w-full"
+              [ngModel]="editForm.birthDate()"
+              (ngModelChange)="editForm.birthDate.set($event)"
+              [ngModelOptions]="{ standalone: true }"
+              [disabled]="editFormSubmitting()"
+            />
+          </div>
+
+          <!-- Gender Field -->
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Cinsiyet
+              <span class="text-red-500">*</span>
+            </label>
+            <select
+              class="kt-select w-full"
+              [ngModel]="editForm.genderId()"
+              (ngModelChange)="editForm.genderId.set($event)"
+              [ngModelOptions]="{ standalone: true }"
+              [disabled]="editFormSubmitting()"
+            >
+              <option [ngValue]="null">Seçiniz</option>
+              @for (gender of genders(); track gender.id) {
+                <option [ngValue]="+gender.id">{{ gender.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <!-- Birth Place Field -->
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            Doğum Yeri
+          </label>
+          <input
+            type="text"
+            class="kt-input w-full"
+            placeholder="Doğum Yeri (Opsiyonel)"
+            [ngModel]="editForm.birthPlace()"
+            (ngModelChange)="editForm.birthPlace.set($event)"
+            [ngModelOptions]="{ standalone: true }"
+            [disabled]="editFormSubmitting()"
+          />
+        </div>
+
+        <!-- Is Active Field -->
+        <div class="flex items-center">
+          <label class="inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              class="kt-checkbox"
+              [ngModel]="editForm.isActive()"
+              (ngModelChange)="editForm.isActive.set($event)"
+              [ngModelOptions]="{ standalone: true }"
+              [disabled]="editFormSubmitting()"
+            />
+            <span
+              class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              Aktif
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Footer Actions -->
+      <div
+        class="flex items-center justify-end gap-2.5 px-5 py-4 border-t border-gray-200 dark:border-gray-700 sticky bottom-0 bg-white dark:bg-gray-800 z-10"
+      >
+        <button
+          type="button"
+          class="kt-btn kt-btn-light"
+          (click)="closeEditModal()"
+          [disabled]="editFormSubmitting()"
+        >
+          İptal
+        </button>
+        <button
+          type="button"
+          class="kt-btn kt-btn-primary"
+          (click)="submitEditForm()"
+          [disabled]="!isEditFormValid() || editFormSubmitting()"
+        >
+          @if (editFormSubmitting()) {
+            <span class="flex items-center gap-2">
+              <span
+                class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent"
+              ></span>
+              <span>Güncelleniyor...</span>
+            </span>
+          } @else {
+            <span>Güncelle</span>
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
 <!-- Error Alert -->
 @if (error()) {
   <div class="kt-container-fixed mb-4">

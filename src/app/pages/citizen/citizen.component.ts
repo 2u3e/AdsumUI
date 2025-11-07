@@ -28,6 +28,7 @@ export class CitizenComponent implements OnInit {
   error = signal<string | null>(null);
   deleteModalOpen = signal<boolean>(false);
   createModalOpen = signal<boolean>(false);
+  editModalOpen = signal<boolean>(false);
   selectedCitizen = signal<CitizenListItem | null>(null);
 
   // Create form
@@ -40,6 +41,18 @@ export class CitizenComponent implements OnInit {
     genderId: signal<number | null>(null),
   };
   createFormSubmitting = signal<boolean>(false);
+
+  // Edit form
+  editForm = {
+    id: signal<string>(""),
+    name: signal<string>(""),
+    lastName: signal<string>(""),
+    birthDate: signal<string>(""),
+    birthPlace: signal<string>(""),
+    genderId: signal<number | null>(null),
+    isActive: signal<boolean>(true),
+  };
+  editFormSubmitting = signal<boolean>(false);
 
   // Filter parametreleri
   searchTerm = signal<string>("");
@@ -165,11 +178,35 @@ export class CitizenComponent implements OnInit {
   }
 
   /**
-   * Citizen düzenle
+   * Citizen düzenle - Önce detayları al, sonra modal aç
    */
   onEditCitizen(citizen: CitizenListItem): void {
-    console.log("Citizen düzenle:", citizen);
-    // TODO: Düzenleme modalı veya sayfası
+    this.selectedCitizen.set(citizen);
+
+    // Detaylı bilgi için API'den tam veriyi çek
+    this.citizenService.getById(citizen.id).subscribe({
+      next: (response) => {
+        const citizenData = response.data;
+        if (citizenData) {
+          this.editForm.id.set(citizenData.id);
+          this.editForm.name.set(citizenData.name);
+          this.editForm.lastName.set(citizenData.lastName);
+          // Tarih formatını düzelt (ISO string -> YYYY-MM-DD)
+          const birthDate = new Date(citizenData.birthDate);
+          this.editForm.birthDate.set(birthDate.toISOString().split("T")[0]);
+          this.editForm.birthPlace.set(citizenData.birthPlace ?? "");
+          this.editForm.genderId.set(citizenData.genderId);
+          this.editForm.isActive.set(citizenData.isActive);
+          this.editModalOpen.set(true);
+        }
+      },
+      error: (err) => {
+        this.error.set(
+          "Vatandaş bilgileri yüklenirken hata oluştu: " + err.message,
+        );
+        console.error("Load citizen error:", err);
+      },
+    });
   }
 
   /**
@@ -303,6 +340,81 @@ export class CitizenComponent implements OnInit {
         this.error.set("Kayıt oluşturulurken hata oluştu: " + err.message);
         console.error("Create error:", err);
         this.createFormSubmitting.set(false);
+      },
+    });
+  }
+
+  /**
+   * Edit modal kapat
+   */
+  closeEditModal(): void {
+    this.editModalOpen.set(false);
+    this.selectedCitizen.set(null);
+    this.resetEditForm();
+  }
+
+  /**
+   * Edit form resetle
+   */
+  resetEditForm(): void {
+    this.editForm.id.set("");
+    this.editForm.name.set("");
+    this.editForm.lastName.set("");
+    this.editForm.birthDate.set("");
+    this.editForm.birthPlace.set("");
+    this.editForm.genderId.set(null);
+    this.editForm.isActive.set(true);
+    this.editFormSubmitting.set(false);
+  }
+
+  /**
+   * Edit form validation
+   */
+  isEditFormValid(): boolean {
+    const name = this.editForm.name().trim();
+    const lastName = this.editForm.lastName().trim();
+    const birthDate = this.editForm.birthDate();
+    const genderId = this.editForm.genderId();
+    const id = this.editForm.id();
+
+    return (
+      id.length > 0 &&
+      name.length > 0 &&
+      lastName.length > 0 &&
+      !!birthDate &&
+      !!genderId
+    );
+  }
+
+  /**
+   * Citizen güncelle
+   */
+  submitEditForm(): void {
+    if (!this.isEditFormValid() || this.editFormSubmitting()) {
+      return;
+    }
+
+    this.editFormSubmitting.set(true);
+
+    const request = {
+      id: this.editForm.id(),
+      name: this.editForm.name().trim(),
+      lastName: this.editForm.lastName().trim(),
+      birthDate: this.editForm.birthDate(),
+      birthPlace: this.editForm.birthPlace().trim() || undefined,
+      genderId: this.editForm.genderId()!,
+      isActive: this.editForm.isActive(),
+    };
+
+    this.citizenService.update(request.id, request).subscribe({
+      next: () => {
+        this.closeEditModal();
+        this.loadCitizens();
+      },
+      error: (err) => {
+        this.error.set("Güncelleme sırasında hata oluştu: " + err.message);
+        console.error("Update error:", err);
+        this.editFormSubmitting.set(false);
       },
     });
   }
