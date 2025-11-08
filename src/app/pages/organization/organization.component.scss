@@ -1,0 +1,92 @@
+// Organization Component Styles
+
+.spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: rotate 1s linear infinite;
+}
+
+// Button transition effects
+.kt-btn {
+  transition: all 0.2s ease-in-out;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+}
+
+// Table row hover effect
+.kt-table tbody tr {
+  transition: background-color 0.15s ease-in-out;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+}
+
+// Dark mode table row hover
+:root[data-theme="dark"] .kt-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+// Modal backdrop animation
+.fixed.inset-0.bg-black\/50 {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// Modal content animation
+.fixed.inset-0.z-\[101\] > div {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Badge pulse animation for active status
+.kt-badge-success .kt-badge-dot {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

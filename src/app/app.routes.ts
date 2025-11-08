@@ -9,6 +9,7 @@ import { UserManagementComponent } from "./pages/user-management/user-management
 import { ReferenceComponent } from "./pages/reference/reference.component";
 import { LookupComponent } from "./pages/lookup/lookup.component";
 import { CitizenComponent } from "./pages/citizen/citizen.component";
+import { OrganizationComponent } from "./pages/organization/organization.component";
 
 import { authGuard, loginGuard } from "./core/guards/auth.guard";
 
@@ -42,6 +43,10 @@ export const routes: Routes = [
       {
         path: "citizen",
         component: CitizenComponent,
+      },
+      {
+        path: "organization",
+        component: OrganizationComponent,
       },
     ],
   },
