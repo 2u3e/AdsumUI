@@ -48,6 +48,10 @@ export class OrganizationComponent implements OnInit {
     isActive: signal<boolean>(true),
   };
   createFormSubmitting = signal<boolean>(false);
+  createFormTouched = {
+    name: signal<boolean>(false),
+    typeId: signal<boolean>(false),
+  };
 
   // Edit form
   editForm = {
@@ -60,6 +64,10 @@ export class OrganizationComponent implements OnInit {
     isActive: signal<boolean>(true),
   };
   editFormSubmitting = signal<boolean>(false);
+  editFormTouched = {
+    name: signal<boolean>(false),
+    typeId: signal<boolean>(false),
+  };
 
   // Search ve pagination parametreleri
   searchTerm = signal<string>("");
@@ -414,6 +422,8 @@ export class OrganizationComponent implements OnInit {
     this.createForm.description.set("");
     this.createForm.isActive.set(true);
     this.createFormSubmitting.set(false);
+    this.createFormTouched.name.set(false);
+    this.createFormTouched.typeId.set(false);
   }
 
   /**
@@ -432,9 +442,57 @@ export class OrganizationComponent implements OnInit {
   }
 
   /**
+   * Field-level validation methods for create form
+   */
+  isCreateNameValid(): boolean {
+    return this.createForm.name().trim().length > 0;
+  }
+
+  isCreateTypeValid(): boolean {
+    return this.createForm.typeId() !== null;
+  }
+
+  shouldShowCreateNameError(): boolean {
+    return this.createFormTouched.name() && !this.isCreateNameValid();
+  }
+
+  shouldShowCreateTypeError(): boolean {
+    return this.createFormTouched.typeId() && !this.isCreateTypeValid();
+  }
+
+  getCreateNameError(): string {
+    if (!this.isCreateNameValid()) {
+      return "Organizasyon adı zorunludur";
+    }
+    return "";
+  }
+
+  getCreateTypeError(): string {
+    if (!this.isCreateTypeValid()) {
+      return "Organizasyon tipi seçimi zorunludur";
+    }
+    return "";
+  }
+
+  /**
+   * Handle organization type change for create form
+   */
+  onCreateTypeChange(value: string): void {
+    if (value === "" || value === null) {
+      this.createForm.typeId.set(null);
+    } else {
+      this.createForm.typeId.set(+value);
+    }
+  }
+
+  /**
    * Yeni organization oluştur
    */
   submitCreateForm(): void {
+    // Mark all fields as touched to show validation errors
+    this.createFormTouched.name.set(true);
+    this.createFormTouched.typeId.set(true);
+
     if (!this.isCreateFormValid() || this.createFormSubmitting()) {
       return;
     }
@@ -489,6 +547,8 @@ export class OrganizationComponent implements OnInit {
     this.editForm.description.set("");
     this.editForm.isActive.set(true);
     this.editFormSubmitting.set(false);
+    this.editFormTouched.name.set(false);
+    this.editFormTouched.typeId.set(false);
   }
 
   /**
@@ -503,9 +563,57 @@ export class OrganizationComponent implements OnInit {
   }
 
   /**
+   * Field-level validation methods for edit form
+   */
+  isEditNameValid(): boolean {
+    return this.editForm.name().trim().length > 0;
+  }
+
+  isEditTypeValid(): boolean {
+    return this.editForm.typeId() !== null;
+  }
+
+  shouldShowEditNameError(): boolean {
+    return this.editFormTouched.name() && !this.isEditNameValid();
+  }
+
+  shouldShowEditTypeError(): boolean {
+    return this.editFormTouched.typeId() && !this.isEditTypeValid();
+  }
+
+  getEditNameError(): string {
+    if (!this.isEditNameValid()) {
+      return "Organizasyon adı zorunludur";
+    }
+    return "";
+  }
+
+  getEditTypeError(): string {
+    if (!this.isEditTypeValid()) {
+      return "Organizasyon tipi seçimi zorunludur";
+    }
+    return "";
+  }
+
+  /**
+   * Handle organization type change for edit form
+   */
+  onEditTypeChange(value: string): void {
+    if (value === "" || value === null) {
+      this.editForm.typeId.set(null);
+    } else {
+      this.editForm.typeId.set(+value);
+    }
+  }
+
+  /**
    * Organization güncelle
    */
   submitEditForm(): void {
+    // Mark all fields as touched to show validation errors
+    this.editFormTouched.name.set(true);
+    this.editFormTouched.typeId.set(true);
+
     if (!this.isEditFormValid() || this.editFormSubmitting()) {
       return;
     }
