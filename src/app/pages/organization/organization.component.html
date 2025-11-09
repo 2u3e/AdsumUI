@@ -586,10 +586,14 @@
         <select
           class="kt-select w-48"
           [ngModel]="selectedTypeFilter()"
-          (ngModelChange)="onTypeFilterChange($event ? +$event : null)"
+          (ngModelChange)="
+            onTypeFilterChange(
+              $event === '' || $event === null ? null : +$event
+            )
+          "
           [ngModelOptions]="{ standalone: true }"
         >
-          <option [value]="null">Tüm Tipler</option>
+          <option value="">Tüm Tipler</option>
           @for (type of organizationTypes(); track type.id) {
             <option [value]="type.id">{{ type.name }}</option>
           }
