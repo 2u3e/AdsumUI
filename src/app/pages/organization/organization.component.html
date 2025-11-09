@@ -631,24 +631,19 @@
                   <span class="kt-table-col-label">Durum</span>
                 </span>
               </th>
-              <th scope="col" class="min-w-[250px]">
+              <th scope="col" class="min-w-[300px]">
                 <span class="kt-table-col">
-                  <span class="kt-table-col-label">Organizasyon Adı</span>
-                </span>
-              </th>
-              <th scope="col" class="min-w-[150px]">
-                <span class="kt-table-col">
-                  <span class="kt-table-col-label">Kısa Ad</span>
-                </span>
-              </th>
-              <th scope="col" class="min-w-[150px]">
-                <span class="kt-table-col">
-                  <span class="kt-table-col-label">Tip</span>
+                  <span class="kt-table-col-label">Organizasyon</span>
                 </span>
               </th>
               <th scope="col" class="min-w-[200px]">
                 <span class="kt-table-col">
                   <span class="kt-table-col-label">Üst Organizasyon</span>
+                </span>
+              </th>
+              <th scope="col" class="min-w-[150px]">
+                <span class="kt-table-col">
+                  <span class="kt-table-col-label">Tip</span>
                 </span>
               </th>
               <th scope="col" class="w-40">
@@ -661,7 +656,7 @@
           <tbody>
             @if (loading()) {
               <tr>
-                <td colspan="6" class="text-center py-12">
+                <td colspan="5" class="text-center py-12">
                   <div class="flex flex-col items-center gap-3">
                     <div
                       class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"
@@ -692,33 +687,27 @@
                   </td>
                   <td>
                     <div class="flex flex-col">
+                      @if (organization.shortName) {
+                        <span class="text-xs text-gray-500 dark:text-gray-400">
+                          {{ organization.shortName }}
+                        </span>
+                      }
                       <span
-                        class="text-sm font-medium text-gray-900 dark:text-gray-100"
+                        class="text-sm font-semibold text-gray-900 dark:text-gray-100"
+                        [class.mt-0.5]="organization.shortName"
                       >
                         {{ organization.name }}
                       </span>
-                      @if (organization.description) {
-                        <span
-                          class="text-xs text-gray-500 dark:text-gray-400 mt-0.5"
-                        >
-                          {{ organization.description }}
-                        </span>
-                      }
                     </div>
                   </td>
                   <td>
                     <span class="text-sm text-gray-600 dark:text-gray-400">
-                      {{ organization.shortName || "-" }}
+                      {{ organization.parentName || "-" }}
                     </span>
                   </td>
                   <td>
                     <span class="text-sm text-gray-600 dark:text-gray-400">
                       {{ organization.typeName || "-" }}
-                    </span>
-                  </td>
-                  <td>
-                    <span class="text-sm text-gray-600 dark:text-gray-400">
-                      {{ organization.parentName || "-" }}
                     </span>
                   </td>
                   <td>
@@ -752,7 +741,7 @@
                 </tr>
               } @empty {
                 <tr>
-                  <td colspan="6" class="text-center py-8">
+                  <td colspan="5" class="text-center py-8">
                     <div class="flex flex-col items-center gap-2">
                       <i
                         class="ki-filled ki-information-2 text-4xl text-muted-foreground"
