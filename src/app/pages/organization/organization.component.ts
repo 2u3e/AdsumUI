@@ -458,6 +458,7 @@ export class OrganizationComponent implements OnInit {
         );
         this.closeCreateModal();
         this.loadOrganizations();
+        this.loadParentOrganizations(); // Üst organizasyon listesini yenile
       },
       error: (err) => {
         // Hata otomatik gösterilir (error-handler interceptor)
@@ -529,6 +530,7 @@ export class OrganizationComponent implements OnInit {
         );
         this.closeEditModal();
         this.loadOrganizations();
+        this.loadParentOrganizations(); // Üst organizasyon listesini yenile
       },
       error: (err) => {
         // Hata otomatik gösterilir (error-handler interceptor)
