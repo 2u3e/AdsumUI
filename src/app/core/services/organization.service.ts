@@ -6,6 +6,7 @@ import { Response } from "../models/api.models";
 import {
   OrganizationItem,
   OrganizationListItem,
+  OrganizationSelectItem,
   GetOrganizationsRequest,
   CreateOrganizationRequest,
   UpdateOrganizationRequest,
@@ -98,5 +99,15 @@ export class OrganizationService extends BaseHttpService {
    */
   deleteById(id: string): Observable<Response<void>> {
     return super.delete<void>(`${this.endpoint}/${id}`);
+  }
+
+  /**
+   * Select box için organization listesini getirir
+   * GET /Organizations/GetAllForSelect
+   */
+  getAllForSelect(): Observable<Response<OrganizationSelectItem[]>> {
+    return this.get<OrganizationSelectItem[]>(
+      `${this.endpoint}/GetAllForSelect`,
+    );
   }
 }

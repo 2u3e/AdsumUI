@@ -59,7 +59,7 @@
 
       <!-- Form Content -->
       <div class="p-6 space-y-4">
-        <!-- Name and Short Name Row -->
+        <!-- 1. Satır: Ad ve Kısa Ad -->
         <div class="grid grid-cols-2 gap-4">
           <!-- Name Field -->
           <div>
@@ -101,7 +101,7 @@
           </div>
         </div>
 
-        <!-- Type and Code Row -->
+        <!-- 2. Satır: Organizasyon Tipi ve Üst Organizasyon -->
         <div class="grid grid-cols-2 gap-4">
           <!-- Type Field -->
           <div>
@@ -125,62 +125,78 @@
             </select>
           </div>
 
-          <!-- Code Field -->
+          <!-- Parent Organization Field -->
           <div>
             <label
               class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
-              Kod
+              Üst Organizasyon
+            </label>
+            <select
+              class="kt-select w-full text-sm"
+              data-kt-select="true"
+              data-kt-select-enable-search="true"
+              data-kt-select-search-placeholder="Ara..."
+              data-kt-select-placeholder="Üst organizasyon seçiniz"
+              [ngModel]="createForm.parentId()"
+              (ngModelChange)="createForm.parentId.set($event)"
+              [ngModelOptions]="{ standalone: true }"
+              [disabled]="createFormSubmitting()"
+            >
+              <option value="">Seçiniz</option>
+              @for (org of parentOrganizations(); track org.id) {
+                <option [value]="org.id">{{ org.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <!-- 3. Satır: Açıklama ve Aktif/Pasif -->
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Description Field -->
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Açıklama
             </label>
             <input
               type="text"
               class="kt-input w-full"
-              placeholder="Kod (opsiyonel)"
-              [ngModel]="createForm.code()"
-              (ngModelChange)="createForm.code.set($event)"
+              placeholder="Açıklama (opsiyonel)"
+              [ngModel]="createForm.description()"
+              (ngModelChange)="createForm.description.set($event)"
               [ngModelOptions]="{ standalone: true }"
               [disabled]="createFormSubmitting()"
-              maxlength="50"
+              maxlength="200"
             />
           </div>
-        </div>
 
-        <!-- Description Field -->
-        <div>
-          <label
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-          >
-            Açıklama
-          </label>
-          <textarea
-            class="kt-input w-full"
-            placeholder="Açıklama (opsiyonel)"
-            rows="3"
-            [ngModel]="createForm.description()"
-            (ngModelChange)="createForm.description.set($event)"
-            [ngModelOptions]="{ standalone: true }"
-            [disabled]="createFormSubmitting()"
-            maxlength="500"
-          ></textarea>
-        </div>
-
-        <!-- Is Active Field -->
-        <div class="flex items-center">
-          <label class="inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              class="kt-checkbox"
-              [ngModel]="createForm.isActive()"
-              (ngModelChange)="createForm.isActive.set($event)"
-              [ngModelOptions]="{ standalone: true }"
-              [disabled]="createFormSubmitting()"
-            />
-            <span
-              class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-300"
+          <!-- Is Active Switch -->
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
-              Aktif
-            </span>
-          </label>
+              Durum
+            </label>
+            <div class="flex items-center gap-2 mt-1">
+              <input
+                type="checkbox"
+                class="kt-switch"
+                id="createIsActive"
+                [ngModel]="createForm.isActive()"
+                (ngModelChange)="createForm.isActive.set($event)"
+                [ngModelOptions]="{ standalone: true }"
+                [disabled]="createFormSubmitting()"
+              />
+              <label
+                for="createIsActive"
+                class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+              >
+                {{ createForm.isActive() ? "Aktif" : "Pasif" }}
+              </label>
+            </div>
+          </div>
         </div>
 
         <!-- Validation Warning -->
@@ -265,7 +281,7 @@
 
       <!-- Form Content -->
       <div class="p-6 space-y-4">
-        <!-- Name and Short Name Row -->
+        <!-- 1. Satır: Ad ve Kısa Ad -->
         <div class="grid grid-cols-2 gap-4">
           <!-- Name Field -->
           <div>
@@ -307,7 +323,7 @@
           </div>
         </div>
 
-        <!-- Type and Code Row -->
+        <!-- 2. Satır: Organizasyon Tipi ve Üst Organizasyon -->
         <div class="grid grid-cols-2 gap-4">
           <!-- Type Field -->
           <div>
@@ -331,62 +347,78 @@
             </select>
           </div>
 
-          <!-- Code Field -->
+          <!-- Parent Organization Field -->
           <div>
             <label
               class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
-              Kod
+              Üst Organizasyon
+            </label>
+            <select
+              class="kt-select w-full text-sm"
+              data-kt-select="true"
+              data-kt-select-enable-search="true"
+              data-kt-select-search-placeholder="Ara..."
+              data-kt-select-placeholder="Üst organizasyon seçiniz"
+              [ngModel]="editForm.parentId()"
+              (ngModelChange)="editForm.parentId.set($event)"
+              [ngModelOptions]="{ standalone: true }"
+              [disabled]="editFormSubmitting()"
+            >
+              <option value="">Seçiniz</option>
+              @for (org of parentOrganizations(); track org.id) {
+                <option [value]="org.id">{{ org.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <!-- 3. Satır: Açıklama ve Aktif/Pasif -->
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Description Field -->
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Açıklama
             </label>
             <input
               type="text"
               class="kt-input w-full"
-              placeholder="Kod (opsiyonel)"
-              [ngModel]="editForm.code()"
-              (ngModelChange)="editForm.code.set($event)"
+              placeholder="Açıklama (opsiyonel)"
+              [ngModel]="editForm.description()"
+              (ngModelChange)="editForm.description.set($event)"
               [ngModelOptions]="{ standalone: true }"
               [disabled]="editFormSubmitting()"
-              maxlength="50"
+              maxlength="200"
             />
           </div>
-        </div>
 
-        <!-- Description Field -->
-        <div>
-          <label
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-          >
-            Açıklama
-          </label>
-          <textarea
-            class="kt-input w-full"
-            placeholder="Açıklama (opsiyonel)"
-            rows="3"
-            [ngModel]="editForm.description()"
-            (ngModelChange)="editForm.description.set($event)"
-            [ngModelOptions]="{ standalone: true }"
-            [disabled]="editFormSubmitting()"
-            maxlength="500"
-          ></textarea>
-        </div>
-
-        <!-- Is Active Field -->
-        <div class="flex items-center">
-          <label class="inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              class="kt-checkbox"
-              [ngModel]="editForm.isActive()"
-              (ngModelChange)="editForm.isActive.set($event)"
-              [ngModelOptions]="{ standalone: true }"
-              [disabled]="editFormSubmitting()"
-            />
-            <span
-              class="ms-2 text-sm font-medium text-gray-700 dark:text-gray-300"
+          <!-- Is Active Switch -->
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
-              Aktif
-            </span>
-          </label>
+              Durum
+            </label>
+            <div class="flex items-center gap-2 mt-1">
+              <input
+                type="checkbox"
+                class="kt-switch"
+                id="editIsActive"
+                [ngModel]="editForm.isActive()"
+                (ngModelChange)="editForm.isActive.set($event)"
+                [ngModelOptions]="{ standalone: true }"
+                [disabled]="editFormSubmitting()"
+              />
+              <label
+                for="editIsActive"
+                class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+              >
+                {{ editForm.isActive() ? "Aktif" : "Pasif" }}
+              </label>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -462,8 +494,7 @@
                 />
               </svg>
               <p class="text-sm text-yellow-800 dark:text-yellow-200">
-                Bu işlem geri alınamaz. Organizasyon kalıcı olarak
-                silinecektir.
+                Bu işlem geri alınamaz. Organizasyon kalıcı olarak silinecektir.
               </p>
             </div>
 

@@ -24,9 +24,6 @@ export interface OrganizationItem {
   /** Kısa ad */
   shortName?: string;
 
-  /** Kod */
-  code?: string;
-
   /** Seviye */
   level: number;
 
@@ -59,9 +56,6 @@ export interface OrganizationListItem {
 
   /** Kısa ad */
   shortName?: string;
-
-  /** Kod */
-  code?: string;
 
   /** Açıklama */
   description?: string;
@@ -114,9 +108,6 @@ export interface CreateOrganizationRequest {
   /** Kısa ad */
   shortName?: string;
 
-  /** Kod */
-  code?: string;
-
   /** Açıklama */
   description?: string;
 
@@ -144,12 +135,21 @@ export interface UpdateOrganizationRequest {
   /** Kısa ad */
   shortName?: string;
 
-  /** Kod */
-  code?: string;
-
   /** Açıklama */
   description?: string;
 
   /** Aktif mi? */
   isActive: boolean;
+}
+
+/**
+ * Organization select item
+ * Select box için kullanılacak basit model
+ */
+export interface OrganizationSelectItem {
+  /** Organization ID (UUID) */
+  id: string;
+
+  /** Organizasyon adı */
+  name: string;
 }

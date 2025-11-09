@@ -5,7 +5,10 @@ import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 import { OrganizationService } from "../../core/services/organization.service";
 import { ReferenceService } from "../../core/services/reference.service";
-import { OrganizationListItem } from "../../core/models/organization.models";
+import {
+  OrganizationListItem,
+  OrganizationSelectItem,
+} from "../../core/models/organization.models";
 import { ReferenceDataSelectItem } from "../../core/models/reference.models";
 import { ReferenceTypes } from "../../core/constants/reference-types";
 import { PaginationMeta } from "../../core/models/api.models";
@@ -24,6 +27,7 @@ export class OrganizationComponent implements OnInit {
   // Signals
   organizations = signal<OrganizationListItem[]>([]);
   organizationTypes = signal<ReferenceDataSelectItem[]>([]);
+  parentOrganizations = signal<OrganizationSelectItem[]>([]);
   pagination = signal<PaginationMeta | null>(null);
   loading = signal<boolean>(false);
   error = signal<string | null>(null);
@@ -36,7 +40,6 @@ export class OrganizationComponent implements OnInit {
   createForm = {
     name: signal<string>(""),
     shortName: signal<string>(""),
-    code: signal<string>(""),
     typeId: signal<number | null>(null),
     parentId: signal<string | null>(null),
     description: signal<string>(""),
@@ -49,7 +52,6 @@ export class OrganizationComponent implements OnInit {
     id: signal<string>(""),
     name: signal<string>(""),
     shortName: signal<string>(""),
-    code: signal<string>(""),
     typeId: signal<number | null>(null),
     parentId: signal<string | null>(null),
     description: signal<string>(""),
@@ -165,6 +167,9 @@ export class OrganizationComponent implements OnInit {
     // Organizasyon tipleri listesini yükle
     this.loadOrganizationTypes();
 
+    // Üst organizasyon listesini yükle
+    this.loadParentOrganizations();
+
     // İlk yükleme
     this.loadOrganizations();
   }
@@ -184,6 +189,20 @@ export class OrganizationComponent implements OnInit {
           console.error("Organization types loading error:", err);
         },
       });
+  }
+
+  /**
+   * Üst organizasyon listesini yükler (select için)
+   */
+  loadParentOrganizations(): void {
+    this.organizationService.getAllForSelect().subscribe({
+      next: (response) => {
+        this.parentOrganizations.set(response.data ?? []);
+      },
+      error: (err) => {
+        console.error("Parent organizations loading error:", err);
+      },
+    });
   }
 
   /**
@@ -310,7 +329,6 @@ export class OrganizationComponent implements OnInit {
           this.editForm.id.set(orgData.id);
           this.editForm.name.set(orgData.name);
           this.editForm.shortName.set(orgData.shortName ?? "");
-          this.editForm.code.set(orgData.code ?? "");
           this.editForm.typeId.set(orgData.typeId);
           this.editForm.parentId.set(orgData.parentId ?? null);
           this.editForm.description.set(orgData.description ?? "");
@@ -385,7 +403,6 @@ export class OrganizationComponent implements OnInit {
   resetCreateForm(): void {
     this.createForm.name.set("");
     this.createForm.shortName.set("");
-    this.createForm.code.set("");
     this.createForm.typeId.set(null);
     this.createForm.parentId.set(null);
     this.createForm.description.set("");
@@ -421,7 +438,6 @@ export class OrganizationComponent implements OnInit {
     const request = {
       name: this.createForm.name().trim(),
       shortName: this.createForm.shortName().trim() || undefined,
-      code: this.createForm.code().trim() || undefined,
       typeId: this.createForm.typeId()!,
       parentId: this.createForm.parentId() || undefined,
       description: this.createForm.description().trim() || undefined,
@@ -457,7 +473,6 @@ export class OrganizationComponent implements OnInit {
     this.editForm.id.set("");
     this.editForm.name.set("");
     this.editForm.shortName.set("");
-    this.editForm.code.set("");
     this.editForm.typeId.set(null);
     this.editForm.parentId.set(null);
     this.editForm.description.set("");
@@ -490,7 +505,6 @@ export class OrganizationComponent implements OnInit {
       id: this.editForm.id(),
       name: this.editForm.name().trim(),
       shortName: this.editForm.shortName().trim() || undefined,
-      code: this.editForm.code().trim() || undefined,
       typeId: this.editForm.typeId()!,
       parentId: this.editForm.parentId() || undefined,
       description: this.editForm.description().trim() || undefined,
