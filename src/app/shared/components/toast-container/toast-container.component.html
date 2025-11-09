@@ -1,0 +1,76 @@
+<!-- Toast Container - Tüm pozisyonlar için -->
+<div class="toast-container-wrapper">
+  @for (position of positions; track position) {
+    @if (getNotificationsByPosition(position).length > 0) {
+      <div [class]="getPositionClass(position)">
+        @for (
+          notification of getNotificationsByPosition(position);
+          track notification.id
+        ) {
+          <div
+            [class]="
+              'kt-alert toast-item ' +
+              getAlertTypeClass(notification) +
+              ' ' +
+              getAnimationClass(notification) +
+              ' ' +
+              notification.config.customClass
+            "
+            (click)="onNotificationClick(notification)"
+            [attr.role]="'alert'"
+            [attr.aria-live]="'polite'"
+          >
+            <!-- Alert Content -->
+            <div class="kt-alert-content flex items-start gap-3">
+              <!-- Icon -->
+              @if (notification.config.showIcon) {
+                <div class="kt-alert-icon flex-shrink-0">
+                  <i [class]="getIconClass(notification)"></i>
+                </div>
+              }
+
+              <!-- Text Content -->
+              <div class="flex-1 min-w-0">
+                @if (notification.title) {
+                  <div class="kt-alert-title font-semibold text-sm mb-1">
+                    {{ notification.title }}
+                  </div>
+                }
+                <div class="kt-alert-description text-sm">
+                  {{ notification.message }}
+                </div>
+              </div>
+
+              <!-- Close Button -->
+              @if (notification.config.showCloseButton) {
+                <button
+                  type="button"
+                  class="kt-alert-close flex-shrink-0"
+                  (click)="
+                    closeNotification(notification.id); $event.stopPropagation()
+                  "
+                  [attr.aria-label]="'Kapat'"
+                >
+                  <i class="ki-outline ki-cross"></i>
+                </button>
+              }
+            </div>
+
+            <!-- Progress Bar -->
+            @if (
+              notification.config.showProgressBar &&
+              notification.progress !== undefined
+            ) {
+              <div class="toast-progress-bar">
+                <div
+                  class="toast-progress-fill"
+                  [ngStyle]="getProgressStyle(notification)"
+                ></div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

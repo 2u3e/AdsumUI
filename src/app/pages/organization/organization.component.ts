@@ -5,6 +5,7 @@ import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 import { OrganizationService } from "../../core/services/organization.service";
 import { ReferenceService } from "../../core/services/reference.service";
+import { NotificationService } from "../../core/services/notification.service";
 import {
   OrganizationListItem,
   OrganizationSelectItem,
@@ -23,6 +24,7 @@ import { PaginationMeta } from "../../core/models/api.models";
 export class OrganizationComponent implements OnInit {
   private organizationService = inject(OrganizationService);
   private referenceService = inject(ReferenceService);
+  private notificationService = inject(NotificationService);
 
   // Signals
   organizations = signal<OrganizationListItem[]>([]);
@@ -370,11 +372,15 @@ export class OrganizationComponent implements OnInit {
 
     this.organizationService.deleteById(organization.id).subscribe({
       next: () => {
+        this.notificationService.success(
+          "Organizasyon başarıyla silindi",
+          "Silme İşlemi",
+        );
         this.closeDeleteModal();
         this.loadOrganizations();
       },
       error: (err) => {
-        this.error.set("Silme işlemi başarısız: " + err.message);
+        // Hata otomatik gösterilir (error-handler interceptor)
         console.error("Delete error:", err);
         this.closeDeleteModal();
       },
@@ -446,11 +452,15 @@ export class OrganizationComponent implements OnInit {
 
     this.organizationService.create(request).subscribe({
       next: () => {
+        this.notificationService.success(
+          "Organizasyon başarıyla oluşturuldu",
+          "İşlem Başarılı",
+        );
         this.closeCreateModal();
         this.loadOrganizations();
       },
       error: (err) => {
-        this.error.set("Kayıt oluşturulurken hata oluştu: " + err.message);
+        // Hata otomatik gösterilir (error-handler interceptor)
         console.error("Create error:", err);
         this.createFormSubmitting.set(false);
       },
@@ -513,11 +523,15 @@ export class OrganizationComponent implements OnInit {
 
     this.organizationService.update(request.id, request).subscribe({
       next: () => {
+        this.notificationService.success(
+          "Organizasyon başarıyla güncellendi",
+          "Güncelleme Başarılı",
+        );
         this.closeEditModal();
         this.loadOrganizations();
       },
       error: (err) => {
-        this.error.set("Güncelleme sırasında hata oluştu: " + err.message);
+        // Hata otomatik gösterilir (error-handler interceptor)
         console.error("Update error:", err);
         this.editFormSubmitting.set(false);
       },

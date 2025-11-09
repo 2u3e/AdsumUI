@@ -1,0 +1,190 @@
+/**
+ * Toast Container Styles
+ * Metronic temalarına uygun toast notification stilleri
+ */
+
+.toast-container-wrapper {
+  pointer-events: none;
+  position: fixed;
+  z-index: 9999;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.toast-position {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  pointer-events: none;
+  z-index: 9999;
+  max-width: 420px;
+  width: 100%;
+  padding: 0 1rem;
+
+  @media (max-width: 640px) {
+    max-width: 100%;
+    left: 0 !important;
+    right: 0 !important;
+    transform: none !important;
+  }
+}
+
+.toast-item {
+  pointer-events: auto;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  position: relative;
+  cursor: default;
+
+  &:hover {
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  }
+}
+
+// Progress Bar Styles
+.toast-progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.toast-progress-fill {
+  height: 100%;
+  background-color: currentColor;
+  transition: width 50ms linear;
+  opacity: 0.5;
+}
+
+// Animation: Fade
+.toast-animation-fade {
+  transition: opacity 300ms ease-in-out, transform 300ms ease-in-out;
+
+  &.toast-enter {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  &.toast-exit {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+// Animation: Slide
+.toast-animation-slide {
+  transition: opacity 300ms ease-in-out, transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  &.toast-enter {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  &.toast-exit {
+    opacity: 0;
+
+    // Position'a göre slide yönü
+    [class*="right"] & {
+      transform: translateX(100%);
+    }
+
+    [class*="left"] & {
+      transform: translateX(-100%);
+    }
+
+    [class*="center"] & {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+  }
+}
+
+// Animation: Bounce
+.toast-animation-bounce {
+  transition: opacity 300ms ease-in-out, transform 400ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  &.toast-enter {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  &.toast-exit {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+// Animation: Zoom
+.toast-animation-zoom {
+  transition: opacity 200ms ease-in-out, transform 200ms ease-in-out;
+
+  &.toast-enter {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  &.toast-exit {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 640px) {
+  .toast-item {
+    font-size: 0.875rem;
+  }
+
+  .kt-alert-icon {
+    i {
+      font-size: 1.25rem;
+    }
+  }
+}
+
+// Dark mode support (Metronic themes)
+@media (prefers-color-scheme: dark) {
+  .toast-item {
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+
+    &:hover {
+      box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.3);
+    }
+  }
+}
+
+// Metronic alert customizations for toast
+.kt-alert {
+  // Close button için özel stil
+  .kt-alert-close {
+    cursor: pointer;
+    transition: all 150ms ease;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    i {
+      font-size: 1rem;
+    }
+  }
+
+  // Icon özel stil
+  .kt-alert-icon {
+    i {
+      font-size: 1.5rem;
+    }
+  }
+}

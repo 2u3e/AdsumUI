@@ -1,17 +1,18 @@
-import { Component, inject, signal, Renderer2, DOCUMENT } from '@angular/core';
-import { Router, NavigationEnd, RouterOutlet } from '@angular/router';
+import { Component, inject, signal, Renderer2, DOCUMENT } from "@angular/core";
+import { Router, NavigationEnd, RouterOutlet } from "@angular/router";
 
-import { filter } from 'rxjs/operators';
-import { MetronicInitService } from './core/services/metronic-init.service';
+import { filter } from "rxjs/operators";
+import { MetronicInitService } from "./core/services/metronic-init.service";
+import { ToastContainerComponent } from "./shared/components/toast-container/toast-container.component";
 
 @Component({
-  selector: 'body[app-root]',
-  imports: [RouterOutlet],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  selector: "body[app-root]",
+  imports: [RouterOutlet, ToastContainerComponent],
+  templateUrl: "./app.component.html",
+  styleUrl: "./app.component.scss",
 })
 export class AppComponent {
-  title = 'Malatya Büyükşehir Belediyesi';
+  title = "Malatya Büyükşehir Belediyesi";
 
   private router = inject(Router);
   private document = inject(DOCUMENT);
@@ -19,22 +20,24 @@ export class AppComponent {
   private metronicInitService = inject(MetronicInitService);
 
   private demoClassMap: Record<string, string> = {
-    demo1: 'demo1 kt-sidebar-fixed kt-header-fixed'
+    demo1: "demo1 kt-sidebar-fixed kt-header-fixed",
   };
-  private currentDemo = signal('demo1');
+  private currentDemo = signal("demo1");
 
   constructor() {
-    this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(() => {
-      this.updateDemo();
-      this.metronicInitService.init();
-    });
+    this.router.events
+      .pipe(filter((e) => e instanceof NavigationEnd))
+      .subscribe(() => {
+        this.updateDemo();
+        this.metronicInitService.init();
+      });
     this.updateDemo();
   }
 
   private updateDemo() {
     const url = this.router.url;
-    const firstSegment = url.split('/').filter(Boolean)[0] || 'demo1';
-    const newDemo = firstSegment in this.demoClassMap ? firstSegment : 'demo1';
+    const firstSegment = url.split("/").filter(Boolean)[0] || "demo1";
+    const newDemo = firstSegment in this.demoClassMap ? firstSegment : "demo1";
     this.currentDemo.set(newDemo);
     this.clearDemoClasses();
     this.applyDemoClass(this.demoClassMap[newDemo]);
@@ -42,9 +45,9 @@ export class AppComponent {
 
   private clearDemoClasses() {
     // Remove all possible demo classes from body
-    Object.values(this.demoClassMap).forEach(classString => {
-      const classes = classString.split(' ');
-      classes.forEach(className => {
+    Object.values(this.demoClassMap).forEach((classString) => {
+      const classes = classString.split(" ");
+      classes.forEach((className) => {
         if (className.trim()) {
           this.renderer.removeClass(this.document.body, className.trim());
         }
@@ -53,8 +56,8 @@ export class AppComponent {
   }
 
   private applyDemoClass(classString: string) {
-    const classes = classString.split(' ');
-    classes.forEach(className => {
+    const classes = classString.split(" ");
+    classes.forEach((className) => {
       if (className.trim()) {
         this.renderer.addClass(this.document.body, className.trim());
       }
