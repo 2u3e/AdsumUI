@@ -1,4 +1,11 @@
-import { Component, OnInit, inject, signal, computed } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  inject,
+  signal,
+  computed,
+  AfterViewChecked,
+} from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
@@ -6,6 +13,7 @@ import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 import { OrganizationService } from "../../core/services/organization.service";
 import { ReferenceService } from "../../core/services/reference.service";
 import { NotificationService } from "../../core/services/notification.service";
+import { MetronicInitService } from "../../core/services/metronic-init.service";
 import {
   OrganizationListItem,
   OrganizationSelectItem,
@@ -21,10 +29,11 @@ import { PaginationMeta } from "../../core/models/api.models";
   templateUrl: "./organization.component.html",
   styleUrls: ["./organization.component.scss"],
 })
-export class OrganizationComponent implements OnInit {
+export class OrganizationComponent implements OnInit, AfterViewChecked {
   private organizationService = inject(OrganizationService);
   private referenceService = inject(ReferenceService);
   private notificationService = inject(NotificationService);
+  private metronicInit = inject(MetronicInitService);
 
   // Signals
   organizations = signal<OrganizationListItem[]>([]);
@@ -77,6 +86,9 @@ export class OrganizationComponent implements OnInit {
 
   // Search debounce için
   private searchSubject = new Subject<string>();
+
+  // Flag to track if selects need reinitialization
+  private needsSelectInit = false;
 
   // Computed values
   totalPages = computed(() => this.pagination()?.totalPages ?? 0);
@@ -182,6 +194,18 @@ export class OrganizationComponent implements OnInit {
 
     // İlk yükleme
     this.loadOrganizations();
+
+    // Initialize select components after a short delay to ensure DOM is ready
+    setTimeout(() => {
+      this.metronicInit.initSelect();
+    }, 100);
+  }
+
+  ngAfterViewChecked(): void {
+    if (this.needsSelectInit) {
+      this.metronicInit.initSelect();
+      this.needsSelectInit = false;
+    }
   }
 
   /**
@@ -344,6 +368,7 @@ export class OrganizationComponent implements OnInit {
           this.editForm.description.set(orgData.description ?? "");
           this.editForm.isActive.set(orgData.isActive);
           this.editModalOpen.set(true);
+          this.needsSelectInit = true;
         }
       },
       error: (err) => {
@@ -401,6 +426,7 @@ export class OrganizationComponent implements OnInit {
   onAddOrganization(): void {
     this.resetCreateForm();
     this.createModalOpen.set(true);
+    this.needsSelectInit = true;
   }
 
   /**
@@ -472,17 +498,6 @@ export class OrganizationComponent implements OnInit {
       return "Organizasyon tipi seçimi zorunludur";
     }
     return "";
-  }
-
-  /**
-   * Handle organization type change for create form
-   */
-  onCreateTypeChange(value: string): void {
-    if (value === "" || value === null) {
-      this.createForm.typeId.set(null);
-    } else {
-      this.createForm.typeId.set(+value);
-    }
   }
 
   /**
@@ -593,17 +608,6 @@ export class OrganizationComponent implements OnInit {
       return "Organizasyon tipi seçimi zorunludur";
     }
     return "";
-  }
-
-  /**
-   * Handle organization type change for edit form
-   */
-  onEditTypeChange(value: string): void {
-    if (value === "" || value === null) {
-      this.editForm.typeId.set(null);
-    } else {
-      this.editForm.typeId.set(+value);
-    }
   }
 
   /**

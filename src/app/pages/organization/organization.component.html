@@ -127,19 +127,30 @@
               Organizasyon Tipi
               <span class="text-red-500">*</span>
             </label>
-            <select
-              class="kt-select w-full"
-              [class.!border-red-500]="shouldShowCreateTypeError()"
-              [value]="createForm.typeId() ?? ''"
-              (change)="onCreateTypeChange($any($event.target).value)"
-              (blur)="createFormTouched.typeId.set(true)"
-              [disabled]="createFormSubmitting()"
-            >
-              <option value="">Seçiniz</option>
-              @for (type of organizationTypes(); track type.id) {
-                <option [value]="type.id">{{ type.name }}</option>
-              }
-            </select>
+            <div [class.validation-error]="shouldShowCreateTypeError()">
+              <select
+                class="kt-select w-full text-sm"
+                data-kt-select="true"
+                data-kt-select-enable-search="true"
+                data-kt-select-allow-clear="true"
+                data-kt-select-search-placeholder="Ara..."
+                data-kt-select-placeholder="Organizasyon tipi seçiniz"
+                [ngModel]="createForm.typeId() ?? ''"
+                (ngModelChange)="
+                  createForm.typeId.set(
+                    $event !== '' && $event !== null ? +$event : null
+                  )
+                "
+                (blur)="createFormTouched.typeId.set(true)"
+                [ngModelOptions]="{ standalone: true }"
+                [disabled]="createFormSubmitting()"
+              >
+                <option value=""></option>
+                @for (type of organizationTypes(); track type.id) {
+                  <option [value]="type.id">{{ type.name }}</option>
+                }
+              </select>
+            </div>
             @if (shouldShowCreateTypeError()) {
               <div class="flex items-center gap-1.5 mt-1.5">
                 <i class="ki-filled ki-information text-sm text-red-500"></i>
@@ -161,16 +172,17 @@
               class="kt-select w-full text-sm"
               data-kt-select="true"
               data-kt-select-enable-search="true"
+              data-kt-select-allow-clear="true"
               data-kt-select-search-placeholder="Ara..."
               data-kt-select-placeholder="Üst organizasyon seçiniz"
-              [ngModel]="createForm.parentId()"
+              [ngModel]="createForm.parentId() ?? ''"
               (ngModelChange)="
                 createForm.parentId.set($event !== '' ? $event : null)
               "
               [ngModelOptions]="{ standalone: true }"
               [disabled]="createFormSubmitting()"
             >
-              <option [value]="null">Seçiniz</option>
+              <option value=""></option>
               @for (org of parentOrganizations(); track org.id) {
                 <option [value]="org.id">{{ org.name }}</option>
               }
@@ -356,19 +368,30 @@
               Organizasyon Tipi
               <span class="text-red-500">*</span>
             </label>
-            <select
-              class="kt-select w-full"
-              [class.!border-red-500]="shouldShowEditTypeError()"
-              [value]="editForm.typeId() ?? ''"
-              (change)="onEditTypeChange($any($event.target).value)"
-              (blur)="editFormTouched.typeId.set(true)"
-              [disabled]="editFormSubmitting()"
-            >
-              <option value="">Seçiniz</option>
-              @for (type of organizationTypes(); track type.id) {
-                <option [value]="type.id">{{ type.name }}</option>
-              }
-            </select>
+            <div [class.validation-error]="shouldShowEditTypeError()">
+              <select
+                class="kt-select w-full text-sm"
+                data-kt-select="true"
+                data-kt-select-enable-search="true"
+                data-kt-select-allow-clear="true"
+                data-kt-select-search-placeholder="Ara..."
+                data-kt-select-placeholder="Organizasyon tipi seçiniz"
+                [ngModel]="editForm.typeId() ?? ''"
+                (ngModelChange)="
+                  editForm.typeId.set(
+                    $event !== '' && $event !== null ? +$event : null
+                  )
+                "
+                (blur)="editFormTouched.typeId.set(true)"
+                [ngModelOptions]="{ standalone: true }"
+                [disabled]="editFormSubmitting()"
+              >
+                <option value=""></option>
+                @for (type of organizationTypes(); track type.id) {
+                  <option [value]="type.id">{{ type.name }}</option>
+                }
+              </select>
+            </div>
             @if (shouldShowEditTypeError()) {
               <div class="flex items-center gap-1.5 mt-1.5">
                 <i class="ki-filled ki-information text-sm text-red-500"></i>
@@ -390,16 +413,17 @@
               class="kt-select w-full text-sm"
               data-kt-select="true"
               data-kt-select-enable-search="true"
+              data-kt-select-allow-clear="true"
               data-kt-select-search-placeholder="Ara..."
               data-kt-select-placeholder="Üst organizasyon seçiniz"
-              [ngModel]="editForm.parentId()"
+              [ngModel]="editForm.parentId() ?? ''"
               (ngModelChange)="
                 editForm.parentId.set($event !== '' ? $event : null)
               "
               [ngModelOptions]="{ standalone: true }"
               [disabled]="editFormSubmitting()"
             >
-              <option [value]="null">Seçiniz</option>
+              <option value=""></option>
               @for (org of parentOrganizations(); track org.id) {
                 <option [value]="org.id">{{ org.name }}</option>
               }
@@ -618,8 +642,13 @@
     <div class="kt-card-header">
       <div class="flex items-center gap-3 flex-1">
         <select
-          class="kt-select w-48"
-          [ngModel]="selectedTypeFilter()"
+          class="kt-select w-56 text-sm"
+          data-kt-select="true"
+          data-kt-select-enable-search="true"
+          data-kt-select-allow-clear="true"
+          data-kt-select-search-placeholder="Ara..."
+          data-kt-select-placeholder="Tip filtrele"
+          [ngModel]="selectedTypeFilter() ?? ''"
           (ngModelChange)="
             onTypeFilterChange(
               $event === '' || $event === null ? null : +$event
