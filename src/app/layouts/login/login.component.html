@@ -1,108 +1,109 @@
-<div class="flex items-center justify-center grow bg-center bg-no-repeat page-bg">
-    <div class="kt-card max-w-[370px] w-full">
-        <form 
-            [formGroup]="loginForm" 
-            (ngSubmit)="onSubmit()" 
-            (keypress)="onKeyPress($event)"
-            class="kt-card-content flex flex-col gap-5 p-10" 
-            id="sign_in_form">
-            
-            <div class="text-center mb-1">
-                <h3 class="text-lg font-medium text-mono leading-none mb-2.5">
-                    Giriş Yap
-                </h3>
-                <div class="text-sm text-muted-foreground">
-                    Hesabınıza giriş yapın
-                </div>
-            </div>
+<div
+  class="flex items-center justify-center grow bg-center bg-no-repeat page-bg"
+>
+  <div class="login-card max-w-[440px] w-full">
+    <form
+      [formGroup]="loginForm"
+      (ngSubmit)="onSubmit()"
+      (keypress)="onKeyPress($event)"
+      class="kt-card-content flex flex-col gap-6 p-12"
+      id="sign_in_form"
+    >
+      <div class="text-center mb-2">
+        <h3
+          class="text-2xl font-semibold text-gray-900 dark:text-white leading-none mb-3"
+        >
+          Hoş Geldiniz
+        </h3>
+        <div class="text-sm text-gray-500 dark:text-gray-400">
+          Devam etmek için giriş yapın
+        </div>
+      </div>
 
-            <!-- Hata mesajı -->
-            @if (errorMessage()) {
-                <div class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm flex items-start gap-2">
-                    <i class="ki-filled ki-information text-red-500 text-base mt-0.5"></i>
-                    <span>{{ errorMessage() }}</span>
-                </div>
+      <!-- Hata mesajı -->
+      @if (errorMessage()) {
+        <div class="error-message">
+          <i class="ki-filled ki-information"></i>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <!-- Kullanıcı Adı / Email alanı -->
+      <div class="flex flex-col gap-2">
+        <label class="input-label"> Kullanıcı Adı veya Email </label>
+        <div class="input-wrapper">
+          <i class="ki-filled ki-user input-icon"></i>
+          <input
+            class="modern-input"
+            [class.error]="isFieldInvalid('username')"
+            placeholder="kullaniciadi@example.com"
+            type="text"
+            formControlName="username"
+            autocomplete="username"
+          />
+        </div>
+
+        @if (isFieldInvalid("username")) {
+          <span class="field-error">
+            <i class="ki-filled ki-information"></i>
+            {{ getFieldError("username") }}
+          </span>
+        }
+      </div>
+
+      <!-- Şifre alanı -->
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <label class="input-label">Şifre</label>
+          <a class="forgot-password-link" href="/forgot-password">
+            Şifremi Unuttum
+          </a>
+        </div>
+        <div class="input-wrapper">
+          <i class="ki-filled ki-lock-2 input-icon"></i>
+          <input
+            class="modern-input"
+            [class.error]="isFieldInvalid('password')"
+            formControlName="password"
+            placeholder="••••••••"
+            [type]="showPassword() ? 'text' : 'password'"
+            autocomplete="current-password"
+          />
+          <button
+            class="password-toggle"
+            type="button"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-label]="
+              showPassword() ? 'Şifreyi gizle' : 'Şifreyi göster'
+            "
+          >
+            @if (showPassword()) {
+              <i class="ki-filled ki-eye-slash"></i>
+            } @else {
+              <i class="ki-filled ki-eye"></i>
             }
+          </button>
+        </div>
 
-            <!-- Kullanıcı Adı / Email alanı -->
-            <div class="flex flex-col gap-1">
-                <label class="kt-form-label font-normal text-mono">
-                    Kullanıcı Adı veya Email
-                </label>
-                <input 
-                    class="kt-input"
-                    [class.border-red-500]="isFieldInvalid('username')"
-                    placeholder="Kullanıcı adınızı veya email adresinizi giriniz" 
-                    type="text" 
-                    formControlName="username"
-                    autocomplete="username" />
-                
-                @if (isFieldInvalid('username')) {
-                    <span class="text-red-500 text-xs flex items-center gap-1">
-                        <i class="ki-filled ki-information text-xs"></i>
-                        {{ getFieldError('username') }}
-                    </span>
-                }
-            </div>
+        @if (isFieldInvalid("password")) {
+          <span class="field-error">
+            <i class="ki-filled ki-information"></i>
+            {{ getFieldError("password") }}
+          </span>
+        }
+      </div>
 
-            <!-- Şifre alanı -->
-            <div class="flex flex-col gap-1">
-                <div class="flex items-center justify-between gap-1">
-                    <label class="kt-form-label font-normal text-mono">
-                        Şifre
-                    </label>
-                    <a class="text-sm kt-link shrink-0" href="/forgot-password">
-                        Şifremi Unuttum
-                    </a>
-                </div>
-                <div 
-                    class="kt-input" 
-                    [class.border-red-500]="isFieldInvalid('password')" 
-                    data-kt-toggle-password="true">
-                    <input 
-                        formControlName="password"
-                        placeholder="Şifrenizi girin" 
-                        [type]="showPassword() ? 'text' : 'password'"
-                        autocomplete="current-password" />
-                    <button 
-                        class="kt-btn kt-btn-sm kt-btn-ghost kt-btn-icon bg-transparent! -me-1.5"
-                        type="button"
-                        (click)="togglePasswordVisibility()"
-                        [attr.aria-label]="showPassword() ? 'Şifreyi gizle' : 'Şifreyi göster'">
-                        @if (showPassword()) {
-                            <i class="ki-filled ki-eye-slash text-muted-foreground"></i>
-                        } @else {
-                            <i class="ki-filled ki-eye text-muted-foreground"></i>
-                        }
-                    </button>
-                </div>
-                
-                @if (isFieldInvalid('password')) {
-                    <span class="text-red-500 text-xs flex items-center gap-1">
-                        <i class="ki-filled ki-information text-xs"></i>
-                        {{ getFieldError('password') }}
-                    </span>
-                }
-            </div>
-
-            <!-- Giriş butonu -->
-            <button 
-                class="kt-btn kt-btn-primary flex justify-center grow"
-                type="submit"
-                [disabled]="isLoading()">
-                
-                @if (isLoading()) {
-                    <span class="flex items-center gap-2">
-                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Giriş Yapılıyor...
-                    </span>
-                } @else {
-                    <span class="flex items-center gap-2">
-                        <i class="ki-filled ki-right text-base"></i>
-                        Giriş Yap
-                    </span>
-                }
-            </button>
-        </form>
-    </div>
+      <!-- Giriş butonu -->
+      <button class="login-button" type="submit" [disabled]="isLoading()">
+        @if (isLoading()) {
+          <span class="flex items-center gap-2">
+            <div class="spinner"></div>
+            Giriş Yapılıyor...
+          </span>
+        } @else {
+          Giriş Yap
+        }
+      </button>
+    </form>
+  </div>
 </div>
