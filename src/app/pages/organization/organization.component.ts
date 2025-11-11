@@ -21,7 +21,7 @@ import {
 import { ReferenceDataSelectItem } from "../../core/models/reference.models";
 import { ReferenceTypes } from "../../core/constants/reference-types";
 import { PaginationMeta } from "../../core/models/api.models";
-import { FilterDrawerComponent } from "../../shared/components/filter-drawer/filter-drawer.component";
+import { OffcanvasFilterComponent } from "../../shared/components/offcanvas-filter/offcanvas-filter.component";
 import {
   FilterDrawerConfig,
   FilterValues,
@@ -31,7 +31,7 @@ import { ORGANIZATION_FILTER_CONFIG } from "./organization-filter.config";
 @Component({
   selector: "app-organization",
   standalone: true,
-  imports: [CommonModule, FormsModule, FilterDrawerComponent],
+  imports: [CommonModule, FormsModule, OffcanvasFilterComponent],
   templateUrl: "./organization.component.html",
   styleUrls: ["./organization.component.scss"],
 })
@@ -88,11 +88,11 @@ export class OrganizationComponent implements OnInit, AfterViewChecked {
   searchTerm = signal<string>("");
   currentPage = signal<number>(1);
   pageSize = signal<number>(10);
-  selectedTypeFilter = signal<number | null>(null);
 
-  // Filter drawer
+  // Filter offcanvas
   filterDrawerConfig = signal<FilterDrawerConfig>(ORGANIZATION_FILTER_CONFIG);
   activeFilters = signal<FilterValues>({});
+  filterOffcanvasOpen = signal<boolean>(false);
 
   // Search debounce için
   private searchSubject = new Subject<string>();
@@ -305,7 +305,7 @@ export class OrganizationComponent implements OnInit, AfterViewChecked {
         pageSize: this.pageSize(),
         name: filters["name"] || this.searchTerm() || undefined,
         shortName: filters["shortName"] || undefined,
-        typeId: filters["typeId"] ?? this.selectedTypeFilter() ?? undefined,
+        typeId: filters["typeId"] ?? undefined,
         parentId: filters["parentId"] || undefined,
       })
       .subscribe({
@@ -340,15 +340,6 @@ export class OrganizationComponent implements OnInit, AfterViewChecked {
    */
   onSearchChange(value: string): void {
     this.searchSubject.next(value);
-  }
-
-  /**
-   * Type filter değiştiğinde
-   */
-  onTypeFilterChange(value: number | null): void {
-    this.selectedTypeFilter.set(value);
-    this.currentPage.set(1);
-    this.loadOrganizations();
   }
 
   /**
@@ -723,7 +714,7 @@ export class OrganizationComponent implements OnInit, AfterViewChecked {
   }
 
   /**
-   * Handle filter apply from drawer
+   * Handle filter apply from offcanvas
    */
   onFiltersApplied(filters: FilterValues): void {
     this.activeFilters.set(filters);
@@ -732,12 +723,26 @@ export class OrganizationComponent implements OnInit, AfterViewChecked {
   }
 
   /**
-   * Handle filter clear from drawer
+   * Handle filter clear from offcanvas
    */
   onFiltersCleared(): void {
     this.activeFilters.set({});
     this.currentPage.set(1);
     this.loadOrganizations();
+  }
+
+  /**
+   * Toggle filter offcanvas open/close
+   */
+  onFilterOffcanvasToggle(isOpen: boolean): void {
+    this.filterOffcanvasOpen.set(isOpen);
+  }
+
+  /**
+   * Open filter offcanvas
+   */
+  openFilterOffcanvas(): void {
+    this.filterOffcanvasOpen.set(true);
   }
 
   /**

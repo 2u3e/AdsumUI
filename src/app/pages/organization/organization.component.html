@@ -641,26 +641,7 @@
     <!-- Card Header - Search and Filters -->
     <div class="kt-card-header">
       <div class="flex items-center gap-3 flex-1">
-        <select
-          class="kt-select w-56 text-sm"
-          data-kt-select="true"
-          data-kt-select-enable-search="true"
-          data-kt-select-allow-clear="true"
-          data-kt-select-search-placeholder="Ara..."
-          data-kt-select-placeholder="Tip filtrele"
-          [ngModel]="selectedTypeFilter() ?? ''"
-          (ngModelChange)="
-            onTypeFilterChange(
-              $event === '' || $event === null ? null : +$event
-            )
-          "
-          [ngModelOptions]="{ standalone: true }"
-        >
-          <option value="">Tüm Tipler</option>
-          @for (type of organizationTypes(); track type.id) {
-            <option [value]="type.id">{{ type.name }}</option>
-          }
-        </select>
+        <!-- Left side empty or can add quick filters -->
       </div>
       <div class="flex items-center gap-3">
         <input
@@ -682,7 +663,7 @@
         </button>
         <button
           class="kt-btn kt-btn-outline relative"
-          data-kt-drawer-toggle="#organization_filter_drawer"
+          (click)="openFilterOffcanvas()"
           type="button"
         >
           <i class="ki-filled ki-filter text-base"></i>
@@ -839,7 +820,7 @@
                         class="ki-filled ki-information-2 text-4xl text-gray-400 dark:text-gray-600"
                       ></i>
                       <span class="text-gray-600 dark:text-gray-400">
-                        @if (searchTerm() || selectedTypeFilter()) {
+                        @if (searchTerm() || getActiveFilterCount() > 0) {
                           Arama kriterlerine uygun kayıt bulunamadı
                         } @else {
                           Henüz organizasyon kaydı bulunmuyor
@@ -931,11 +912,12 @@
   </div>
 </div>
 
-<!-- Filter Drawer -->
-<app-filter-drawer
+<!-- Offcanvas Filter -->
+<app-offcanvas-filter
   [config]="filterDrawerConfig()"
-  [drawerId]="'organization_filter_drawer'"
   [initialValues]="activeFilters()"
+  [isOpen]="filterOffcanvasOpen()"
   (filtersApplied)="onFiltersApplied($event)"
   (filtersCleared)="onFiltersCleared()"
-></app-filter-drawer>
+  (toggleOffcanvas)="onFilterOffcanvasToggle($event)"
+></app-offcanvas-filter>

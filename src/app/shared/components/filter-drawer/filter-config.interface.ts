@@ -9,7 +9,16 @@ export interface FilterFieldConfig {
   label: string;
 
   /** Field type */
-  type: 'text' | 'number' | 'select' | 'multiselect' | 'checkbox' | 'switch' | 'radio' | 'date' | 'daterange';
+  type:
+    | "text"
+    | "number"
+    | "select"
+    | "multiselect"
+    | "checkbox"
+    | "switch"
+    | "radio"
+    | "date"
+    | "daterange";
 
   /** Placeholder text */
   placeholder?: string;
@@ -29,8 +38,8 @@ export interface FilterFieldConfig {
   /** Default value */
   defaultValue?: any;
 
-  /** Column span (1 or 2) */
-  colSpan?: 1 | 2;
+  /** Column span (1, 2, 3, or 4 columns) */
+  colSpan?: 1 | 2 | 3 | 4;
 }
 
 /**

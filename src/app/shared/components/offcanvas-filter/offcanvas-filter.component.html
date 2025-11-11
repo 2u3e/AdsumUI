@@ -1,0 +1,250 @@
+<!-- Backdrop Overlay -->
+@if (isOpen) {
+  <div
+    class="fixed inset-0 bg-black/50 z-[100] transition-opacity duration-300"
+    (click)="close()"
+  ></div>
+}
+
+<!-- Offcanvas Panel - Slides from Right -->
+@if (isOpen) {
+  <div
+    class="fixed top-0 right-0 h-full w-[85%] sm:w-[450px] bg-white dark:bg-gray-800 shadow-2xl z-[101] transform transition-transform duration-300 ease-out flex flex-col animate-slide-in-right"
+  >
+    <!-- Header -->
+    <div
+      class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 shrink-0"
+    >
+      <div class="flex items-center gap-3">
+        <div
+          class="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 dark:bg-primary/20"
+        >
+          <i class="ki-filled ki-filter text-xl text-primary"></i>
+        </div>
+        <div class="min-h-[44px] flex flex-col justify-center">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            {{ config.title || "Filtreleme Seçenekleri" }}
+          </h3>
+          <p
+            class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 min-h-[16px]"
+          >
+            @if (getActiveFilterCount() > 0) {
+              {{ getActiveFilterCount() }} filtre aktif
+            }
+          </p>
+        </div>
+      </div>
+      <button
+        type="button"
+        class="kt-btn kt-btn-sm kt-btn-icon kt-btn-ghost"
+        (click)="close()"
+      >
+        <i class="ki-filled ki-cross text-lg"></i>
+      </button>
+    </div>
+
+    <!-- Filter Content - Scrollable -->
+    <div class="flex-1 overflow-y-auto px-6 py-5">
+      @if (config.fields) {
+        <div class="space-y-5">
+          @for (field of config.fields; track trackByKey($index, field)) {
+            <div>
+              <!-- Text Input -->
+              @if (field.type === "text") {
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  {{ field.label }}
+                  @if (field.required) {
+                    <span class="text-red-500">*</span>
+                  }
+                </label>
+                <input
+                  type="text"
+                  class="kt-input w-full"
+                  [placeholder]="field.placeholder || ''"
+                  [ngModel]="getFieldValue(field.key)"
+                  (ngModelChange)="updateFilterValue(field.key, $event)"
+                  [ngModelOptions]="{ standalone: true }"
+                />
+              }
+
+              <!-- Number Input -->
+              @if (field.type === "number") {
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  {{ field.label }}
+                  @if (field.required) {
+                    <span class="text-red-500">*</span>
+                  }
+                </label>
+                <input
+                  type="number"
+                  class="kt-input w-full"
+                  [placeholder]="field.placeholder || ''"
+                  [ngModel]="getFieldValue(field.key)"
+                  (ngModelChange)="updateFilterValue(field.key, $event)"
+                  [ngModelOptions]="{ standalone: true }"
+                />
+              }
+
+              <!-- Select Dropdown -->
+              @if (field.type === "select") {
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  {{ field.label }}
+                  @if (field.required) {
+                    <span class="text-red-500">*</span>
+                  }
+                </label>
+                <select
+                  class="kt-select w-full text-sm"
+                  data-kt-select="true"
+                  [attr.data-kt-select-enable-search]="
+                    field.searchable !== false ? 'true' : null
+                  "
+                  [attr.data-kt-select-allow-clear]="
+                    field.clearable !== false ? 'true' : null
+                  "
+                  [attr.data-kt-select-search-placeholder]="
+                    field.searchable !== false ? 'Ara...' : null
+                  "
+                  [attr.data-kt-select-placeholder]="
+                    field.placeholder || 'Seçiniz'
+                  "
+                  [ngModel]="getFieldValue(field.key) ?? ''"
+                  (ngModelChange)="onSelectChange(field, $event)"
+                  [ngModelOptions]="{ standalone: true }"
+                >
+                  <option value=""></option>
+                  @for (option of field.options; track option.id) {
+                    <option [value]="option.id">{{ option.name }}</option>
+                  }
+                </select>
+              }
+
+              <!-- Radio Buttons -->
+              @if (field.type === "radio") {
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  {{ field.label }}
+                  @if (field.required) {
+                    <span class="text-red-500">*</span>
+                  }
+                </label>
+                <div class="flex flex-col gap-2">
+                  @for (option of field.options; track option.id) {
+                    <label class="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        class="kt-radio"
+                        [name]="field.key"
+                        [value]="option.id"
+                        [ngModel]="getFieldValue(field.key)"
+                        (ngModelChange)="updateFilterValue(field.key, $event)"
+                        [ngModelOptions]="{ standalone: true }"
+                      />
+                      <span class="text-sm text-gray-700 dark:text-gray-300">
+                        {{ option.name }}
+                      </span>
+                    </label>
+                  }
+                </div>
+              }
+
+              <!-- Checkbox -->
+              @if (field.type === "checkbox") {
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    class="kt-checkbox"
+                    [ngModel]="getFieldValue(field.key)"
+                    (ngModelChange)="updateFilterValue(field.key, $event)"
+                    [ngModelOptions]="{ standalone: true }"
+                  />
+                  <span
+                    class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    {{ field.label }}
+                    @if (field.required) {
+                      <span class="text-red-500">*</span>
+                    }
+                  </span>
+                </label>
+              }
+
+              <!-- Switch -->
+              @if (field.type === "switch") {
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  {{ field.label }}
+                  @if (field.required) {
+                    <span class="text-red-500">*</span>
+                  }
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    class="kt-switch"
+                    [id]="'switch_' + field.key"
+                    [ngModel]="getFieldValue(field.key)"
+                    (ngModelChange)="updateFilterValue(field.key, $event)"
+                    [ngModelOptions]="{ standalone: true }"
+                  />
+                  <span class="text-sm text-gray-700 dark:text-gray-300">
+                    {{ getFieldValue(field.key) ? "Aktif" : "Pasif" }}
+                  </span>
+                </label>
+              }
+
+              <!-- Date Input -->
+              @if (field.type === "date") {
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  {{ field.label }}
+                  @if (field.required) {
+                    <span class="text-red-500">*</span>
+                  }
+                </label>
+                <input
+                  type="date"
+                  class="kt-input w-full"
+                  [ngModel]="getFieldValue(field.key)"
+                  (ngModelChange)="updateFilterValue(field.key, $event)"
+                  [ngModelOptions]="{ standalone: true }"
+                />
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Footer Actions - Sticky -->
+    <div
+      class="flex gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 shrink-0 bg-white dark:bg-gray-800"
+    >
+      <button
+        class="kt-btn kt-btn-outline flex-1"
+        (click)="clearFilters()"
+        type="button"
+      >
+        <i class="ki-filled ki-trash text-base"></i>
+        {{ getClearButtonText() }}
+      </button>
+      <button
+        class="kt-btn kt-btn-primary flex-1"
+        (click)="applyFilters()"
+        type="button"
+      >
+        <i class="ki-filled ki-check text-base"></i>
+        {{ getApplyButtonText() }}
+      </button>
+    </div>
+  </div>
+}
