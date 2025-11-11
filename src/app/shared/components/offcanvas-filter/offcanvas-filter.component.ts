@@ -111,7 +111,11 @@ export class OffcanvasFilterComponent
       this.initializeFilterValues();
     }
 
+    // When offcanvas opens, reinitialize values and selects
     if (changes["isOpen"] && changes["isOpen"].currentValue === true) {
+      // Reinitialize filter values from initialValues when opening
+      this.initializeFilterValues();
+
       Promise.resolve().then(() => {
         this.cdr.detectChanges();
         this.metronicInit.initSelect();
