@@ -45,5 +45,8 @@ Thumbs.db
 .env
 .env.local
 
+# Windows reserved filenames
+nul
+
 /views-from-laravel
 .vscode
