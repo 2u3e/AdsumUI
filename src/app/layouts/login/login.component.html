@@ -1,6 +1,14 @@
 <div
   class="flex items-center justify-center grow bg-center bg-no-repeat page-bg"
 >
+  <!-- Ürün Branding - Sol üst köşe (discrete) -->
+  <div class="product-branding">
+    <div class="product-logo">
+      <i class="ki-filled ki-element-11"></i>
+    </div>
+    <span class="product-name">ADSUM</span>
+  </div>
+
   <div class="login-card max-w-[440px] w-full">
     <form
       [formGroup]="loginForm"
@@ -9,15 +17,23 @@
       class="kt-card-content flex flex-col gap-6 p-12"
       id="sign_in_form"
     >
+      <!-- Müşteri Logo & Title -->
       <div class="text-center mb-2">
-        <h3
-          class="text-2xl font-semibold text-gray-900 dark:text-white leading-none mb-3"
-        >
-          Hoş Geldiniz
-        </h3>
-        <div class="text-sm text-gray-500 dark:text-gray-400">
-          Devam etmek için giriş yapın
+        <div class="client-logo-wrapper">
+          <!-- Müşteri logosu -->
+          <img
+            src="/assets/media/logos/client-logo.png"
+            alt="Firma Logosu"
+            class="client-logo"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <!-- Fallback ikon (logo yüklenemezse) -->
+          <div class="client-logo-fallback">
+            <i class="ki-filled ki-home-3"></i>
+          </div>
         </div>
+        <h3 class="login-title">Hoş Geldiniz</h3>
+        <div class="login-subtitle">Hesabınıza giriş yaparak devam edin</div>
       </div>
 
       <!-- Hata mesajı -->
@@ -105,5 +121,17 @@
         }
       </button>
     </form>
+  </div>
+
+  <!-- Footer - Powered by -->
+  <div class="page-footer">
+    <div class="footer-content">
+      <span class="powered-by">Powered by</span>
+      <span class="footer-brand">Adsum</span>
+      <span class="footer-divider">•</span>
+      <span class="footer-version">v1.0.0</span>
+      <span class="footer-divider">•</span>
+      <span class="footer-copyright">© 2025</span>
+    </div>
   </div>
 </div>

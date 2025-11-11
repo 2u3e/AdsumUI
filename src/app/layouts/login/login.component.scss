@@ -59,6 +59,53 @@
   }
 }
 
+// Product Branding - Sol üst köşe (discrete)
+.product-branding {
+  position: absolute;
+  top: 28px;
+  left: 28px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: fadeInDown 0.6s ease-out;
+  opacity: 0.9;
+  transition: opacity 0.3s ease;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  .product-logo {
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 1.125rem;
+  }
+
+  .product-name {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    letter-spacing: 1px;
+  }
+}
+
+.dark .product-branding {
+  .product-logo {
+    background: rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
 // Login Card - Modern styling
 .login-card {
   position: relative;
@@ -71,6 +118,7 @@
     0 4px 16px rgba(0, 0, 0, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.8);
   transition: box-shadow 0.3s ease;
+  animation: fadeInUp 0.6s ease-out;
 
   &:hover {
     box-shadow:
@@ -87,6 +135,141 @@
     box-shadow:
       0 24px 70px rgba(0, 0, 0, 0.4),
       0 6px 20px rgba(0, 0, 0, 0.2);
+  }
+}
+
+// Client Logo - Müşteri logosu (öne çıkan)
+.client-logo-wrapper {
+  margin: 0 auto 24px;
+  width: 100%;
+  max-width: 360px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: scaleIn 0.5s ease-out 0.2s both;
+  position: relative;
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 25%, #2e86de 100%);
+  border-radius: 20px;
+  padding: 18px 32px;
+  box-shadow:
+    0 12px 40px rgba(255, 107, 53, 0.35),
+    0 6px 20px rgba(46, 134, 222, 0.25);
+
+  .client-logo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+  }
+
+  .client-logo-fallback {
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 24px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+
+    i {
+      font-size: 3rem;
+      color: #ffffff;
+    }
+  }
+}
+
+.dark .client-logo-wrapper {
+  background: linear-gradient(135deg, #d35400 0%, #e67e22 25%, #2c5f8d 100%);
+  box-shadow:
+    0 12px 40px rgba(211, 84, 0, 0.4),
+    0 6px 20px rgba(44, 95, 141, 0.3);
+
+  .client-logo {
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
+  }
+
+  .client-logo-fallback {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.login-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 8px;
+  animation: fadeIn 0.5s ease-out 0.3s both;
+}
+
+.dark .login-title {
+  color: #f9fafb;
+}
+
+.login-subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  animation: fadeIn 0.5s ease-out 0.4s both;
+}
+
+.dark .login-subtitle {
+  color: #9ca3af;
+}
+
+// Page Footer - Powered by (discrete)
+.page-footer {
+  position: absolute;
+  bottom: 24px;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  animation: fadeIn 0.6s ease-out 0.5s both;
+
+  .footer-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8125rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.06);
+    padding: 6px 16px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    .powered-by {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 0.75rem;
+    }
+
+    .footer-brand {
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.9);
+      letter-spacing: 0.5px;
+    }
+
+    .footer-divider {
+      color: rgba(255, 255, 255, 0.3);
+      font-size: 0.75rem;
+    }
+
+    .footer-version,
+    .footer-copyright {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.75rem;
+    }
+  }
+}
+
+.dark .page-footer {
+  .footer-content {
+    background: rgba(0, 0, 0, 0.25);
+    border-color: rgba(255, 255, 255, 0.05);
   }
 }
 
@@ -424,8 +607,66 @@
   }
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 // Responsive
 @media (max-width: 640px) {
+  .product-branding {
+    top: 20px;
+    left: 20px;
+    gap: 8px;
+
+    .product-logo {
+      width: 32px;
+      height: 32px;
+      font-size: 1rem;
+    }
+
+    .product-name {
+      font-size: 1rem;
+    }
+  }
+
   .login-card {
     margin: 16px;
     border-radius: 16px;
@@ -433,5 +674,37 @@
 
   .kt-card-content {
     padding: 32px 24px !important;
+  }
+
+  .client-logo-wrapper {
+    max-width: 320px;
+    height: 100px;
+    margin-bottom: 20px;
+    padding: 14px 28px;
+
+    .client-logo-fallback {
+      width: 64px;
+      height: 64px;
+
+      i {
+        font-size: 2rem;
+      }
+    }
+  }
+
+  .page-footer {
+    bottom: 16px;
+
+    .footer-content {
+      font-size: 0.75rem;
+      padding: 5px 12px;
+      gap: 6px;
+
+      .powered-by,
+      .footer-version,
+      .footer-copyright {
+        font-size: 0.6875rem;
+      }
+    }
   }
 }
