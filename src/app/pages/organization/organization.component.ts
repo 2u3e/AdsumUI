@@ -328,6 +328,11 @@ export class OrganizationComponent implements OnInit, AfterViewChecked {
           }
 
           this.loading.set(false);
+
+          // Reinitialize tooltips after data loads
+          setTimeout(() => {
+            this.metronicInit.initTooltips();
+          }, 100);
         },
         error: (err) => {
           this.error.set(err.message || "Veriler yüklenirken bir hata oluştu");

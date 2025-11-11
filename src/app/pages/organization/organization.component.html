@@ -756,12 +756,10 @@
                         @if (organization.description) {
                           <i
                             class="ki-outline ki-information-2 text-base text-gray-400 dark:text-gray-500 hover:text-primary dark:hover:text-primary transition-colors cursor-help"
-                            data-kt-tooltip="true"
-                            data-kt-tooltip-placement="top"
-                            data-kt-tooltip-delay="200"
-                            [attr.data-kt-tooltip-content]="
-                              organization.description
-                            "
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            data-bs-delay="200"
+                            [attr.title]="organization.description"
                           ></i>
                         }
                       </div>
