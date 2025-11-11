@@ -15,19 +15,19 @@
     <div
       class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 shrink-0"
     >
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 flex-1">
         <div
-          class="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 dark:bg-primary/20"
+          class="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 dark:bg-primary/20 shrink-0"
         >
           <i class="ki-filled ki-filter text-xl text-primary"></i>
         </div>
-        <div class="min-h-[44px] flex flex-col justify-center">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+        <div class="flex flex-col justify-center">
+          <h3
+            class="text-lg font-semibold text-gray-900 dark:text-white leading-tight"
+          >
             {{ config.title || "Filtreleme Seçenekleri" }}
           </h3>
-          <p
-            class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 min-h-[16px]"
-          >
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 min-h-[16px]">
             @if (getActiveFilterCount() > 0) {
               {{ getActiveFilterCount() }} filtre aktif
             }
@@ -102,15 +102,9 @@
                 <select
                   class="kt-select w-full text-sm"
                   data-kt-select="true"
-                  [attr.data-kt-select-enable-search]="
-                    field.searchable !== false ? 'true' : null
-                  "
-                  [attr.data-kt-select-allow-clear]="
-                    field.clearable !== false ? 'true' : null
-                  "
-                  [attr.data-kt-select-search-placeholder]="
-                    field.searchable !== false ? 'Ara...' : null
-                  "
+                  data-kt-select-enable-search="true"
+                  data-kt-select-allow-clear="true"
+                  data-kt-select-search-placeholder="Ara..."
                   [attr.data-kt-select-placeholder]="
                     field.placeholder || 'Seçiniz'
                   "
@@ -119,6 +113,39 @@
                   [ngModelOptions]="{ standalone: true }"
                 >
                   <option value=""></option>
+                  @for (option of field.options; track option.id) {
+                    <option [value]="option.id">{{ option.name }}</option>
+                  }
+                </select>
+              }
+
+              <!-- Multi Select Dropdown -->
+              @if (field.type === "multiselect") {
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  {{ field.label }}
+                  @if (field.required) {
+                    <span class="text-red-500">*</span>
+                  }
+                </label>
+                <select
+                  class="kt-select w-full text-sm"
+                  data-kt-select="true"
+                  data-kt-select-enable-search="true"
+                  data-kt-select-allow-clear="true"
+                  data-kt-select-search-placeholder="Ara..."
+                  data-kt-select-close-on-select="false"
+                  data-kt-select-hide-search="false"
+                  data-kt-select-multiple="true"
+                  [attr.data-kt-select-placeholder]="
+                    field.placeholder || 'Seçiniz'
+                  "
+                  multiple
+                  [ngModel]="getFieldValue(field.key) ?? []"
+                  (ngModelChange)="onMultiSelectChange(field, $event)"
+                  [ngModelOptions]="{ standalone: true }"
+                >
                   @for (option of field.options; track option.id) {
                     <option [value]="option.id">{{ option.name }}</option>
                   }
@@ -230,11 +257,13 @@
       class="flex gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 shrink-0 bg-white dark:bg-gray-800"
     >
       <button
-        class="kt-btn kt-btn-outline flex-1"
+        class="kt-btn kt-btn-outline flex-1 group"
         (click)="clearFilters()"
         type="button"
       >
-        <i class="ki-filled ki-trash text-base"></i>
+        <i
+          class="ki-filled ki-trash text-base text-red-400 group-hover:text-red-600 transition-colors"
+        ></i>
         {{ getClearButtonText() }}
       </button>
       <button

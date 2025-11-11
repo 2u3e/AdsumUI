@@ -795,19 +795,23 @@
                     <div class="flex items-center gap-1">
                       <button
                         type="button"
-                        class="kt-btn kt-btn-ghost kt-btn-icon"
+                        class="kt-btn kt-btn-ghost kt-btn-icon group"
                         (click)="onEditOrganization(organization)"
                         title="Düzenle"
                       >
-                        <i class="ki-filled ki-pencil text-lg"></i>
+                        <i
+                          class="ki-filled ki-pencil text-lg text-gray-500 group-hover:text-blue-600 transition-colors"
+                        ></i>
                       </button>
                       <button
                         type="button"
-                        class="kt-btn kt-btn-ghost kt-btn-icon text-destructive"
+                        class="kt-btn kt-btn-ghost kt-btn-icon group"
                         (click)="deleteOrganization(organization)"
                         title="Sil"
                       >
-                        <i class="ki-filled ki-trash text-lg"></i>
+                        <i
+                          class="ki-filled ki-trash text-lg text-gray-500 group-hover:text-red-600 transition-colors"
+                        ></i>
                       </button>
                     </div>
                   </td>

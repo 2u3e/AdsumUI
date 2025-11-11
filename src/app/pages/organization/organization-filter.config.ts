@@ -27,7 +27,7 @@ export const ORGANIZATION_FILTER_CONFIG: FilterDrawerConfig = {
     {
       key: "parentId",
       label: "Üst Organizasyon",
-      type: "select",
+      type: "multiselect",
       placeholder: "Üst organizasyon seçiniz",
       searchable: true,
       clearable: true,
@@ -37,7 +37,7 @@ export const ORGANIZATION_FILTER_CONFIG: FilterDrawerConfig = {
     {
       key: "typeId",
       label: "Organizasyon Tipi",
-      type: "select",
+      type: "multiselect",
       placeholder: "Tip seçiniz",
       searchable: true,
       clearable: true,

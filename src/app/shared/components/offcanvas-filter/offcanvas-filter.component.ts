@@ -9,6 +9,9 @@ import {
   OnInit,
   AfterViewChecked,
   HostListener,
+  ChangeDetectorRef,
+  OnChanges,
+  SimpleChanges,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
@@ -26,8 +29,11 @@ import { MetronicInitService } from "../../../core/services/metronic-init.servic
   templateUrl: "./offcanvas-filter.component.html",
   styleUrls: ["./offcanvas-filter.component.scss"],
 })
-export class OffcanvasFilterComponent implements OnInit, AfterViewChecked {
+export class OffcanvasFilterComponent
+  implements OnInit, AfterViewChecked, OnChanges
+{
   private metronicInit = inject(MetronicInitService);
+  private cdr = inject(ChangeDetectorRef);
 
   /**
    * Handle ESC key press to close offcanvas
@@ -86,13 +92,31 @@ export class OffcanvasFilterComponent implements OnInit, AfterViewChecked {
     // Watch for isOpen changes to reinitialize selects when offcanvas opens
     effect(() => {
       if (this.isOpen) {
-        this.needsSelectInit = true;
+        // Use Promise.resolve to wait for DOM to be ready
+        Promise.resolve().then(() => {
+          this.cdr.detectChanges();
+          this.metronicInit.initSelect();
+        });
       }
     });
   }
 
   ngOnInit(): void {
     this.initializeFilterValues();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // Update filter values when initialValues prop changes
+    if (changes["initialValues"]) {
+      this.initializeFilterValues();
+    }
+
+    if (changes["isOpen"] && changes["isOpen"].currentValue === true) {
+      Promise.resolve().then(() => {
+        this.cdr.detectChanges();
+        this.metronicInit.initSelect();
+      });
+    }
   }
 
   ngAfterViewChecked(): void {
@@ -211,9 +235,41 @@ export class OffcanvasFilterComponent implements OnInit, AfterViewChecked {
    * Clear all filters
    */
   clearFilters(): void {
-    this.initializeFilterValues();
+    // Clear all field values to default empty
+    const clearedValues: FilterValues = {};
+    this.config?.fields?.forEach((field) => {
+      switch (field.type) {
+        case "text":
+        case "number":
+          clearedValues[field.key] = "";
+          break;
+        case "select":
+        case "radio":
+          clearedValues[field.key] = null;
+          break;
+        case "multiselect":
+          clearedValues[field.key] = [];
+          break;
+        case "checkbox":
+        case "switch":
+          clearedValues[field.key] = false;
+          break;
+        case "date":
+          clearedValues[field.key] = null;
+          break;
+        default:
+          clearedValues[field.key] = null;
+      }
+    });
+
+    this.filterValues.set(clearedValues);
     this.filtersCleared.emit();
-    this.needsSelectInit = true;
+
+    // Reinitialize selects after clearing
+    Promise.resolve().then(() => {
+      this.cdr.detectChanges();
+      this.metronicInit.initSelect();
+    });
   }
 
   /**
@@ -240,6 +296,26 @@ export class OffcanvasFilterComponent implements OnInit, AfterViewChecked {
       if (firstOption && typeof firstOption.id === "number") {
         processedValue = value !== "" ? +value : null;
       }
+    }
+
+    this.updateFilterValue(field.key, processedValue);
+  }
+
+  /**
+   * Handle multi select change
+   */
+  onMultiSelectChange(field: FilterFieldConfig, value: any): void {
+    let processedValue = value;
+
+    // Handle array values
+    if (Array.isArray(value)) {
+      // Check if options are numbers
+      const firstOption = field.options?.[0];
+      if (firstOption && typeof firstOption.id === "number") {
+        processedValue = value.map((v: any) => +v);
+      }
+    } else if (!value || value === "") {
+      processedValue = [];
     }
 
     this.updateFilterValue(field.key, processedValue);
