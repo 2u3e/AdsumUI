@@ -205,15 +205,17 @@ export class OrganizationComponent implements OnInit, AfterViewChecked {
     // İlk yükleme
     this.loadOrganizations();
 
-    // Initialize select components after a short delay to ensure DOM is ready
+    // Initialize select and tooltip components after a short delay to ensure DOM is ready
     setTimeout(() => {
       this.metronicInit.initSelect();
+      this.metronicInit.initTooltips();
     }, 100);
   }
 
   ngAfterViewChecked(): void {
     if (this.needsSelectInit) {
       this.metronicInit.initSelect();
+      this.metronicInit.initTooltips();
       this.needsSelectInit = false;
     }
   }
