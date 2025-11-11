@@ -644,6 +644,14 @@
         <!-- Left side empty or can add quick filters -->
       </div>
       <div class="flex items-center gap-3">
+        <button
+          class="kt-btn kt-btn-outline kt-btn-icon"
+          (click)="clearAllFilters()"
+          type="button"
+          title="Filtreleri ve Aramayı Temizle"
+        >
+          <i class="ki-filled ki-arrows-circle"></i>
+        </button>
         <input
           type="text"
           placeholder="Organizasyon ara..."
@@ -652,15 +660,6 @@
           (ngModelChange)="onSearchChange($event)"
           [ngModelOptions]="{ standalone: true }"
         />
-        <button
-          class="kt-btn kt-btn-outline kt-btn-icon"
-          (click)="refresh()"
-          [disabled]="loading()"
-          type="button"
-          title="Yenile"
-        >
-          <i class="ki-filled ki-arrows-circle"></i>
-        </button>
         <button
           class="kt-btn kt-btn-outline relative"
           (click)="openFilterOffcanvas()"
@@ -792,26 +791,22 @@
                     </span>
                   </td>
                   <td>
-                    <div class="flex items-center gap-1">
+                    <div class="flex items-center gap-2">
                       <button
                         type="button"
-                        class="kt-btn kt-btn-ghost kt-btn-icon group"
+                        class="kt-btn kt-btn-icon bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 dark:text-blue-400 dark:hover:text-blue-300 border-0 transition-all"
                         (click)="onEditOrganization(organization)"
                         title="Düzenle"
                       >
-                        <i
-                          class="ki-filled ki-pencil text-lg text-gray-500 group-hover:text-blue-600 transition-colors"
-                        ></i>
+                        <i class="ki-filled ki-pencil text-lg"></i>
                       </button>
                       <button
                         type="button"
-                        class="kt-btn kt-btn-ghost kt-btn-icon group"
+                        class="kt-btn kt-btn-icon bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 dark:bg-red-900/20 dark:hover:bg-red-900/30 dark:text-red-400 dark:hover:text-red-300 border-0 transition-all"
                         (click)="deleteOrganization(organization)"
                         title="Sil"
                       >
-                        <i
-                          class="ki-filled ki-trash text-lg text-gray-500 group-hover:text-red-600 transition-colors"
-                        ></i>
+                        <i class="ki-filled ki-trash text-lg"></i>
                       </button>
                     </div>
                   </td>

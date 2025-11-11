@@ -17,6 +17,22 @@
   animation: slideInRight 0.3s ease-out;
 }
 
+// Slide down animation for filter count
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slideDown 0.3s ease-out;
+}
+
 // Ensure select dropdowns appear above offcanvas
 :host ::ng-deep {
   .select2-container {

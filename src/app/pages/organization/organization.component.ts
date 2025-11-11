@@ -732,6 +732,16 @@ export class OrganizationComponent implements OnInit, AfterViewChecked {
   }
 
   /**
+   * Clear all filters and search from main page
+   */
+  clearAllFilters(): void {
+    this.activeFilters.set({});
+    this.searchTerm.set("");
+    this.currentPage.set(1);
+    this.loadOrganizations();
+  }
+
+  /**
    * Toggle filter offcanvas open/close
    */
   onFilterOffcanvasToggle(isOpen: boolean): void {
