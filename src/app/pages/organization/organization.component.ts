@@ -21,11 +21,17 @@ import {
 import { ReferenceDataSelectItem } from "../../core/models/reference.models";
 import { ReferenceTypes } from "../../core/constants/reference-types";
 import { PaginationMeta } from "../../core/models/api.models";
+import { FilterDrawerComponent } from "../../shared/components/filter-drawer/filter-drawer.component";
+import {
+  FilterDrawerConfig,
+  FilterValues,
+} from "../../shared/components/filter-drawer/filter-config.interface";
+import { ORGANIZATION_FILTER_CONFIG } from "./organization-filter.config";
 
 @Component({
   selector: "app-organization",
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, FilterDrawerComponent],
   templateUrl: "./organization.component.html",
   styleUrls: ["./organization.component.scss"],
 })
@@ -83,6 +89,10 @@ export class OrganizationComponent implements OnInit, AfterViewChecked {
   currentPage = signal<number>(1);
   pageSize = signal<number>(10);
   selectedTypeFilter = signal<number | null>(null);
+
+  // Filter drawer
+  filterDrawerConfig = signal<FilterDrawerConfig>(ORGANIZATION_FILTER_CONFIG);
+  activeFilters = signal<FilterValues>({});
 
   // Search debounce için
   private searchSubject = new Subject<string>();
@@ -218,6 +228,7 @@ export class OrganizationComponent implements OnInit, AfterViewChecked {
       .subscribe({
         next: (response) => {
           this.organizationTypes.set(response.data ?? []);
+          this.updateFilterDrawerOptions();
         },
         error: (err) => {
           console.error("Organization types loading error:", err);
@@ -232,11 +243,51 @@ export class OrganizationComponent implements OnInit, AfterViewChecked {
     this.organizationService.getAllForSelect().subscribe({
       next: (response) => {
         this.parentOrganizations.set(response.data ?? []);
+        this.updateFilterDrawerOptions();
       },
       error: (err) => {
         console.error("Parent organizations loading error:", err);
       },
     });
+  }
+
+  /**
+   * Update filter drawer options with loaded data
+   */
+  updateFilterDrawerOptions(): void {
+    // Only update if both data sources are loaded
+    if (
+      this.organizationTypes().length === 0 ||
+      this.parentOrganizations().length === 0
+    ) {
+      return;
+    }
+
+    // Deep clone the config to ensure Angular detects changes
+    const config: FilterDrawerConfig = {
+      ...ORGANIZATION_FILTER_CONFIG,
+      fields: ORGANIZATION_FILTER_CONFIG.fields.map((field) => ({ ...field })),
+    };
+
+    // Update parentId options
+    const parentField = config.fields.find((f) => f.key === "parentId");
+    if (parentField) {
+      parentField.options = this.parentOrganizations().map((org) => ({
+        id: org.id,
+        name: org.name,
+      }));
+    }
+
+    // Update typeId options
+    const typeField = config.fields.find((f) => f.key === "typeId");
+    if (typeField) {
+      typeField.options = this.organizationTypes().map((type) => ({
+        id: type.id,
+        name: type.name,
+      }));
+    }
+
+    this.filterDrawerConfig.set(config);
   }
 
   /**
@@ -246,12 +297,16 @@ export class OrganizationComponent implements OnInit, AfterViewChecked {
     this.loading.set(true);
     this.error.set(null);
 
+    const filters = this.activeFilters();
+
     this.organizationService
       .getAllPaged({
         pageNumber: this.currentPage(),
         pageSize: this.pageSize(),
-        name: this.searchTerm() || undefined,
-        typeId: this.selectedTypeFilter() ?? undefined,
+        name: filters["name"] || this.searchTerm() || undefined,
+        shortName: filters["shortName"] || undefined,
+        typeId: filters["typeId"] ?? this.selectedTypeFilter() ?? undefined,
+        parentId: filters["parentId"] || undefined,
       })
       .subscribe({
         next: (response) => {
@@ -665,5 +720,45 @@ export class OrganizationComponent implements OnInit, AfterViewChecked {
   getOrganizationTypeName(typeId: number): string {
     const type = this.organizationTypes().find((t) => +t.id === typeId);
     return type?.name ?? "-";
+  }
+
+  /**
+   * Handle filter apply from drawer
+   */
+  onFiltersApplied(filters: FilterValues): void {
+    this.activeFilters.set(filters);
+    this.currentPage.set(1);
+    this.loadOrganizations();
+  }
+
+  /**
+   * Handle filter clear from drawer
+   */
+  onFiltersCleared(): void {
+    this.activeFilters.set({});
+    this.currentPage.set(1);
+    this.loadOrganizations();
+  }
+
+  /**
+   * Get active filter count for badge display
+   */
+  getActiveFilterCount(): number {
+    const filters = this.activeFilters();
+    let count = 0;
+
+    Object.keys(filters).forEach((key) => {
+      const value = filters[key];
+
+      if (value !== null && value !== undefined && value !== "") {
+        if (Array.isArray(value) && value.length > 0) {
+          count++;
+        } else if (!Array.isArray(value)) {
+          count++;
+        }
+      }
+    });
+
+    return count;
   }
 }

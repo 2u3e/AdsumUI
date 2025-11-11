@@ -1,0 +1,226 @@
+<!-- Filter Drawer -->
+<div
+  class="kt-drawer kt-drawer-end card bottom-5 end-5 top-5 hidden w-[450px] max-w-[90%] flex-col rounded-xl border border-border"
+  data-kt-drawer="true"
+  data-kt-drawer-container="body"
+  [id]="drawerId"
+>
+  <!-- Header -->
+  <div
+    class="flex items-center justify-between gap-2.5 px-5 py-3.5 border-b border-border"
+  >
+    <h3 class="text-sm font-semibold text-mono">
+      {{ config?.title || "Filtreleme Seçenekleri" }}
+    </h3>
+    <button
+      class="kt-btn kt-btn-sm kt-btn-icon kt-btn-dim shrink-0"
+      data-kt-drawer-dismiss="true"
+      type="button"
+    >
+      <i class="ki-filled ki-cross"></i>
+    </button>
+  </div>
+
+  <!-- Filter Content -->
+  <div class="flex-1 overflow-y-auto px-5 py-5">
+    @if (config?.fields) {
+      <div class="grid grid-cols-1 gap-4">
+        @for (field of config.fields; track trackByKey($index, field)) {
+          <div [class]="getColumnClass(field)">
+            <!-- Text Input -->
+            @if (field.type === "text") {
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                {{ field.label }}
+                @if (field.required) {
+                  <span class="text-red-500">*</span>
+                }
+              </label>
+              <input
+                type="text"
+                class="kt-input w-full"
+                [placeholder]="field.placeholder || ''"
+                [ngModel]="getFieldValue(field.key)"
+                (ngModelChange)="updateFilterValue(field.key, $event)"
+                [ngModelOptions]="{ standalone: true }"
+              />
+            }
+
+            <!-- Number Input -->
+            @if (field.type === "number") {
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                {{ field.label }}
+                @if (field.required) {
+                  <span class="text-red-500">*</span>
+                }
+              </label>
+              <input
+                type="number"
+                class="kt-input w-full"
+                [placeholder]="field.placeholder || ''"
+                [ngModel]="getFieldValue(field.key)"
+                (ngModelChange)="updateFilterValue(field.key, $event)"
+                [ngModelOptions]="{ standalone: true }"
+              />
+            }
+
+            <!-- Select Dropdown -->
+            @if (field.type === "select") {
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                {{ field.label }}
+                @if (field.required) {
+                  <span class="text-red-500">*</span>
+                }
+              </label>
+              <select
+                class="kt-select w-full text-sm"
+                data-kt-select="true"
+                [attr.data-kt-select-enable-search]="
+                  field.searchable !== false ? 'true' : null
+                "
+                [attr.data-kt-select-allow-clear]="
+                  field.clearable !== false ? 'true' : null
+                "
+                [attr.data-kt-select-search-placeholder]="
+                  field.searchable !== false ? 'Ara...' : null
+                "
+                [attr.data-kt-select-placeholder]="
+                  field.placeholder || 'Seçiniz'
+                "
+                [ngModel]="getFieldValue(field.key) ?? ''"
+                (ngModelChange)="onSelectChange(field, $event)"
+                [ngModelOptions]="{ standalone: true }"
+              >
+                <option value=""></option>
+                @for (option of field.options; track option.id) {
+                  <option [value]="option.id">{{ option.name }}</option>
+                }
+              </select>
+            }
+
+            <!-- Radio Buttons -->
+            @if (field.type === "radio") {
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                {{ field.label }}
+                @if (field.required) {
+                  <span class="text-red-500">*</span>
+                }
+              </label>
+              <div class="flex flex-col gap-2">
+                @for (option of field.options; track option.id) {
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      class="kt-radio"
+                      [name]="field.key"
+                      [value]="option.id"
+                      [ngModel]="getFieldValue(field.key)"
+                      (ngModelChange)="updateFilterValue(field.key, $event)"
+                      [ngModelOptions]="{ standalone: true }"
+                    />
+                    <span class="text-sm text-gray-700 dark:text-gray-300">
+                      {{ option.name }}
+                    </span>
+                  </label>
+                }
+              </div>
+            }
+
+            <!-- Checkbox -->
+            @if (field.type === "checkbox") {
+              <label class="flex items-center gap-2 cursor-pointer mt-2">
+                <input
+                  type="checkbox"
+                  class="kt-checkbox"
+                  [ngModel]="getFieldValue(field.key)"
+                  (ngModelChange)="updateFilterValue(field.key, $event)"
+                  [ngModelOptions]="{ standalone: true }"
+                />
+                <span
+                  class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  {{ field.label }}
+                  @if (field.required) {
+                    <span class="text-red-500">*</span>
+                  }
+                </span>
+              </label>
+            }
+
+            <!-- Switch -->
+            @if (field.type === "switch") {
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                {{ field.label }}
+                @if (field.required) {
+                  <span class="text-red-500">*</span>
+                }
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  class="kt-switch"
+                  [id]="'switch_' + field.key"
+                  [ngModel]="getFieldValue(field.key)"
+                  (ngModelChange)="updateFilterValue(field.key, $event)"
+                  [ngModelOptions]="{ standalone: true }"
+                />
+                <span class="text-sm text-gray-700 dark:text-gray-300">
+                  {{ getFieldValue(field.key) ? "Aktif" : "Pasif" }}
+                </span>
+              </label>
+            }
+
+            <!-- Date Input -->
+            @if (field.type === "date") {
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                {{ field.label }}
+                @if (field.required) {
+                  <span class="text-red-500">*</span>
+                }
+              </label>
+              <input
+                type="date"
+                class="kt-input w-full"
+                [ngModel]="getFieldValue(field.key)"
+                (ngModelChange)="updateFilterValue(field.key, $event)"
+                [ngModelOptions]="{ standalone: true }"
+              />
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Footer Actions - Sticky at Bottom -->
+  <div class="flex gap-2.5 px-5 py-4 border-t border-border mt-auto">
+    <button
+      class="kt-btn kt-btn-outline flex-1"
+      (click)="clearFilters()"
+      type="button"
+    >
+      <i class="ki-filled ki-trash text-base"></i>
+      {{ getClearButtonText() }}
+    </button>
+    <button
+      class="kt-btn kt-btn-primary flex-1"
+      (click)="applyFilters()"
+      data-kt-drawer-dismiss="true"
+      type="button"
+    >
+      <i class="ki-filled ki-filter text-base"></i>
+      {{ getApplyButtonText() }}
+    </button>
+  </div>
+</div>

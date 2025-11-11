@@ -680,6 +680,21 @@
         >
           <i class="ki-filled ki-arrows-circle"></i>
         </button>
+        <button
+          class="kt-btn kt-btn-outline relative"
+          data-kt-drawer-toggle="#organization_filter_drawer"
+          type="button"
+        >
+          <i class="ki-filled ki-filter text-base"></i>
+          <span>Filtreler</span>
+          @if (getActiveFilterCount() > 0) {
+            <span
+              class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white"
+            >
+              {{ getActiveFilterCount() }}
+            </span>
+          }
+        </button>
       </div>
     </div>
 
@@ -915,3 +930,12 @@
     </div>
   </div>
 </div>
+
+<!-- Filter Drawer -->
+<app-filter-drawer
+  [config]="filterDrawerConfig()"
+  [drawerId]="'organization_filter_drawer'"
+  [initialValues]="activeFilters()"
+  (filtersApplied)="onFiltersApplied($event)"
+  (filtersCleared)="onFiltersCleared()"
+></app-filter-drawer>
