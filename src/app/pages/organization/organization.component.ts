@@ -451,6 +451,11 @@ export class OrganizationComponent
           this.editForm.description.set(orgData.description ?? "");
           this.editForm.isActive.set(orgData.isActive);
           this.editModalOpen.set(true);
+
+          // Update KT Select UI after values are set
+          setTimeout(() => {
+            this.updateEditModalSelectUI();
+          }, 100);
         }
       },
       error: (err) => {
@@ -812,6 +817,34 @@ export class OrganizationComponent
     });
 
     return count;
+  }
+
+  /**
+   * Update KT Select UI for edit modal to reflect current values
+   */
+  private updateEditModalSelectUI(): void {
+    const selectIds = ["editModalTypeId", "editModalParentId"];
+
+    selectIds.forEach((selectId) => {
+      const element = document.getElementById(selectId) as HTMLSelectElement;
+
+      if (element) {
+        // Trigger change event to sync native select with Angular
+        element.dispatchEvent(new Event("change", { bubbles: true }));
+
+        // Update KT Select UI using getInstance API
+        const KTSelect = (window as any).KTSelect;
+        if (KTSelect && typeof KTSelect.getInstance === "function") {
+          const ktSelectInstance = KTSelect.getInstance(element);
+          if (
+            ktSelectInstance &&
+            typeof ktSelectInstance.update === "function"
+          ) {
+            ktSelectInstance.update();
+          }
+        }
+      }
+    });
   }
 
   /**
