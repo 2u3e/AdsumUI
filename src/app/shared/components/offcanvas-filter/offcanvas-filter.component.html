@@ -121,7 +121,7 @@
                 >
                   <option value=""></option>
                   @for (option of field.options; track option.id) {
-                    <option [value]="option.id">{{ option.name }}</option>
+                    <option [ngValue]="option.id">{{ option.name }}</option>
                   }
                 </select>
               }

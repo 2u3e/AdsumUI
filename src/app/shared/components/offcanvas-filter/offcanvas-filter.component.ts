@@ -87,25 +87,10 @@ export class OffcanvasFilterComponent
   private needsSelectInit = false;
 
   constructor() {
-    // Watch for config changes to initialize default values
-    effect(() => {
-      if (this.config) {
-        this.initializeFilterValues();
-        this.needsSelectInit = true;
-      }
-    });
-
-    // Watch for isOpen changes to reinitialize selects when offcanvas opens
-    effect(() => {
-      if (this.isOpen) {
-        // Use Promise.resolve to wait for DOM to be ready
-        Promise.resolve().then(() => {
-          this.cdr.detectChanges();
-          this.metronicInit.initSelect();
-        });
-      }
-    });
+    // Constructor kept minimal - initialization moved to ngOnChanges
   }
+
+  private selectsInitialized = false;
 
   ngOnInit(): void {
     this.initializeFilterValues();
@@ -117,16 +102,77 @@ export class OffcanvasFilterComponent
       this.initializeFilterValues();
     }
 
-    // When offcanvas opens, reinitialize values and selects
+    // When offcanvas opens, reinitialize values and update KT Select UI
     if (changes["isOpen"] && changes["isOpen"].currentValue === true) {
-      // Reinitialize filter values from initialValues when opening
       this.initializeFilterValues();
 
       Promise.resolve().then(() => {
         this.cdr.detectChanges();
-        this.metronicInit.initSelect();
+
+        // Initialize KT Selects only on first open
+        if (!this.selectsInitialized) {
+          this.metronicInit.initSelect();
+          this.selectsInitialized = true;
+        }
+
+        // Update KT Select UI to reflect current values
+        setTimeout(() => {
+          this.updateKTSelectUI();
+        }, 100);
       });
     }
+  }
+
+  /**
+   * Update KT Select UI to reflect current native select values
+   */
+  private updateKTSelectUI(): void {
+    const values = this.filterValues();
+
+    this.config?.fields?.forEach((field) => {
+      if (field.type === "multiselect" || field.type === "select") {
+        const elementId = this.getFieldElementId(field);
+        const element = document.getElementById(elementId) as HTMLSelectElement;
+
+        if (element) {
+          const value = values[field.key];
+
+          // For multiselect, manually set native select option values
+          if (
+            field.type === "multiselect" &&
+            Array.isArray(value) &&
+            value.length > 0
+          ) {
+            Array.from(element.options).forEach((option) => {
+              const matchingOption = field.options?.find(
+                (opt) => opt.name === option.text,
+              );
+              if (matchingOption) {
+                const shouldSelect =
+                  value.includes(String(matchingOption.id)) ||
+                  value.includes(matchingOption.id);
+                option.selected = shouldSelect;
+              }
+            });
+          }
+
+          // Trigger change event
+          element.dispatchEvent(new Event("change", { bubbles: true }));
+
+          // Update KT Select UI using getInstance API
+          const KTSelect = (window as any).KTSelect;
+          if (KTSelect && typeof KTSelect.getInstance === "function") {
+            const ktSelectInstance = KTSelect.getInstance(element);
+            if (
+              ktSelectInstance &&
+              typeof ktSelectInstance.update === "function"
+            ) {
+              ktSelectInstance.update();
+            }
+          }
+        }
+      }
+    });
   }
 
   ngAfterViewChecked(): void {
