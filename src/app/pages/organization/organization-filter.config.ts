@@ -10,9 +10,9 @@ export const ORGANIZATION_FILTER_CONFIG: FilterDrawerConfig = {
   fields: [
     {
       key: "name",
-      label: "Organizasyon Adı",
+      label: "Birim Adı",
       type: "text",
-      placeholder: "Organizasyon adı ile ara...",
+      placeholder: "Birim adı ile ara...",
       clearable: true,
       colSpan: 2,
     },
@@ -26,9 +26,9 @@ export const ORGANIZATION_FILTER_CONFIG: FilterDrawerConfig = {
     },
     {
       key: "parentId",
-      label: "Üst Organizasyon",
+      label: "Üst Birim",
       type: "multiselect",
-      placeholder: "Üst organizasyon seçiniz",
+      placeholder: "Üst birim seçiniz",
       searchable: true,
       clearable: true,
       options: [], // Will be populated dynamically
@@ -36,7 +36,7 @@ export const ORGANIZATION_FILTER_CONFIG: FilterDrawerConfig = {
     },
     {
       key: "typeId",
-      label: "Organizasyon Tipi",
+      label: "Birim Tipi",
       type: "multiselect",
       placeholder: "Tip seçiniz",
       searchable: true,

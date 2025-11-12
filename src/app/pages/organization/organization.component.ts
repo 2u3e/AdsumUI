@@ -426,7 +426,7 @@ export class OrganizationComponent implements OnInit, AfterViewChecked {
       },
       error: (err) => {
         this.error.set(
-          "Organizasyon bilgileri yüklenirken hata oluştu: " + err.message,
+          "Birim bilgileri yüklenirken hata oluştu: " + err.message,
         );
         console.error("Load organization error:", err);
       },
@@ -459,7 +459,7 @@ export class OrganizationComponent implements OnInit, AfterViewChecked {
     this.organizationService.deleteById(organization.id).subscribe({
       next: () => {
         this.notificationService.success(
-          "Organizasyon başarıyla silindi",
+          "Birim başarıyla silindi",
           "Silme İşlemi",
         );
         this.closeDeleteModal();
@@ -541,14 +541,14 @@ export class OrganizationComponent implements OnInit, AfterViewChecked {
 
   getCreateNameError(): string {
     if (!this.isCreateNameValid()) {
-      return "Organizasyon adı zorunludur";
+      return "Birim adı zorunludur";
     }
     return "";
   }
 
   getCreateTypeError(): string {
     if (!this.isCreateTypeValid()) {
-      return "Organizasyon tipi seçimi zorunludur";
+      return "Birim tipi seçimi zorunludur";
     }
     return "";
   }
@@ -579,7 +579,7 @@ export class OrganizationComponent implements OnInit, AfterViewChecked {
     this.organizationService.create(request).subscribe({
       next: () => {
         this.notificationService.success(
-          "Organizasyon başarıyla oluşturuldu",
+          "Birim başarıyla oluşturuldu",
           "İşlem Başarılı",
         );
         this.closeCreateModal();
@@ -651,14 +651,14 @@ export class OrganizationComponent implements OnInit, AfterViewChecked {
 
   getEditNameError(): string {
     if (!this.isEditNameValid()) {
-      return "Organizasyon adı zorunludur";
+      return "Birim adı zorunludur";
     }
     return "";
   }
 
   getEditTypeError(): string {
     if (!this.isEditTypeValid()) {
-      return "Organizasyon tipi seçimi zorunludur";
+      return "Birim tipi seçimi zorunludur";
     }
     return "";
   }
@@ -690,7 +690,7 @@ export class OrganizationComponent implements OnInit, AfterViewChecked {
     this.organizationService.update(request.id, request).subscribe({
       next: () => {
         this.notificationService.success(
-          "Organizasyon başarıyla güncellendi",
+          "Birim başarıyla güncellendi",
           "Güncelleme Başarılı",
         );
         this.closeEditModal();
