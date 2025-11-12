@@ -78,19 +78,14 @@
                 }
               </label>
               <select
+                [id]="getFieldElementId(field)"
                 class="kt-select w-full text-sm"
                 data-kt-select="true"
-                [attr.data-kt-select-enable-search]="
-                  field.searchable !== false ? 'true' : null
-                "
-                [attr.data-kt-select-allow-clear]="
-                  field.clearable !== false ? 'true' : null
-                "
-                [attr.data-kt-select-search-placeholder]="
-                  field.searchable !== false ? 'Ara...' : null
-                "
                 [attr.data-kt-select-placeholder]="
                   field.placeholder || 'Seçiniz'
+                "
+                [attr.data-kt-select-config]="
+                  '{&quot;optionsClass&quot;: &quot;kt-scrollable overflow-auto max-h-[250px]&quot;}'
                 "
                 [ngModel]="getFieldValue(field.key) ?? ''"
                 (ngModelChange)="onSelectChange(field, $event)"

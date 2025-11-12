@@ -8,6 +8,7 @@ import {
   inject,
   OnInit,
   AfterViewChecked,
+  OnDestroy,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
@@ -17,6 +18,7 @@ import {
   FilterValues,
 } from "./filter-config.interface";
 import { MetronicInitService } from "../../../core/services/metronic-init.service";
+import { KTSelectService } from "../../../core/services/kt-select.service";
 
 @Component({
   selector: "app-filter-drawer",
@@ -25,8 +27,14 @@ import { MetronicInitService } from "../../../core/services/metronic-init.servic
   templateUrl: "./filter-drawer.component.html",
   styleUrls: ["./filter-drawer.component.scss"],
 })
-export class FilterDrawerComponent implements OnInit, AfterViewChecked {
+export class FilterDrawerComponent
+  implements OnInit, AfterViewChecked, OnDestroy
+{
   private metronicInit = inject(MetronicInitService);
+  private ktSelectService = inject(KTSelectService);
+
+  /** Track select element IDs for cleanup */
+  private selectElementIds: Set<string> = new Set();
 
   /** Filter configuration */
   @Input() config!: FilterDrawerConfig;
@@ -228,5 +236,31 @@ export class FilterDrawerComponent implements OnInit, AfterViewChecked {
    */
   trackByKey(index: number, field: FilterFieldConfig): string {
     return field.key;
+  }
+
+  /**
+   * Generate unique element ID for a field
+   */
+  getFieldElementId(field: FilterFieldConfig): string {
+    return `${this.drawerId}-${field.key}`;
+  }
+
+  /**
+   * Register select element ID for cleanup
+   */
+  private registerSelectElement(elementId: string): void {
+    this.selectElementIds.add(elementId);
+  }
+
+  /**
+   * Cleanup - destroy all KT Select instances
+   */
+  ngOnDestroy(): void {
+    // Destroy all registered KT Select instances
+    if (this.selectElementIds.size > 0) {
+      this.ktSelectService.destroyInstances(
+        ...Array.from(this.selectElementIds),
+      );
+    }
   }
 }

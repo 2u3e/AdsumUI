@@ -125,12 +125,13 @@
             </label>
             <div [class.validation-error]="shouldShowCreateTypeError()">
               <select
+                id="createModalTypeId"
                 class="kt-select w-full text-sm"
                 data-kt-select="true"
-                data-kt-select-enable-search="true"
-                data-kt-select-allow-clear="true"
-                data-kt-select-search-placeholder="Ara..."
                 data-kt-select-placeholder="Birim tipi seçiniz"
+                [attr.data-kt-select-config]="
+                  '{&quot;optionsClass&quot;: &quot;kt-scrollable overflow-auto max-h-[250px]&quot;}'
+                "
                 [ngModel]="createForm.typeId() ?? ''"
                 (ngModelChange)="
                   createForm.typeId.set(
@@ -165,12 +166,13 @@
               Üst Birim
             </label>
             <select
+              id="createModalParentId"
               class="kt-select w-full text-sm"
               data-kt-select="true"
-              data-kt-select-enable-search="true"
-              data-kt-select-allow-clear="true"
-              data-kt-select-search-placeholder="Ara..."
               data-kt-select-placeholder="Üst birim seçiniz"
+              [attr.data-kt-select-config]="
+                '{&quot;optionsClass&quot;: &quot;kt-scrollable overflow-auto max-h-[250px]&quot;}'
+              "
               [ngModel]="createForm.parentId() ?? ''"
               (ngModelChange)="
                 createForm.parentId.set($event !== '' ? $event : null)
@@ -366,12 +368,13 @@
             </label>
             <div [class.validation-error]="shouldShowEditTypeError()">
               <select
+                id="editModalTypeId"
                 class="kt-select w-full text-sm"
                 data-kt-select="true"
-                data-kt-select-enable-search="true"
-                data-kt-select-allow-clear="true"
-                data-kt-select-search-placeholder="Ara..."
                 data-kt-select-placeholder="Birim tipi seçiniz"
+                [attr.data-kt-select-config]="
+                  '{&quot;optionsClass&quot;: &quot;kt-scrollable overflow-auto max-h-[250px]&quot;}'
+                "
                 [ngModel]="editForm.typeId() ?? ''"
                 (ngModelChange)="
                   editForm.typeId.set(
@@ -406,12 +409,13 @@
               Üst Birim
             </label>
             <select
+              id="editModalParentId"
               class="kt-select w-full text-sm"
               data-kt-select="true"
-              data-kt-select-enable-search="true"
-              data-kt-select-allow-clear="true"
-              data-kt-select-search-placeholder="Ara..."
               data-kt-select-placeholder="Üst birim seçiniz"
+              [attr.data-kt-select-config]="
+                '{&quot;optionsClass&quot;: &quot;kt-scrollable overflow-auto max-h-[250px]&quot;}'
+              "
               [ngModel]="editForm.parentId() ?? ''"
               (ngModelChange)="
                 editForm.parentId.set($event !== '' ? $event : null)

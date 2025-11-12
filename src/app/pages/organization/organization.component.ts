@@ -5,6 +5,7 @@ import {
   signal,
   computed,
   AfterViewChecked,
+  OnDestroy,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
@@ -14,6 +15,7 @@ import { OrganizationService } from "../../core/services/organization.service";
 import { ReferenceService } from "../../core/services/reference.service";
 import { NotificationService } from "../../core/services/notification.service";
 import { MetronicInitService } from "../../core/services/metronic-init.service";
+import { KTSelectService } from "../../core/services/kt-select.service";
 import {
   OrganizationListItem,
   OrganizationSelectItem,
@@ -35,11 +37,14 @@ import { ORGANIZATION_FILTER_CONFIG } from "./organization-filter.config";
   templateUrl: "./organization.component.html",
   styleUrls: ["./organization.component.scss"],
 })
-export class OrganizationComponent implements OnInit, AfterViewChecked {
+export class OrganizationComponent
+  implements OnInit, AfterViewChecked, OnDestroy
+{
   private organizationService = inject(OrganizationService);
   private referenceService = inject(ReferenceService);
   private notificationService = inject(NotificationService);
   private metronicInit = inject(MetronicInitService);
+  private ktSelectService = inject(KTSelectService);
 
   // Signals
   organizations = signal<OrganizationListItem[]>([]);
@@ -782,5 +787,18 @@ export class OrganizationComponent implements OnInit, AfterViewChecked {
     });
 
     return count;
+  }
+
+  /**
+   * Cleanup on component destroy
+   */
+  ngOnDestroy(): void {
+    // Destroy KT Select instances for modals
+    this.ktSelectService.destroyInstances(
+      "createModalTypeId",
+      "createModalParentId",
+      "editModalTypeId",
+      "editModalParentId",
+    );
   }
 }

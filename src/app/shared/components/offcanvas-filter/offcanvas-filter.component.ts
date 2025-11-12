@@ -12,6 +12,7 @@ import {
   ChangeDetectorRef,
   OnChanges,
   SimpleChanges,
+  OnDestroy,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
@@ -21,6 +22,7 @@ import {
   FilterValues,
 } from "../filter-drawer/filter-config.interface";
 import { MetronicInitService } from "../../../core/services/metronic-init.service";
+import { KTSelectService } from "../../../core/services/kt-select.service";
 
 @Component({
   selector: "app-offcanvas-filter",
@@ -30,10 +32,14 @@ import { MetronicInitService } from "../../../core/services/metronic-init.servic
   styleUrls: ["./offcanvas-filter.component.scss"],
 })
 export class OffcanvasFilterComponent
-  implements OnInit, AfterViewChecked, OnChanges
+  implements OnInit, AfterViewChecked, OnChanges, OnDestroy
 {
   private metronicInit = inject(MetronicInitService);
   private cdr = inject(ChangeDetectorRef);
+  private ktSelectService = inject(KTSelectService);
+
+  /** Track select element IDs for cleanup */
+  private selectElementIds: Set<string> = new Set();
 
   /**
    * Handle ESC key press to close offcanvas
@@ -242,17 +248,26 @@ export class OffcanvasFilterComponent
     // Clear all field values to default empty
     const clearedValues: FilterValues = {};
     this.config?.fields?.forEach((field) => {
+      // Generate element ID for this field
+      const elementId = `filter-${field.key}`;
+
       switch (field.type) {
         case "text":
         case "number":
           clearedValues[field.key] = "";
           break;
         case "select":
+          clearedValues[field.key] = null;
+          // Clear KT Select using service (with sync to native element)
+          this.ktSelectService.clearSelectionWithSync(elementId);
+          break;
         case "radio":
           clearedValues[field.key] = null;
           break;
         case "multiselect":
           clearedValues[field.key] = [];
+          // Clear KT MultiSelect using service (with sync to native element)
+          this.ktSelectService.clearSelectionWithSync(elementId);
           break;
         case "checkbox":
         case "switch":
@@ -366,5 +381,31 @@ export class OffcanvasFilterComponent
     });
 
     return count;
+  }
+
+  /**
+   * Generate unique element ID for a field
+   */
+  getFieldElementId(field: FilterFieldConfig): string {
+    return `filter-${field.key}`;
+  }
+
+  /**
+   * Register select element ID for cleanup
+   */
+  private registerSelectElement(elementId: string): void {
+    this.selectElementIds.add(elementId);
+  }
+
+  /**
+   * Cleanup - destroy all KT Select instances
+   */
+  ngOnDestroy(): void {
+    // Destroy all registered KT Select instances
+    if (this.selectElementIds.size > 0) {
+      this.ktSelectService.destroyInstances(
+        ...Array.from(this.selectElementIds),
+      );
+    }
   }
 }

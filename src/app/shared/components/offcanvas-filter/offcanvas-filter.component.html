@@ -106,13 +106,14 @@
                   }
                 </label>
                 <select
+                  [id]="getFieldElementId(field)"
                   class="kt-select w-full text-sm"
                   data-kt-select="true"
-                  data-kt-select-enable-search="true"
-                  data-kt-select-allow-clear="true"
-                  data-kt-select-search-placeholder="Ara..."
                   [attr.data-kt-select-placeholder]="
                     field.placeholder || 'Seçiniz'
+                  "
+                  [attr.data-kt-select-config]="
+                    '{&quot;optionsClass&quot;: &quot;kt-scrollable overflow-auto max-h-[250px]&quot;}'
                   "
                   [ngModel]="getFieldValue(field.key) ?? ''"
                   (ngModelChange)="onSelectChange(field, $event)"
@@ -136,16 +137,15 @@
                   }
                 </label>
                 <select
+                  [id]="getFieldElementId(field)"
                   class="kt-select w-full text-sm"
                   data-kt-select="true"
-                  data-kt-select-enable-search="true"
-                  data-kt-select-allow-clear="true"
-                  data-kt-select-search-placeholder="Ara..."
-                  data-kt-select-close-on-select="false"
-                  data-kt-select-hide-search="false"
                   data-kt-select-multiple="true"
                   [attr.data-kt-select-placeholder]="
                     field.placeholder || 'Seçiniz'
+                  "
+                  [attr.data-kt-select-config]="
+                    '{&quot;optionsClass&quot;: &quot;kt-scrollable overflow-auto max-h-[250px]&quot;, &quot;displaySeparator&quot;: &quot;, &quot;}'
                   "
                   multiple
                   [ngModel]="getFieldValue(field.key) ?? []"
