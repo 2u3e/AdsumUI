@@ -6,6 +6,7 @@ import { Response } from "../models/api.models";
 import {
   CitizenItem,
   CitizenListItem,
+  CitizenSelectItem,
   GetCitizensRequest,
   CreateCitizenRequest,
   UpdateCitizenRequest,
@@ -22,19 +23,45 @@ export class CitizenService extends BaseHttpService {
   private readonly endpoint = "Citizens";
 
   /**
-   * Tüm citizen kayıtlarını getirir
-   * GET /Citizens
+   * Tüm citizen kayıtlarını sayfalı olarak getirir
+   * GET /Citizens/all
    */
-  getAll(
+  getAllPaged(
     request: GetCitizensRequest = {},
   ): Observable<Response<CitizenListItem[]>> {
     const params: any = {};
 
-    if (request.onlyActive !== undefined) {
-      params.onlyActive = request.onlyActive;
+    if (request.pageNumber !== undefined) {
+      params.pageNumber = request.pageNumber;
     }
 
-    return this.get<CitizenListItem[]>(`${this.endpoint}`, { params });
+    if (request.pageSize !== undefined) {
+      params.pageSize = request.pageSize;
+    }
+
+    if (request.identityNumber) {
+      params.identityNumber = request.identityNumber;
+    }
+
+    if (request.name) {
+      params.name = request.name;
+    }
+
+    if (request.lastName) {
+      params.lastName = request.lastName;
+    }
+
+    if (request.genderId !== undefined) {
+      params.genderId = request.genderId;
+    }
+
+    if (request.isActive !== undefined) {
+      params.isActive = request.isActive;
+    }
+
+    return this.get<CitizenListItem[]>(`${this.endpoint}/all`, {
+      params,
+    });
   }
 
   /**
@@ -69,13 +96,13 @@ export class CitizenService extends BaseHttpService {
   /**
    * Citizen kaydını günceller
    * PUT /Citizens/{id}
-   * Returns: GuidResponse (UUID string)
+   * Returns: CitizenResponse
    */
   update(
     id: string,
     request: UpdateCitizenRequest,
-  ): Observable<Response<string>> {
-    return this.put<string>(`${this.endpoint}/${id}`, request);
+  ): Observable<Response<CitizenItem>> {
+    return this.put<CitizenItem>(`${this.endpoint}/${id}`, request);
   }
 
   /**
@@ -84,5 +111,13 @@ export class CitizenService extends BaseHttpService {
    */
   deleteById(id: string): Observable<Response<void>> {
     return super.delete<void>(`${this.endpoint}/${id}`);
+  }
+
+  /**
+   * Select box için citizen listesini getirir
+   * GET /Citizens/GetAllForSelect
+   */
+  getAllForSelect(): Observable<Response<CitizenSelectItem[]>> {
+    return this.get<CitizenSelectItem[]>(`${this.endpoint}/GetAllForSelect`);
   }
 }

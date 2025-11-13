@@ -1,5 +1,5 @@
 /**
- * Citizen kaydı
+ * Citizen kaydı (detay)
  * GET /Citizens/{id} response
  */
 export interface CitizenItem {
@@ -51,7 +51,7 @@ export interface CitizenItem {
 
 /**
  * Citizen liste kaydı
- * GET /Citizens response item
+ * GET /Citizens/all response item
  */
 export interface CitizenListItem {
   /** Citizen ID (UUID) */
@@ -60,11 +60,20 @@ export interface CitizenListItem {
   /** TC Kimlik Numarası */
   identityNumber: string;
 
+  /** Ad */
+  name: string;
+
+  /** Soyad */
+  lastName: string;
+
   /** Tam Ad */
   fullName: string;
 
   /** Doğum Tarihi */
   birthDate: string;
+
+  /** Doğum Yeri */
+  birthPlace?: string;
 
   /** Yaş */
   age: number;
@@ -78,11 +87,29 @@ export interface CitizenListItem {
 
 /**
  * Citizen listesi için query parametreleri
- * GET /Citizens query params
+ * GET /Citizens/all query params
  */
 export interface GetCitizensRequest {
+  /** Sayfa numarası */
+  pageNumber?: number;
+
+  /** Sayfa başına kayıt sayısı */
+  pageSize?: number;
+
+  /** TC Kimlik Numarası (arama) */
+  identityNumber?: string;
+
+  /** Ad (arama) */
+  name?: string;
+
+  /** Soyad (arama) */
+  lastName?: string;
+
+  /** Cinsiyet ID */
+  genderId?: number;
+
   /** Sadece aktif kayıtlar mı? */
-  onlyActive?: boolean;
+  isActive?: boolean;
 }
 
 /**
@@ -107,6 +134,9 @@ export interface CreateCitizenRequest {
 
   /** Cinsiyet ID */
   genderId: number;
+
+  /** Aktif mi? */
+  isActive: boolean;
 }
 
 /**
@@ -134,4 +164,19 @@ export interface UpdateCitizenRequest {
 
   /** Aktif mi? */
   isActive: boolean;
+}
+
+/**
+ * Citizen select item
+ * Select box için kullanılacak basit model
+ */
+export interface CitizenSelectItem {
+  /** Citizen ID (UUID) */
+  id: string;
+
+  /** Tam Ad */
+  fullName: string;
+
+  /** TC Kimlik Numarası */
+  identityNumber: string;
 }

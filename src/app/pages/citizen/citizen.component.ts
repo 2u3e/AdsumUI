@@ -1,29 +1,50 @@
-import { Component, OnInit, inject, signal, computed } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  inject,
+  signal,
+  computed,
+  AfterViewChecked,
+  OnDestroy,
+} from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 import { CitizenService } from "../../core/services/citizen.service";
 import { ReferenceService } from "../../core/services/reference.service";
+import { NotificationService } from "../../core/services/notification.service";
+import { MetronicInitService } from "../../core/services/metronic-init.service";
+import { KTSelectService } from "../../core/services/kt-select.service";
 import { CitizenListItem } from "../../core/models/citizen.models";
 import { ReferenceDataSelectItem } from "../../core/models/reference.models";
 import { ReferenceTypes } from "../../core/constants/reference-types";
+import { PaginationMeta } from "../../core/models/api.models";
+import { OffcanvasFilterComponent } from "../../shared/components/offcanvas-filter/offcanvas-filter.component";
+import {
+  FilterDrawerConfig,
+  FilterValues,
+} from "../../shared/components/filter-drawer/filter-config.interface";
+import { CITIZEN_FILTER_CONFIG } from "./citizen-filter.config";
 
 @Component({
   selector: "app-citizen",
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, OffcanvasFilterComponent],
   templateUrl: "./citizen.component.html",
   styleUrls: ["./citizen.component.scss"],
 })
-export class CitizenComponent implements OnInit {
+export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
   private citizenService = inject(CitizenService);
   private referenceService = inject(ReferenceService);
+  private notificationService = inject(NotificationService);
+  private metronicInit = inject(MetronicInitService);
+  private ktSelectService = inject(KTSelectService);
 
   // Signals
   citizens = signal<CitizenListItem[]>([]);
-  allCitizens = signal<CitizenListItem[]>([]); // Tüm data (filtreleme için)
   genders = signal<ReferenceDataSelectItem[]>([]);
+  pagination = signal<PaginationMeta | null>(null);
   loading = signal<boolean>(false);
   error = signal<string | null>(null);
   deleteModalOpen = signal<boolean>(false);
@@ -39,8 +60,16 @@ export class CitizenComponent implements OnInit {
     birthDate: signal<string>(""),
     birthPlace: signal<string>(""),
     genderId: signal<number | null>(null),
+    isActive: signal<boolean>(true),
   };
   createFormSubmitting = signal<boolean>(false);
+  createFormTouched = {
+    identityNumber: signal<boolean>(false),
+    name: signal<boolean>(false),
+    lastName: signal<boolean>(false),
+    birthDate: signal<boolean>(false),
+    genderId: signal<boolean>(false),
+  };
 
   // Edit form
   editForm = {
@@ -53,41 +82,113 @@ export class CitizenComponent implements OnInit {
     isActive: signal<boolean>(true),
   };
   editFormSubmitting = signal<boolean>(false);
+  editFormTouched = {
+    name: signal<boolean>(false),
+    lastName: signal<boolean>(false),
+    birthDate: signal<boolean>(false),
+    genderId: signal<boolean>(false),
+  };
 
-  // Filter parametreleri
+  // Search ve pagination parametreleri
   searchTerm = signal<string>("");
-  onlyActive = signal<boolean>(true);
+  currentPage = signal<number>(1);
+  pageSize = signal<number>(10);
+
+  // Filter offcanvas
+  filterDrawerConfig = signal<FilterDrawerConfig>(CITIZEN_FILTER_CONFIG);
+  activeFilters = signal<FilterValues>({});
+  filterOffcanvasOpen = signal<boolean>(false);
 
   // Search debounce için
   private searchSubject = new Subject<string>();
 
+  // Flag to track if selects need reinitialization
+  private needsSelectInit = false;
+
   // Computed values
-  totalCount = computed(() => this.citizens().length);
+  totalPages = computed(() => this.pagination()?.totalPages ?? 0);
+  hasNextPage = computed(() => {
+    const pagination = this.pagination();
+    if (!pagination) return false;
+    if (pagination.hasNextPage !== undefined) return pagination.hasNextPage;
+    const current =
+      pagination.page ?? pagination.currentPage ?? this.currentPage();
+    return current < (pagination.totalPages ?? 0);
+  });
+  hasPreviousPage = computed(() => {
+    const pagination = this.pagination();
+    if (!pagination) return false;
+    if (pagination.hasPreviousPage !== undefined)
+      return pagination.hasPreviousPage;
+    const current =
+      pagination.page ?? pagination.currentPage ?? this.currentPage();
+    return current > 1;
+  });
+  totalCount = computed(() => {
+    const pagination = this.pagination();
+    if (!pagination) return 0;
+    return (
+      pagination.totalItems ??
+      pagination.totalItem ??
+      pagination.totalCount ??
+      0
+    );
+  });
   activeCount = computed(
     () => this.citizens().filter((c) => c.isActive).length,
   );
 
-  // Filtrelenmiş vatandaşlar
-  filteredCitizens = computed(() => {
-    let filtered = [...this.allCitizens()];
+  // Pagination display info
+  displayFrom = computed(() => {
+    if (this.citizens().length === 0) return 0;
+    return (this.currentPage() - 1) * this.pageSize() + 1;
+  });
 
-    // Aktif filtresi
-    if (this.onlyActive()) {
-      filtered = filtered.filter((c) => c.isActive);
+  displayTo = computed(() => {
+    const citizensLength = this.citizens().length;
+    if (citizensLength === 0) return 0;
+
+    const from = this.displayFrom();
+    return from + citizensLength - 1;
+  });
+
+  displayTotal = computed(() => {
+    const total = this.totalCount();
+    if (total === 0 && this.citizens().length > 0) {
+      return this.citizens().length;
+    }
+    return total;
+  });
+
+  // Sayfa numaraları için array (pagination buttons)
+  pageNumbers = computed(() => {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    const pages: number[] = [];
+
+    if (total <= 0) return pages;
+
+    pages.push(1);
+
+    if (total <= 5) {
+      for (let i = 2; i <= total; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (current <= 3) {
+        pages.push(2, 3, 4);
+      } else if (current >= total - 2) {
+        pages.push(total - 3, total - 2, total - 1);
+      } else {
+        pages.push(current - 1, current, current + 1);
+      }
+
+      if (!pages.includes(total)) {
+        pages.push(total);
+      }
     }
 
-    // Arama filtresi
-    const search = this.searchTerm().toLowerCase().trim();
-    if (search) {
-      filtered = filtered.filter(
-        (c) =>
-          c.fullName.toLowerCase().includes(search) ||
-          c.identityNumber.includes(search) ||
-          c.genderName?.toLowerCase().includes(search),
-      );
-    }
-
-    return filtered;
+    return pages;
   });
 
   ngOnInit(): void {
@@ -96,6 +197,8 @@ export class CitizenComponent implements OnInit {
       .pipe(debounceTime(500), distinctUntilChanged())
       .subscribe((searchTerm) => {
         this.searchTerm.set(searchTerm);
+        this.currentPage.set(1);
+        this.loadCitizens();
       });
 
     // Cinsiyet listesini yükle
@@ -103,6 +206,54 @@ export class CitizenComponent implements OnInit {
 
     // İlk yükleme
     this.loadCitizens();
+
+    // Initialize select and tooltip components after a short delay to ensure DOM is ready
+    setTimeout(() => {
+      this.metronicInit.initSelect();
+      this.metronicInit.initTooltips();
+    }, 100);
+  }
+
+  ngAfterViewChecked(): void {
+    if (this.needsSelectInit) {
+      const selectEl = document.getElementById(
+        "editModalGenderId",
+      ) as HTMLSelectElement;
+
+      // Native select'e değeri set et
+      if (selectEl && this.editForm.genderId()) {
+        const targetValue = this.editForm.genderId()!.toString();
+        const matchingOption = Array.from(selectEl.options).find(
+          (o) => o.value === targetValue,
+        );
+
+        if (matchingOption) {
+          selectEl.value = targetValue;
+          matchingOption.selected = true;
+        }
+      }
+
+      // KT Select'i initialize et
+      this.metronicInit.initSelect();
+      this.metronicInit.initTooltips();
+
+      // KT Select instance'ını güncelle
+      if (selectEl && this.editForm.genderId()) {
+        setTimeout(() => {
+          const ktSelectInstance = (selectEl as any).instance;
+          if (ktSelectInstance) {
+            selectEl.value = this.editForm.genderId()!.toString();
+            selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+
+            if (typeof ktSelectInstance.update === "function") {
+              ktSelectInstance.update();
+            }
+          }
+        }, 50);
+      }
+
+      this.needsSelectInit = false;
+    }
   }
 
   /**
@@ -115,11 +266,38 @@ export class CitizenComponent implements OnInit {
       .subscribe({
         next: (response) => {
           this.genders.set(response.data ?? []);
+          this.updateFilterDrawerOptions();
         },
         error: (err) => {
           console.error("Gender loading error:", err);
         },
       });
+  }
+
+  /**
+   * Update filter drawer options with loaded data
+   */
+  updateFilterDrawerOptions(): void {
+    if (this.genders().length === 0) {
+      return;
+    }
+
+    // Deep clone the config to ensure Angular detects changes
+    const config: FilterDrawerConfig = {
+      ...CITIZEN_FILTER_CONFIG,
+      fields: CITIZEN_FILTER_CONFIG.fields.map((field) => ({ ...field })),
+    };
+
+    // Update genderId options
+    const genderField = config.fields.find((f) => f.key === "genderId");
+    if (genderField) {
+      genderField.options = this.genders().map((gender) => ({
+        id: gender.id,
+        name: gender.name,
+      }));
+    }
+
+    this.filterDrawerConfig.set(config);
   }
 
   /**
@@ -129,16 +307,41 @@ export class CitizenComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
+    const filters = this.activeFilters();
+
     this.citizenService
-      .getAll({
-        onlyActive: false, // Tüm kayıtları al, frontend'de filtrele
+      .getAllPaged({
+        pageNumber: this.currentPage(),
+        pageSize: this.pageSize(),
+        identityNumber:
+          filters["identityNumber"] || this.searchTerm() || undefined,
+        name: filters["name"] || undefined,
+        lastName: filters["lastName"] || undefined,
+        genderId: filters["genderId"] ?? undefined,
       })
       .subscribe({
         next: (response) => {
-          const data = response.data ?? [];
-          this.allCitizens.set(data);
-          this.citizens.set(data);
+          this.citizens.set(response.data ?? []);
+
+          if (response.pagination) {
+            this.pagination.set(response.pagination);
+          } else if (response.data && response.data.length > 0) {
+            this.pagination.set({
+              currentPage: this.currentPage(),
+              pageSize: this.pageSize(),
+              totalCount: response.data.length,
+              totalPages: 1,
+              hasNextPage: false,
+              hasPreviousPage: false,
+            });
+          }
+
           this.loading.set(false);
+
+          // Reinitialize tooltips after data loads
+          setTimeout(() => {
+            this.metronicInit.initTooltips();
+          }, 100);
         },
         error: (err) => {
           this.error.set(err.message || "Veriler yüklenirken bir hata oluştu");
@@ -156,10 +359,41 @@ export class CitizenComponent implements OnInit {
   }
 
   /**
-   * Aktif filtresi değiştiğinde
+   * Sayfa değiştiğinde
    */
-  onOnlyActiveChange(value: boolean): void {
-    this.onlyActive.set(value);
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages() || page === this.currentPage()) {
+      return;
+    }
+    this.currentPage.set(page);
+    this.loadCitizens();
+  }
+
+  /**
+   * Önceki sayfaya git
+   */
+  previousPage(): void {
+    if (this.hasPreviousPage()) {
+      this.goToPage(this.currentPage() - 1);
+    }
+  }
+
+  /**
+   * Sonraki sayfaya git
+   */
+  nextPage(): void {
+    if (this.hasNextPage()) {
+      this.goToPage(this.currentPage() + 1);
+    }
+  }
+
+  /**
+   * Sayfa boyutu değiştiğinde
+   */
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+    this.loadCitizens();
   }
 
   /**
@@ -198,6 +432,7 @@ export class CitizenComponent implements OnInit {
           this.editForm.genderId.set(citizenData.genderId);
           this.editForm.isActive.set(citizenData.isActive);
           this.editModalOpen.set(true);
+          this.needsSelectInit = true;
         }
       },
       error: (err) => {
@@ -234,24 +469,19 @@ export class CitizenComponent implements OnInit {
 
     this.citizenService.deleteById(citizen.id).subscribe({
       next: () => {
+        this.notificationService.success(
+          "Vatandaş başarıyla silindi",
+          "Silme İşlemi",
+        );
         this.closeDeleteModal();
         this.loadCitizens();
       },
       error: (err) => {
-        this.error.set("Silme işlemi başarısız: " + err.message);
+        // Hata otomatik gösterilir (error-handler interceptor)
         console.error("Delete error:", err);
         this.closeDeleteModal();
       },
     });
-  }
-
-  /**
-   * TC Kimlik No değişikliğinde - Sadece rakam girişine izin ver
-   */
-  onIdentityNumberChange(value: string): void {
-    // Sadece rakamları al
-    const numericValue = value.replace(/[^0-9]/g, "");
-    this.createForm.identityNumber.set(numericValue);
   }
 
   /**
@@ -260,6 +490,7 @@ export class CitizenComponent implements OnInit {
   onAddCitizen(): void {
     this.resetCreateForm();
     this.createModalOpen.set(true);
+    this.needsSelectInit = true;
   }
 
   /**
@@ -280,42 +511,158 @@ export class CitizenComponent implements OnInit {
     this.createForm.birthDate.set("");
     this.createForm.birthPlace.set("");
     this.createForm.genderId.set(null);
+    this.createForm.isActive.set(true);
     this.createFormSubmitting.set(false);
+    this.createFormTouched.identityNumber.set(false);
+    this.createFormTouched.name.set(false);
+    this.createFormTouched.lastName.set(false);
+    this.createFormTouched.birthDate.set(false);
+    this.createFormTouched.genderId.set(false);
   }
 
   /**
    * Form validation
    */
   isCreateFormValid(): boolean {
-    const identityNumber = this.createForm.identityNumber().trim();
-    const name = this.createForm.name().trim();
-    const lastName = this.createForm.lastName().trim();
-    const birthDate = this.createForm.birthDate();
-    const genderId = this.createForm.genderId();
+    return (
+      this.isCreateIdentityNumberValid() &&
+      this.isCreateNameValid() &&
+      this.isCreateLastNameValid() &&
+      this.isCreateBirthDateValid() &&
+      this.isCreateGenderValid()
+    );
+  }
 
-    // Zorunlu alanlar
-    if (
-      identityNumber.length !== 11 ||
-      name.length === 0 ||
-      lastName.length === 0 ||
-      !birthDate ||
-      !genderId
-    ) {
+  /**
+   * Field-level validation methods for create form
+   */
+  isCreateIdentityNumberValid(): boolean {
+    const identityNumber = this.createForm.identityNumber().trim();
+
+    // Boş olamaz
+    if (identityNumber.length === 0) {
       return false;
     }
 
-    // TC Kimlik No kontrol (sayı olmalı)
+    // Tam olarak 11 haneli olmalı
+    if (identityNumber.length !== 11) {
+      return false;
+    }
+
+    // Sadece rakamlardan oluşmalı
     if (!/^\d{11}$/.test(identityNumber)) {
+      return false;
+    }
+
+    // İlk hane 0 olamaz
+    if (identityNumber[0] === "0") {
       return false;
     }
 
     return true;
   }
 
+  isCreateNameValid(): boolean {
+    return this.createForm.name().trim().length > 0;
+  }
+
+  isCreateLastNameValid(): boolean {
+    return this.createForm.lastName().trim().length > 0;
+  }
+
+  isCreateBirthDateValid(): boolean {
+    return this.createForm.birthDate().length > 0;
+  }
+
+  isCreateGenderValid(): boolean {
+    return this.createForm.genderId() !== null;
+  }
+
+  shouldShowCreateIdentityNumberError(): boolean {
+    return (
+      this.createFormTouched.identityNumber() &&
+      !this.isCreateIdentityNumberValid()
+    );
+  }
+
+  shouldShowCreateNameError(): boolean {
+    return this.createFormTouched.name() && !this.isCreateNameValid();
+  }
+
+  shouldShowCreateLastNameError(): boolean {
+    return this.createFormTouched.lastName() && !this.isCreateLastNameValid();
+  }
+
+  shouldShowCreateBirthDateError(): boolean {
+    return this.createFormTouched.birthDate() && !this.isCreateBirthDateValid();
+  }
+
+  shouldShowCreateGenderError(): boolean {
+    return this.createFormTouched.genderId() && !this.isCreateGenderValid();
+  }
+
+  getCreateIdentityNumberError(): string {
+    const identityNumber = this.createForm.identityNumber().trim();
+
+    if (identityNumber.length === 0) {
+      return "TC Kimlik Numarası zorunludur";
+    }
+
+    // Önce harf/özel karakter kontrolü (daha spesifik hata)
+    if (!/^\d+$/.test(identityNumber)) {
+      return "TC Kimlik Numarası sadece rakam içermelidir (harf veya özel karakter kullanılamaz)";
+    }
+
+    if (identityNumber.length !== 11) {
+      return "TC Kimlik Numarası tam olarak 11 haneli olmalıdır";
+    }
+
+    if (identityNumber[0] === "0") {
+      return "TC Kimlik Numarası 0 ile başlayamaz";
+    }
+
+    return "";
+  }
+
+  getCreateNameError(): string {
+    if (!this.isCreateNameValid()) {
+      return "Ad zorunludur";
+    }
+    return "";
+  }
+
+  getCreateLastNameError(): string {
+    if (!this.isCreateLastNameValid()) {
+      return "Soyad zorunludur";
+    }
+    return "";
+  }
+
+  getCreateBirthDateError(): string {
+    if (!this.isCreateBirthDateValid()) {
+      return "Doğum tarihi zorunludur";
+    }
+    return "";
+  }
+
+  getCreateGenderError(): string {
+    if (!this.isCreateGenderValid()) {
+      return "Cinsiyet seçimi zorunludur";
+    }
+    return "";
+  }
+
   /**
    * Yeni citizen oluştur
    */
   submitCreateForm(): void {
+    // Mark all fields as touched to show validation errors
+    this.createFormTouched.identityNumber.set(true);
+    this.createFormTouched.name.set(true);
+    this.createFormTouched.lastName.set(true);
+    this.createFormTouched.birthDate.set(true);
+    this.createFormTouched.genderId.set(true);
+
     if (!this.isCreateFormValid() || this.createFormSubmitting()) {
       return;
     }
@@ -329,15 +676,20 @@ export class CitizenComponent implements OnInit {
       birthDate: this.createForm.birthDate(),
       birthPlace: this.createForm.birthPlace().trim() || undefined,
       genderId: this.createForm.genderId()!,
+      isActive: this.createForm.isActive(),
     };
 
     this.citizenService.create(request).subscribe({
       next: () => {
+        this.notificationService.success(
+          "Vatandaş başarıyla oluşturuldu",
+          "İşlem Başarılı",
+        );
         this.closeCreateModal();
         this.loadCitizens();
       },
       error: (err) => {
-        this.error.set("Kayıt oluşturulurken hata oluştu: " + err.message);
+        // Hata otomatik gösterilir (error-handler interceptor)
         console.error("Create error:", err);
         this.createFormSubmitting.set(false);
       },
@@ -365,6 +717,10 @@ export class CitizenComponent implements OnInit {
     this.editForm.genderId.set(null);
     this.editForm.isActive.set(true);
     this.editFormSubmitting.set(false);
+    this.editFormTouched.name.set(false);
+    this.editFormTouched.lastName.set(false);
+    this.editFormTouched.birthDate.set(false);
+    this.editFormTouched.genderId.set(false);
   }
 
   /**
@@ -387,9 +743,78 @@ export class CitizenComponent implements OnInit {
   }
 
   /**
+   * Field-level validation methods for edit form
+   */
+  isEditNameValid(): boolean {
+    return this.editForm.name().trim().length > 0;
+  }
+
+  isEditLastNameValid(): boolean {
+    return this.editForm.lastName().trim().length > 0;
+  }
+
+  isEditBirthDateValid(): boolean {
+    return this.editForm.birthDate().length > 0;
+  }
+
+  isEditGenderValid(): boolean {
+    return this.editForm.genderId() !== null;
+  }
+
+  shouldShowEditNameError(): boolean {
+    return this.editFormTouched.name() && !this.isEditNameValid();
+  }
+
+  shouldShowEditLastNameError(): boolean {
+    return this.editFormTouched.lastName() && !this.isEditLastNameValid();
+  }
+
+  shouldShowEditBirthDateError(): boolean {
+    return this.editFormTouched.birthDate() && !this.isEditBirthDateValid();
+  }
+
+  shouldShowEditGenderError(): boolean {
+    return this.editFormTouched.genderId() && !this.isEditGenderValid();
+  }
+
+  getEditNameError(): string {
+    if (!this.isEditNameValid()) {
+      return "Ad zorunludur";
+    }
+    return "";
+  }
+
+  getEditLastNameError(): string {
+    if (!this.isEditLastNameValid()) {
+      return "Soyad zorunludur";
+    }
+    return "";
+  }
+
+  getEditBirthDateError(): string {
+    if (!this.isEditBirthDateValid()) {
+      return "Doğum tarihi zorunludur";
+    }
+    return "";
+  }
+
+  getEditGenderError(): string {
+    if (!this.isEditGenderValid()) {
+      return "Cinsiyet seçimi zorunludur";
+    }
+    return "";
+  }
+
+  /**
    * Citizen güncelle
    */
   submitEditForm(): void {
+    // Mark all fields as touched to show validation errors
+    this.editFormTouched.name.set(true);
+    this.editFormTouched.lastName.set(true);
+    this.editFormTouched.birthDate.set(true);
+    this.editFormTouched.genderId.set(true);
+
     if (!this.isEditFormValid() || this.editFormSubmitting()) {
       return;
     }
@@ -408,11 +833,15 @@ export class CitizenComponent implements OnInit {
 
     this.citizenService.update(request.id, request).subscribe({
       next: () => {
+        this.notificationService.success(
+          "Vatandaş başarıyla güncellendi",
+          "Güncelleme Başarılı",
+        );
         this.closeEditModal();
         this.loadCitizens();
       },
       error: (err) => {
-        this.error.set("Güncelleme sırasında hata oluştu: " + err.message);
+        // Hata otomatik gösterilir (error-handler interceptor)
         console.error("Update error:", err);
         this.editFormSubmitting.set(false);
       },
@@ -445,5 +874,80 @@ export class CitizenComponent implements OnInit {
     } catch {
       return dateString;
     }
+  }
+
+  /**
+   * Handle filter apply from offcanvas
+   */
+  onFiltersApplied(filters: FilterValues): void {
+    this.activeFilters.set(filters);
+    this.currentPage.set(1);
+    this.loadCitizens();
+  }
+
+  /**
+   * Handle filter clear from offcanvas
+   */
+  onFiltersCleared(): void {
+    this.activeFilters.set({});
+    this.currentPage.set(1);
+    this.loadCitizens();
+  }
+
+  /**
+   * Clear all filters and search from main page
+   */
+  clearAllFilters(): void {
+    this.activeFilters.set({});
+    this.searchTerm.set("");
+    this.currentPage.set(1);
+    this.loadCitizens();
+  }
+
+  /**
+   * Toggle filter offcanvas open/close
+   */
+  onFilterOffcanvasToggle(isOpen: boolean): void {
+    this.filterOffcanvasOpen.set(isOpen);
+  }
+
+  /**
+   * Open filter offcanvas
+   */
+  openFilterOffcanvas(): void {
+    this.filterOffcanvasOpen.set(true);
+  }
+
+  /**
+   * Get active filter count for badge display
+   */
+  getActiveFilterCount(): number {
+    const filters = this.activeFilters();
+    let count = 0;
+
+    Object.keys(filters).forEach((key) => {
+      const value = filters[key];
+
+      if (value !== null && value !== undefined && value !== "") {
+        if (Array.isArray(value) && value.length > 0) {
+          count++;
+        } else if (!Array.isArray(value)) {
+          count++;
+        }
+      }
+    });
+
+    return count;
+  }
+
+  /**
+   * Cleanup on component destroy
+   */
+  ngOnDestroy(): void {
+    // Destroy KT Select instances for modals
+    this.ktSelectService.destroyInstances(
+      "createModalGenderId",
+      "editModalGenderId",
+    );
   }
 }
