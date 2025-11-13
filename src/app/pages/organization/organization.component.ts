@@ -102,8 +102,9 @@ export class OrganizationComponent
   // Search debounce için
   private searchSubject = new Subject<string>();
 
-  // Flag to track if selects need reinitialization
-  private needsSelectInit = false;
+  // Flags to track if modal selects have been initialized
+  private createModalSelectsInitialized = false;
+  private editModalSelectsInitialized = false;
 
   // Computed values
   totalPages = computed(() => this.pagination()?.totalPages ?? 0);
@@ -218,10 +219,34 @@ export class OrganizationComponent
   }
 
   ngAfterViewChecked(): void {
-    if (this.needsSelectInit) {
-      this.metronicInit.initSelect();
-      this.metronicInit.initTooltips();
-      this.needsSelectInit = false;
+    // Initialize create modal selects only once when modal is open
+    if (this.createModalOpen() && !this.createModalSelectsInitialized) {
+      const createModalTypeSelect =
+        document.getElementById("createModalTypeId");
+      const createModalParentSelect = document.getElementById(
+        "createModalParentId",
+      );
+
+      if (createModalTypeSelect && createModalParentSelect) {
+        setTimeout(() => {
+          this.metronicInit.initSelect();
+          this.createModalSelectsInitialized = true;
+        }, 0);
+      }
+    }
+
+    // Initialize edit modal selects only once when modal is open
+    if (this.editModalOpen() && !this.editModalSelectsInitialized) {
+      const editModalTypeSelect = document.getElementById("editModalTypeId");
+      const editModalParentSelect =
+        document.getElementById("editModalParentId");
+
+      if (editModalTypeSelect && editModalParentSelect) {
+        setTimeout(() => {
+          this.metronicInit.initSelect();
+          this.editModalSelectsInitialized = true;
+        }, 0);
+      }
     }
   }
 
@@ -426,7 +451,11 @@ export class OrganizationComponent
           this.editForm.description.set(orgData.description ?? "");
           this.editForm.isActive.set(orgData.isActive);
           this.editModalOpen.set(true);
-          this.needsSelectInit = true;
+
+          // Update KT Select UI after values are set
+          setTimeout(() => {
+            this.updateEditModalSelectUI();
+          }, 100);
         }
       },
       error: (err) => {
@@ -484,7 +513,6 @@ export class OrganizationComponent
   onAddOrganization(): void {
     this.resetCreateForm();
     this.createModalOpen.set(true);
-    this.needsSelectInit = true;
   }
 
   /**
@@ -492,6 +520,7 @@ export class OrganizationComponent
    */
   closeCreateModal(): void {
     this.createModalOpen.set(false);
+    this.createModalSelectsInitialized = false;
     this.resetCreateForm();
   }
 
@@ -604,6 +633,7 @@ export class OrganizationComponent
    */
   closeEditModal(): void {
     this.editModalOpen.set(false);
+    this.editModalSelectsInitialized = false;
     this.selectedOrganization.set(null);
     this.resetEditForm();
   }
@@ -787,6 +817,34 @@ export class OrganizationComponent
     });
 
     return count;
+  }
+
+  /**
+   * Update KT Select UI for edit modal to reflect current values
+   */
+  private updateEditModalSelectUI(): void {
+    const selectIds = ["editModalTypeId", "editModalParentId"];
+
+    selectIds.forEach((selectId) => {
+      const element = document.getElementById(selectId) as HTMLSelectElement;
+
+      if (element) {
+        // Trigger change event to sync native select with Angular
+        element.dispatchEvent(new Event("change", { bubbles: true }));
+
+        // Update KT Select UI using getInstance API
+        const KTSelect = (window as any).KTSelect;
+        if (KTSelect && typeof KTSelect.getInstance === "function") {
+          const ktSelectInstance = KTSelect.getInstance(element);
+          if (
+            ktSelectInstance &&
+            typeof ktSelectInstance.update === "function"
+          ) {
+            ktSelectInstance.update();
+          }
+        }
+      }
+    });
   }
 
   /**
