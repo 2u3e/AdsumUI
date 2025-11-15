@@ -12,10 +12,12 @@ import { FormsModule } from "@angular/forms";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 import { MenuService } from "../../core/services/menu.service";
+import { PermissionService } from "../../core/services/permission.service";
 import { NotificationService } from "../../core/services/notification.service";
 import { MetronicInitService } from "../../core/services/metronic-init.service";
 import { KTSelectService } from "../../core/services/kt-select.service";
 import { MenuListItem } from "../../core/models/menu.models";
+import { PermissionListItem } from "../../core/models/permission.models";
 import { PaginationMeta } from "../../core/models/api.models";
 import { OffcanvasFilterComponent } from "../../shared/components/offcanvas-filter/offcanvas-filter.component";
 import {
@@ -33,6 +35,7 @@ import { MENU_FILTER_CONFIG } from "./menu-filter.config";
 })
 export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
   private menuService = inject(MenuService);
+  private permissionService = inject(PermissionService);
   private notificationService = inject(NotificationService);
   private metronicInit = inject(MetronicInitService);
   private ktSelectService = inject(KTSelectService);
@@ -40,6 +43,7 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
   // Signals
   menus = signal<MenuListItem[]>([]);
   parentMenus = signal<MenuListItem[]>([]);
+  permissions = signal<PermissionListItem[]>([]);
   pagination = signal<PaginationMeta | null>(null);
   loading = signal<boolean>(false);
   error = signal<string | null>(null);
@@ -59,6 +63,7 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
     description: signal<string>(""),
     isActive: signal<boolean>(true),
     isVisible: signal<boolean>(true),
+    permissionIds: signal<number[]>([]),
   };
   createFormSubmitting = signal<boolean>(false);
   createFormTouched = {
@@ -78,6 +83,7 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
     description: signal<string>(""),
     isActive: signal<boolean>(true),
     isVisible: signal<boolean>(true),
+    permissionIds: signal<number[]>([]),
   };
   editFormSubmitting = signal<boolean>(false);
   editFormTouched = {
@@ -199,6 +205,9 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
     // Üst menü listesini yükle
     this.loadParentMenus();
 
+    // Permission listesini yükle
+    this.loadPermissions();
+
     // İlk yükleme
     this.loadMenus();
 
@@ -251,6 +260,22 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
         console.error("Parent menus loading error:", err);
       },
     });
+  }
+
+  /**
+   * Permission listesini yükler
+   */
+  loadPermissions(): void {
+    this.permissionService
+      .getAllPaged({ pageSize: 1000, isActive: true })
+      .subscribe({
+        next: (response) => {
+          this.permissions.set(response.data ?? []);
+        },
+        error: (err) => {
+          console.error("Permissions loading error:", err);
+        },
+      });
   }
 
   /**
@@ -413,6 +438,7 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
           this.editForm.description.set(menuData.description ?? "");
           this.editForm.isActive.set(menuData.isActive);
           this.editForm.isVisible.set(menuData.isVisible);
+          this.editForm.permissionIds.set(menuData.permissionIds ?? []);
           this.editModalOpen.set(true);
 
           // Update KT Select UI after values are set
@@ -500,9 +526,37 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.createForm.description.set("");
     this.createForm.isActive.set(true);
     this.createForm.isVisible.set(true);
+    this.createForm.permissionIds.set([]);
     this.createFormSubmitting.set(false);
     this.createFormTouched.code.set(false);
     this.createFormTouched.name.set(false);
+  }
+
+  /**
+   * Create formuna permission ekle
+   */
+  addCreatePermission(permissionId: number): void {
+    const currentPermissions = this.createForm.permissionIds();
+    if (!currentPermissions.includes(permissionId)) {
+      this.createForm.permissionIds.set([...currentPermissions, permissionId]);
+    }
+  }
+
+  /**
+   * Create formundan permission kaldır
+   */
+  removeCreatePermission(permissionId: number): void {
+    const currentPermissions = this.createForm.permissionIds();
+    this.createForm.permissionIds.set(
+      currentPermissions.filter((id) => id !== permissionId),
+    );
+  }
+
+  /**
+   * Create formunda permission seçili mi kontrol et
+   */
+  isCreatePermissionSelected(permissionId: number): boolean {
+    return this.createForm.permissionIds().includes(permissionId);
   }
 
   /**
@@ -632,6 +686,10 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
       description: this.createForm.description().trim() || undefined,
       isActive: this.createForm.isActive(),
       isVisible: this.createForm.isVisible(),
+      permissionIds:
+        this.createForm.permissionIds().length > 0
+          ? this.createForm.permissionIds()
+          : undefined,
     };
 
     this.menuService.create(request).subscribe({
@@ -730,9 +788,37 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.editForm.description.set("");
     this.editForm.isActive.set(true);
     this.editForm.isVisible.set(true);
+    this.editForm.permissionIds.set([]);
     this.editFormSubmitting.set(false);
     this.editFormTouched.code.set(false);
     this.editFormTouched.name.set(false);
+  }
+
+  /**
+   * Edit formuna permission ekle
+   */
+  addEditPermission(permissionId: number): void {
+    const currentPermissions = this.editForm.permissionIds();
+    if (!currentPermissions.includes(permissionId)) {
+      this.editForm.permissionIds.set([...currentPermissions, permissionId]);
+    }
+  }
+
+  /**
+   * Edit formundan permission kaldır
+   */
+  removeEditPermission(permissionId: number): void {
+    const currentPermissions = this.editForm.permissionIds();
+    this.editForm.permissionIds.set(
+      currentPermissions.filter((id) => id !== permissionId),
+    );
+  }
+
+  /**
+   * Edit formunda permission seçili mi kontrol et
+   */
+  isEditPermissionSelected(permissionId: number): boolean {
+    return this.editForm.permissionIds().includes(permissionId);
   }
 
   /**
@@ -804,6 +890,10 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
       description: this.editForm.description().trim() || undefined,
       isActive: this.editForm.isActive(),
       isVisible: this.editForm.isVisible(),
+      permissionIds:
+        this.editForm.permissionIds().length > 0
+          ? this.editForm.permissionIds()
+          : undefined,
     };
 
     this.menuService.update(request.id, request).subscribe({

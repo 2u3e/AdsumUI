@@ -33,6 +33,9 @@ export interface MenuResponse {
   /** Açıklama */
   description?: string | null;
 
+  /** İzin ID'leri */
+  permissionIds?: number[] | null;
+
   /** Oluşturulma tarihi */
   createdAt: string;
 

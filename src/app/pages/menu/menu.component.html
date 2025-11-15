@@ -287,6 +287,71 @@
             maxlength="500"
           />
         </div>
+
+        <!-- 6. Satır: Permissions -->
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            İzinler
+          </label>
+
+          <div
+            class="border border-gray-300 dark:border-gray-600 rounded-lg max-h-48 overflow-y-auto bg-white dark:bg-gray-700"
+          >
+            @if (permissions().length > 0) {
+              <div class="divide-y divide-gray-200 dark:divide-gray-600">
+                @for (permission of permissions(); track permission.id) {
+                  <div
+                    class="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer transition-colors"
+                    [class.bg-blue-50]="
+                      isCreatePermissionSelected(permission.id)
+                    "
+                    [ngClass]="{
+                      'dark:bg-blue-900/20': isCreatePermissionSelected(
+                        permission.id
+                      ),
+                    }"
+                    (click)="
+                      isCreatePermissionSelected(permission.id)
+                        ? removeCreatePermission(permission.id)
+                        : addCreatePermission(permission.id)
+                    "
+                  >
+                    <input
+                      type="checkbox"
+                      class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                      [checked]="isCreatePermissionSelected(permission.id)"
+                      [disabled]="createFormSubmitting()"
+                      (click)="$event.stopPropagation()"
+                    />
+                    <div class="flex-1">
+                      <div
+                        class="text-sm font-medium text-gray-900 dark:text-white"
+                      >
+                        {{ permission.name }}
+                      </div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">
+                        {{ permission.description || "" }}
+                      </div>
+                    </div>
+                    <span
+                      class="text-xs font-mono text-gray-500 dark:text-gray-400"
+                    >
+                      {{ permission.code }}
+                    </span>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div
+                class="p-4 text-center text-sm text-gray-500 dark:text-gray-400"
+              >
+                İzin bulunamadı
+              </div>
+            }
+          </div>
+        </div>
       </div>
 
       <!-- Actions -->
@@ -583,6 +648,69 @@
             [disabled]="editFormSubmitting()"
             maxlength="500"
           />
+        </div>
+
+        <!-- 6. Satır: Permissions -->
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            İzinler
+          </label>
+
+          <div
+            class="border border-gray-300 dark:border-gray-600 rounded-lg max-h-48 overflow-y-auto bg-white dark:bg-gray-700"
+          >
+            @if (permissions().length > 0) {
+              <div class="divide-y divide-gray-200 dark:divide-gray-600">
+                @for (permission of permissions(); track permission.id) {
+                  <div
+                    class="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer transition-colors"
+                    [class.bg-blue-50]="isEditPermissionSelected(permission.id)"
+                    [ngClass]="{
+                      'dark:bg-blue-900/20': isEditPermissionSelected(
+                        permission.id
+                      ),
+                    }"
+                    (click)="
+                      isEditPermissionSelected(permission.id)
+                        ? removeEditPermission(permission.id)
+                        : addEditPermission(permission.id)
+                    "
+                  >
+                    <input
+                      type="checkbox"
+                      class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                      [checked]="isEditPermissionSelected(permission.id)"
+                      [disabled]="editFormSubmitting()"
+                      (click)="$event.stopPropagation()"
+                    />
+                    <div class="flex-1">
+                      <div
+                        class="text-sm font-medium text-gray-900 dark:text-white"
+                      >
+                        {{ permission.name }}
+                      </div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">
+                        {{ permission.description || "" }}
+                      </div>
+                    </div>
+                    <span
+                      class="text-xs font-mono text-gray-500 dark:text-gray-400"
+                    >
+                      {{ permission.code }}
+                    </span>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div
+                class="p-4 text-center text-sm text-gray-500 dark:text-gray-400"
+              >
+                İzin bulunamadı
+              </div>
+            }
+          </div>
         </div>
       </div>
 
