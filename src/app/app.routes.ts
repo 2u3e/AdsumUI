@@ -10,6 +10,7 @@ import { ReferenceComponent } from "./pages/reference/reference.component";
 import { LookupComponent } from "./pages/lookup/lookup.component";
 import { CitizenComponent } from "./pages/citizen/citizen.component";
 import { OrganizationComponent } from "./pages/organization/organization.component";
+import { MenuComponent } from "./pages/menu/menu.component";
 
 import { authGuard, loginGuard } from "./core/guards/auth.guard";
 
@@ -47,6 +48,10 @@ export const routes: Routes = [
       {
         path: "organization",
         component: OrganizationComponent,
+      },
+      {
+        path: "menu",
+        component: MenuComponent,
       },
     ],
   },
