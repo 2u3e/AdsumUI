@@ -14,12 +14,14 @@ import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 import { RoleService } from "../../core/services/role.service";
 import { MenuService } from "../../core/services/menu.service";
 import { PermissionService } from "../../core/services/permission.service";
+import { MenuPermissionService } from "../../core/services/menu-permission.service";
 import { NotificationService } from "../../core/services/notification.service";
 import { MetronicInitService } from "../../core/services/metronic-init.service";
 import { KTSelectService } from "../../core/services/kt-select.service";
 import { RoleListItem } from "../../core/models/role.models";
 import { MenuListItem } from "../../core/models/menu.models";
 import { PermissionListItem } from "../../core/models/permission.models";
+import { GetMenuTreeWithPermissionsResponse } from "../../core/models/menu-permission.models";
 import { PaginationMeta } from "../../core/models/api.models";
 import { OffcanvasFilterComponent } from "../../shared/components/offcanvas-filter/offcanvas-filter.component";
 import {
@@ -39,6 +41,7 @@ export class RoleComponent implements OnInit, AfterViewChecked, OnDestroy {
   private roleService = inject(RoleService);
   private menuService = inject(MenuService);
   private permissionService = inject(PermissionService);
+  private menuPermissionService = inject(MenuPermissionService);
   private notificationService = inject(NotificationService);
   private metronicInit = inject(MetronicInitService);
   private ktSelectService = inject(KTSelectService);
@@ -47,6 +50,8 @@ export class RoleComponent implements OnInit, AfterViewChecked, OnDestroy {
   roles = signal<RoleListItem[]>([]);
   menus = signal<MenuListItem[]>([]);
   permissions = signal<PermissionListItem[]>([]);
+  menuTree = signal<GetMenuTreeWithPermissionsResponse[]>([]);
+  expandedMenuIds = signal<Set<string>>(new Set());
   pagination = signal<PaginationMeta | null>(null);
   loading = signal<boolean>(false);
   error = signal<string | null>(null);
@@ -195,6 +200,9 @@ export class RoleComponent implements OnInit, AfterViewChecked, OnDestroy {
     // Permission listesini yükle
     this.loadPermissions();
 
+    // Menu tree yükle
+    this.loadMenuTree();
+
     // İlk yükleme
     this.loadRoles();
 
@@ -260,6 +268,20 @@ export class RoleComponent implements OnInit, AfterViewChecked, OnDestroy {
           console.error("Permissions loading error:", err);
         },
       });
+  }
+
+  /**
+   * Menu tree yükler
+   */
+  loadMenuTree(): void {
+    this.menuPermissionService.getMenuTree().subscribe({
+      next: (response) => {
+        this.menuTree.set(response.data ?? []);
+      },
+      error: (err) => {
+        console.error("Menu tree loading error:", err);
+      },
+    });
   }
 
   /**
@@ -444,6 +466,27 @@ export class RoleComponent implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   /**
+   * Menü expand/collapse toggle
+   */
+  toggleMenuExpand(menuId: string): void {
+    const expanded = this.expandedMenuIds();
+    const newSet = new Set(expanded);
+    if (newSet.has(menuId)) {
+      newSet.delete(menuId);
+    } else {
+      newSet.add(menuId);
+    }
+    this.expandedMenuIds.set(newSet);
+  }
+
+  /**
+   * Menü expanded mi kontrol et
+   */
+  isMenuExpanded(menuId: string): boolean {
+    return this.expandedMenuIds().has(menuId);
+  }
+
+  /**
    * Create modal kapat
    */
   closeCreateModal(): void {
@@ -487,6 +530,86 @@ export class RoleComponent implements OnInit, AfterViewChecked, OnDestroy {
    */
   isCreateMenuPermissionSelected(menuPermissionId: string): boolean {
     return this.createForm.menuPermissionIds().includes(menuPermissionId);
+  }
+
+  /**
+   * Toggle menuPermission seçimini (create form)
+   */
+  toggleCreateMenuPermission(menuPermissionId: string): void {
+    if (this.isCreateMenuPermissionSelected(menuPermissionId)) {
+      this.removeCreateMenuPermission(menuPermissionId);
+    } else {
+      this.addCreateMenuPermission(menuPermissionId);
+    }
+  }
+
+  /**
+   * Bir menü ve tüm alt menülerindeki permission ID'lerini topla
+   */
+  getAllMenuPermissionIds(
+    menuItem: GetMenuTreeWithPermissionsResponse,
+  ): string[] {
+    let ids: string[] = [];
+
+    // Bu menünün kendi permission'ları
+    if (menuItem.permissions) {
+      ids.push(...menuItem.permissions.map((p) => p.menuPermissionId));
+    }
+
+    // Alt menülerin permission'ları (recursive)
+    if (menuItem.children) {
+      for (const child of menuItem.children) {
+        ids.push(...this.getAllMenuPermissionIds(child));
+      }
+    }
+
+    return ids;
+  }
+
+  /**
+   * Menü için checkbox durumunu kontrol et (create form)
+   * Returns: 'checked' | 'indeterminate' | 'unchecked'
+   */
+  getCreateMenuCheckboxState(
+    menuItem: GetMenuTreeWithPermissionsResponse,
+  ): "checked" | "indeterminate" | "unchecked" {
+    const allPermissionIds = this.getAllMenuPermissionIds(menuItem);
+    if (allPermissionIds.length === 0) return "unchecked";
+
+    const selectedIds = this.createForm.menuPermissionIds();
+    const selectedCount = allPermissionIds.filter((id) =>
+      selectedIds.includes(id),
+    ).length;
+
+    if (selectedCount === 0) return "unchecked";
+    if (selectedCount === allPermissionIds.length) return "checked";
+    return "indeterminate";
+  }
+
+  /**
+   * Menü checkbox'ını toggle et (create form)
+   */
+  toggleCreateMenu(menuItem: GetMenuTreeWithPermissionsResponse): void {
+    const allPermissionIds = this.getAllMenuPermissionIds(menuItem);
+    const currentState = this.getCreateMenuCheckboxState(menuItem);
+
+    if (currentState === "checked") {
+      // Tümünü kaldır
+      const current = this.createForm.menuPermissionIds();
+      this.createForm.menuPermissionIds.set(
+        current.filter((id) => !allPermissionIds.includes(id)),
+      );
+    } else {
+      // Tümünü ekle
+      const current = this.createForm.menuPermissionIds();
+      const newIds = [...current];
+      for (const id of allPermissionIds) {
+        if (!newIds.includes(id)) {
+          newIds.push(id);
+        }
+      }
+      this.createForm.menuPermissionIds.set(newIds);
+    }
   }
 
   /**
@@ -604,6 +727,17 @@ export class RoleComponent implements OnInit, AfterViewChecked, OnDestroy {
    */
   isEditMenuPermissionSelected(menuPermissionId: string): boolean {
     return this.editForm.menuPermissionIds().includes(menuPermissionId);
+  }
+
+  /**
+   * Toggle menuPermission seçimini (edit form)
+   */
+  toggleEditMenuPermission(menuPermissionId: string): void {
+    if (this.isEditMenuPermissionSelected(menuPermissionId)) {
+      this.removeEditMenuPermission(menuPermissionId);
+    } else {
+      this.addEditMenuPermission(menuPermissionId);
+    }
   }
 
   /**

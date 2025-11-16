@@ -437,21 +437,222 @@
           }
         </div>
 
-        <!-- Info Note -->
-        <div
-          class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
-        >
-          <div class="flex items-start gap-2">
-            <i
-              class="ki-filled ki-information-2 text-blue-600 dark:text-blue-400 text-lg mt-0.5"
-            ></i>
-            <div class="text-sm text-blue-800 dark:text-blue-200">
-              <p class="font-medium mb-1">Rol Yetkilendirme</p>
-              <p>
-                Rol oluşturduktan sonra, menü yönetimi sayfasından bu role menü
-                ve yetkileri atayabilirsiniz.
-              </p>
-            </div>
+        <!-- Menu Permissions Tree -->
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            Menü ve Yetkiler
+            <span class="kt-badge kt-badge-sm kt-badge-light-primary ml-2">
+              {{ createForm.menuPermissionIds().length }} seçildi
+            </span>
+          </label>
+
+          <div
+            class="border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 p-4 max-h-[500px] overflow-y-auto"
+          >
+            @if (menuTree().length > 0) {
+              <!-- Tree Container -->
+              <div class="space-y-2">
+                @for (menuItem of menuTree(); track menuItem.id) {
+                  <!-- Level 1 Item -->
+                  <div class="border-l-4 border-warning pl-3">
+                    <div class="flex items-center gap-2 py-1">
+                      @if (
+                        (menuItem.children?.length || 0) > 0 ||
+                        (menuItem.permissions?.length || 0) > 0
+                      ) {
+                        <button
+                          type="button"
+                          (click)="toggleMenuExpand(menuItem.id)"
+                          class="w-5 h-5 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-primary"
+                        >
+                          <i
+                            [class]="
+                              isMenuExpanded(menuItem.id)
+                                ? 'ki-solid ki-minus text-xs'
+                                : 'ki-solid ki-plus text-xs'
+                            "
+                          ></i>
+                        </button>
+                      } @else {
+                        <span class="w-5"></span>
+                      }
+
+                      <input
+                        type="checkbox"
+                        class="kt-checkbox"
+                        [checked]="
+                          getCreateMenuCheckboxState(menuItem) === 'checked'
+                        "
+                        [indeterminate]="
+                          getCreateMenuCheckboxState(menuItem) ===
+                          'indeterminate'
+                        "
+                        (change)="toggleCreateMenu(menuItem)"
+                        [disabled]="createFormSubmitting()"
+                      />
+
+                      <i
+                        [class]="menuItem.icon || 'ki-solid ki-folder'"
+                        class="text-warning text-base"
+                      ></i>
+                      <span
+                        class="font-semibold text-sm text-gray-900 dark:text-white"
+                        >{{ menuItem.name }}</span
+                      >
+
+                      @if (
+                        (menuItem.children?.length || 0) > 0 ||
+                        (menuItem.permissions?.length || 0) > 0
+                      ) {
+                        <span
+                          class="kt-badge kt-badge-sm kt-badge-light ml-auto"
+                          >{{ getAllMenuPermissionIds(menuItem).length }}</span
+                        >
+                      }
+                    </div>
+
+                    @if (isMenuExpanded(menuItem.id)) {
+                      <div class="ml-7 mt-1 space-y-1">
+                        <!-- Level 1 Permissions -->
+                        @for (
+                          permission of menuItem.permissions || [];
+                          track permission.menuPermissionId
+                        ) {
+                          <label
+                            class="flex items-center gap-2 py-1 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                          >
+                            <input
+                              type="checkbox"
+                              class="kt-checkbox kt-checkbox-sm"
+                              [checked]="
+                                isCreateMenuPermissionSelected(
+                                  permission.menuPermissionId
+                                )
+                              "
+                              (change)="
+                                toggleCreateMenuPermission(
+                                  permission.menuPermissionId
+                                )
+                              "
+                              [disabled]="createFormSubmitting()"
+                            />
+                            <i
+                              class="ki-solid ki-check text-success text-sm"
+                            ></i>
+                            <span
+                              class="text-sm text-gray-700 dark:text-gray-300"
+                              >{{ permission.permissionName }}</span
+                            >
+                          </label>
+                        }
+
+                        <!-- Level 2 Children -->
+                        @for (
+                          child of menuItem.children || [];
+                          track child.id
+                        ) {
+                          <div
+                            class="border-l-2 border-gray-300 dark:border-gray-600 pl-3 mt-1"
+                          >
+                            <div class="flex items-center gap-2 py-1">
+                              @if (
+                                (child.children?.length || 0) > 0 ||
+                                (child.permissions?.length || 0) > 0
+                              ) {
+                                <button
+                                  type="button"
+                                  (click)="toggleMenuExpand(child.id)"
+                                  class="w-4 h-4 flex items-center justify-center text-gray-500 hover:text-primary"
+                                >
+                                  <i
+                                    [class]="
+                                      isMenuExpanded(child.id)
+                                        ? 'ki-solid ki-minus text-2xs'
+                                        : 'ki-solid ki-plus text-2xs'
+                                    "
+                                  ></i>
+                                </button>
+                              } @else {
+                                <span class="w-4"></span>
+                              }
+
+                              <input
+                                type="checkbox"
+                                class="kt-checkbox kt-checkbox-sm"
+                                [checked]="
+                                  getCreateMenuCheckboxState(child) ===
+                                  'checked'
+                                "
+                                [indeterminate]="
+                                  getCreateMenuCheckboxState(child) ===
+                                  'indeterminate'
+                                "
+                                (change)="toggleCreateMenu(child)"
+                                [disabled]="createFormSubmitting()"
+                              />
+
+                              <i
+                                [class]="child.icon || 'ki-solid ki-file'"
+                                class="text-primary text-sm"
+                              ></i>
+                              <span
+                                class="text-sm font-medium text-gray-800 dark:text-gray-200"
+                                >{{ child.name }}</span
+                              >
+                            </div>
+
+                            @if (isMenuExpanded(child.id)) {
+                              <div class="ml-6 mt-1 space-y-0.5">
+                                <!-- Level 2 Permissions -->
+                                @for (
+                                  permission of child.permissions || [];
+                                  track permission.menuPermissionId
+                                ) {
+                                  <label
+                                    class="flex items-center gap-2 py-0.5 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      class="kt-checkbox kt-checkbox-sm"
+                                      [checked]="
+                                        isCreateMenuPermissionSelected(
+                                          permission.menuPermissionId
+                                        )
+                                      "
+                                      (change)="
+                                        toggleCreateMenuPermission(
+                                          permission.menuPermissionId
+                                        )
+                                      "
+                                      [disabled]="createFormSubmitting()"
+                                    />
+                                    <i
+                                      class="ki-solid ki-check text-success text-xs"
+                                    ></i>
+                                    <span
+                                      class="text-xs text-gray-700 dark:text-gray-300"
+                                      >{{ permission.permissionName }}</span
+                                    >
+                                  </label>
+                                }
+
+                                <!-- Level 3+ would go here with same pattern -->
+                              </div>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="text-center text-gray-500 dark:text-gray-400 py-8">
+                Menü listesi yükleniyor...
+              </div>
+            }
           </div>
         </div>
       </div>
