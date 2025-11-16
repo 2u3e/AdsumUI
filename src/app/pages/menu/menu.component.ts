@@ -689,7 +689,7 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
       permissionIds:
         this.createForm.permissionIds().length > 0
           ? this.createForm.permissionIds()
-          : undefined,
+          : null,
     };
 
     this.menuService.create(request).subscribe({
@@ -893,7 +893,7 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
       permissionIds:
         this.editForm.permissionIds().length > 0
           ? this.editForm.permissionIds()
-          : undefined,
+          : null,
     };
 
     this.menuService.update(request.id, request).subscribe({

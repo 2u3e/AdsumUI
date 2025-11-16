@@ -320,10 +320,9 @@
                   >
                     <input
                       type="checkbox"
-                      class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                      class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 pointer-events-none"
                       [checked]="isCreatePermissionSelected(permission.id)"
                       [disabled]="createFormSubmitting()"
-                      (click)="$event.stopPropagation()"
                     />
                     <div class="flex-1">
                       <div
@@ -680,10 +679,9 @@
                   >
                     <input
                       type="checkbox"
-                      class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                      class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 pointer-events-none"
                       [checked]="isEditPermissionSelected(permission.id)"
                       [disabled]="editFormSubmitting()"
-                      (click)="$event.stopPropagation()"
                     />
                     <div class="flex-1">
                       <div
