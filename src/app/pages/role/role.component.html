@@ -1,0 +1,607 @@
+<!-- Header -->
+<div class="kt-container-fixed">
+  <div
+    class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5"
+  >
+    <div class="flex flex-col justify-center gap-2">
+      <h1
+        class="text-xl font-medium leading-none text-gray-900 dark:text-white"
+      >
+        Rol Yönetimi
+      </h1>
+      <div
+        class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400"
+      >
+        <span>Toplam {{ totalCount() }} rol</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <button class="kt-btn kt-btn-primary" (click)="onAddRole()" type="button">
+        <i class="ki-filled ki-plus text-base"></i>
+        <span>Yeni Rol</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Error Alert -->
+@if (error()) {
+  <div class="kt-container-fixed mb-4">
+    <div
+      class="flex items-center justify-between gap-4 p-4 bg-red-100 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800"
+    >
+      <div class="flex items-center gap-3">
+        <i
+          class="ki-filled ki-information text-red-600 dark:text-red-400 text-xl"
+        ></i>
+        <span class="text-red-800 dark:text-red-200 text-sm font-medium">
+          {{ error() }}
+        </span>
+      </div>
+      <button
+        (click)="closeError()"
+        class="kt-btn kt-btn-ghost kt-btn-icon kt-btn-sm"
+        type="button"
+      >
+        <i class="ki-filled ki-cross text-red-600 dark:text-red-400"></i>
+      </button>
+    </div>
+  </div>
+}
+
+<!-- DataTable Card -->
+<div class="kt-container-fixed">
+  <div class="kt-card kt-card-grid min-w-full">
+    <!-- Card Header - Search and Filters -->
+    <div class="kt-card-header">
+      <div class="flex items-center gap-3 flex-1">
+        <!-- Left side empty or can add quick filters -->
+      </div>
+      <div class="flex items-center gap-3">
+        <button
+          class="kt-btn kt-btn-outline kt-btn-icon"
+          (click)="clearAllFilters()"
+          type="button"
+          title="Filtreleri ve Aramayı Temizle"
+        >
+          <i class="ki-filled ki-arrows-circle"></i>
+        </button>
+        <input
+          type="text"
+          placeholder="Rol ara..."
+          class="kt-input sm:w-64"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="onSearchChange($event)"
+          [ngModelOptions]="{ standalone: true }"
+        />
+        <button
+          class="kt-btn kt-btn-outline relative"
+          (click)="openFilterOffcanvas()"
+          type="button"
+        >
+          <i class="ki-filled ki-filter text-base"></i>
+          <span>Filtreler</span>
+          @if (getActiveFilterCount() > 0) {
+            <span
+              class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white"
+            >
+              {{ getActiveFilterCount() }}
+            </span>
+          }
+        </button>
+      </div>
+    </div>
+
+    <!-- DataTable -->
+    <div class="kt-card-table">
+      <div class="kt-table-wrapper kt-scrollable">
+        <table class="kt-table">
+          <thead>
+            <tr>
+              <th scope="col" class="min-w-[200px]">
+                <span class="kt-table-col">
+                  <span class="kt-table-col-label">Rol Adı</span>
+                </span>
+              </th>
+              <th scope="col" class="min-w-[150px]">
+                <span class="kt-table-col">
+                  <span class="kt-table-col-label">Tip</span>
+                </span>
+              </th>
+              <th scope="col" class="w-24">
+                <span class="kt-table-col">
+                  <span class="kt-table-col-label">İşlemler</span>
+                </span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (loading()) {
+              <tr>
+                <td colspan="3" class="text-center py-12">
+                  <div class="flex flex-col items-center gap-3">
+                    <div
+                      class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary dark:border-primary"
+                    ></div>
+                    <span class="text-sm text-gray-600 dark:text-gray-400"
+                      >Yükleniyor...</span
+                    >
+                  </div>
+                </td>
+              </tr>
+            } @else {
+              @for (role of roles(); track role.id) {
+                <tr>
+                  <td>
+                    <span
+                      class="text-sm font-semibold text-gray-900 dark:text-white"
+                    >
+                      {{ role.name }}
+                    </span>
+                  </td>
+                  <td>
+                    @if (role.isSystem) {
+                      <span class="kt-badge kt-badge-light kt-badge-warning">
+                        Sistem Rolü
+                      </span>
+                    } @else {
+                      <span class="kt-badge kt-badge-light kt-badge-primary">
+                        Özel Rol
+                      </span>
+                    }
+                  </td>
+                  <td>
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        class="kt-btn kt-btn-icon bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 dark:text-blue-400 dark:hover:text-blue-300 border-0 transition-all"
+                        (click)="onEditRole(role)"
+                        title="Düzenle"
+                      >
+                        <i class="ki-filled ki-pencil text-lg"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="kt-btn kt-btn-icon bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 dark:bg-red-900/20 dark:hover:bg-red-900/30 dark:text-red-400 dark:hover:text-red-300 border-0 transition-all"
+                        (click)="deleteRole(role)"
+                        title="Sil"
+                      >
+                        <i class="ki-filled ki-trash text-lg"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6" class="text-center py-8">
+                    <div class="flex flex-col items-center gap-2">
+                      <i
+                        class="ki-filled ki-information-2 text-4xl text-gray-400 dark:text-gray-600"
+                      ></i>
+                      <span class="text-gray-600 dark:text-gray-400">
+                        @if (searchTerm() || getActiveFilterCount() > 0) {
+                          Arama kriterlerine uygun kayıt bulunamadı
+                        } @else {
+                          Henüz rol kaydı bulunmuyor
+                        }
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      @if (roles().length > 0 && !loading()) {
+        <div class="kt-datatable-toolbar">
+          <div class="kt-datatable-length text-gray-700 dark:text-gray-300">
+            Gösterilecek kayıt sayısı
+            <select
+              class="kt-select kt-select-sm w-16"
+              [ngModel]="pageSize()"
+              (ngModelChange)="onPageSizeChange(+$event)"
+              [ngModelOptions]="{ standalone: true }"
+            >
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+              <option [value]="50">50</option>
+              <option [value]="100">100</option>
+            </select>
+          </div>
+
+          <div class="kt-datatable-info text-gray-700 dark:text-gray-300">
+            @if (displayFrom() > 0) {
+              {{ displayFrom() }}-{{ displayTo() }} arası gösteriliyor (Toplam:
+              {{ displayTotal() }})
+            } @else {
+              Kayıt bulunamadı
+            }
+          </div>
+
+          <div>
+            @if (totalPages() > 1) {
+              <ol class="kt-pagination">
+                <li class="kt-pagination-item">
+                  <button
+                    class="kt-btn kt-btn-ghost"
+                    (click)="previousPage()"
+                    [disabled]="!hasPreviousPage() || loading()"
+                    type="button"
+                  >
+                    Önceki
+                  </button>
+                </li>
+                @for (pageNum of pageNumbers(); track pageNum) {
+                  <li class="kt-pagination-item">
+                    <button
+                      class="kt-btn kt-btn-icon kt-btn-ghost"
+                      [class.active]="pageNum === currentPage()"
+                      (click)="goToPage(pageNum)"
+                      [disabled]="loading()"
+                      type="button"
+                    >
+                      {{ pageNum }}
+                    </button>
+                  </li>
+                }
+                <li class="kt-pagination-item">
+                  <button
+                    class="kt-btn kt-btn-ghost"
+                    (click)="nextPage()"
+                    [disabled]="!hasNextPage() || loading()"
+                    type="button"
+                  >
+                    Sonraki
+                  </button>
+                </li>
+              </ol>
+            } @else {
+              <div class="text-sm text-gray-600 dark:text-gray-400">
+                1 sayfa
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Offcanvas Filter -->
+<app-offcanvas-filter
+  [config]="filterDrawerConfig()"
+  [initialValues]="activeFilters()"
+  [isOpen]="filterOffcanvasOpen()"
+  (filtersApplied)="onFiltersApplied($event)"
+  (filtersCleared)="onFiltersCleared()"
+  (toggleOffcanvas)="onFilterOffcanvasToggle($event)"
+></app-offcanvas-filter>
+
+<!-- Delete Confirmation Modal -->
+@if (deleteModalOpen()) {
+  <!-- Modal Backdrop -->
+  <div
+    class="fixed inset-0 bg-black/50 z-[100] transition-opacity"
+    (click)="closeDeleteModal()"
+  ></div>
+
+  <!-- Modal Content -->
+  <div class="fixed inset-0 z-[101] flex items-center justify-center p-4">
+    <div
+      class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full relative"
+    >
+      <!-- Content Section -->
+      <div class="flex flex-col pt-6 pb-6 px-6">
+        <h3
+          class="text-xl font-semibold text-gray-900 dark:text-white mb-4 text-center"
+        >
+          Kaydı Silmek İstediğinize Emin misiniz?
+        </h3>
+
+        @if (selectedRole()) {
+          <div class="w-full space-y-3">
+            <div
+              class="flex items-start gap-2 p-3 bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded-lg"
+            >
+              <svg
+                class="w-5 h-5 text-yellow-600 dark:text-yellow-500 mt-0.5 flex-shrink-0"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <p class="text-sm text-yellow-800 dark:text-yellow-200">
+                Bu işlem geri alınamaz. Rol kalıcı olarak silinecektir.
+              </p>
+            </div>
+
+            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+              <p class="text-sm text-gray-600 dark:text-gray-300 mb-1">
+                Silinecek Rol:
+              </p>
+              <p class="text-base font-semibold text-gray-900 dark:text-white">
+                {{ selectedRole()!.name }}
+              </p>
+              @if (selectedRole()!.isSystem) {
+                <p class="text-sm text-yellow-600 dark:text-yellow-400 mt-1">
+                  <span class="font-medium">⚠️ Sistem Rolü</span>
+                </p>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Actions -->
+      <div class="flex gap-3 p-6 pt-0">
+        <button
+          class="flex-1 px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+          (click)="closeDeleteModal()"
+          type="button"
+        >
+          İptal
+        </button>
+        <button
+          class="flex-1 px-6 py-3 text-sm font-medium text-white bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 rounded-lg transition-colors flex items-center justify-center gap-2"
+          (click)="confirmDelete()"
+          type="button"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            />
+          </svg>
+          Evet, Sil
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Create Modal -->
+@if (createModalOpen()) {
+  <!-- Modal Backdrop -->
+  <div
+    class="fixed inset-0 bg-black/50 z-[100] transition-opacity"
+    (click)="closeCreateModal()"
+  ></div>
+
+  <!-- Modal Content -->
+  <div class="fixed inset-0 z-[101] flex items-center justify-center p-4">
+    <div
+      class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full relative max-h-[90vh] overflow-y-auto"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Header -->
+      <div
+        class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10"
+      >
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+          Yeni Rol Ekle
+        </h3>
+        <button
+          type="button"
+          class="kt-btn kt-btn-ghost kt-btn-icon kt-btn-sm"
+          (click)="closeCreateModal()"
+          [disabled]="createFormSubmitting()"
+        >
+          <i class="ki-filled ki-cross"></i>
+        </button>
+      </div>
+
+      <!-- Form Content -->
+      <div class="p-6 space-y-4">
+        <!-- Rol Adı -->
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            Rol Adı
+            <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            class="kt-input w-full"
+            [class.!border-red-500]="shouldShowCreateNameError()"
+            placeholder="Rol adı"
+            [ngModel]="createForm.name()"
+            (ngModelChange)="createForm.name.set($event)"
+            (blur)="createFormTouched.name.set(true)"
+            [ngModelOptions]="{ standalone: true }"
+            [disabled]="createFormSubmitting()"
+            maxlength="200"
+          />
+          @if (shouldShowCreateNameError()) {
+            <div class="flex items-center gap-1.5 mt-1.5">
+              <i class="ki-filled ki-information text-sm text-red-500"></i>
+              <span class="text-xs text-red-600 dark:text-red-400">
+                {{ getCreateNameError() }}
+              </span>
+            </div>
+          }
+        </div>
+
+        <!-- Info Note -->
+        <div
+          class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
+        >
+          <div class="flex items-start gap-2">
+            <i
+              class="ki-filled ki-information-2 text-blue-600 dark:text-blue-400 text-lg mt-0.5"
+            ></i>
+            <div class="text-sm text-blue-800 dark:text-blue-200">
+              <p class="font-medium mb-1">Rol Yetkilendirme</p>
+              <p>
+                Rol oluşturduktan sonra, menü yönetimi sayfasından bu role menü
+                ve yetkileri atayabilirsiniz.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div
+        class="flex justify-end gap-2.5 px-6 py-4 border-t border-gray-200 dark:border-gray-700 sticky bottom-0 bg-white dark:bg-gray-800"
+      >
+        <button
+          type="button"
+          class="kt-btn kt-btn-outline"
+          (click)="closeCreateModal()"
+          [disabled]="createFormSubmitting()"
+        >
+          İptal
+        </button>
+        <button
+          type="button"
+          class="kt-btn kt-btn-primary"
+          (click)="submitCreateForm()"
+          [disabled]="!isCreateFormValid() || createFormSubmitting()"
+        >
+          @if (createFormSubmitting()) {
+            <span class="flex items-center gap-2">
+              <span
+                class="spinner animate-spin border-2 border-current border-t-transparent rounded-full w-4 h-4"
+              ></span>
+              Kaydediliyor...
+            </span>
+          } @else {
+            Kaydet
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Edit Modal -->
+@if (editModalOpen()) {
+  <!-- Modal Backdrop -->
+  <div
+    class="fixed inset-0 bg-black/50 z-[100] transition-opacity"
+    (click)="closeEditModal()"
+  ></div>
+
+  <!-- Modal Content -->
+  <div class="fixed inset-0 z-[101] flex items-center justify-center p-4">
+    <div
+      class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full relative max-h-[90vh] overflow-y-auto"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Header -->
+      <div
+        class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10"
+      >
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+          Rol Düzenle
+        </h3>
+        <button
+          type="button"
+          class="kt-btn kt-btn-ghost kt-btn-icon kt-btn-sm"
+          (click)="closeEditModal()"
+          [disabled]="editFormSubmitting()"
+        >
+          <i class="ki-filled ki-cross"></i>
+        </button>
+      </div>
+
+      <!-- Form Content -->
+      <div class="p-6 space-y-4">
+        <!-- Rol Adı -->
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            Rol Adı
+            <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            class="kt-input w-full"
+            [class.!border-red-500]="shouldShowEditNameError()"
+            placeholder="Rol adı"
+            [ngModel]="editForm.name()"
+            (ngModelChange)="editForm.name.set($event)"
+            (blur)="editFormTouched.name.set(true)"
+            [ngModelOptions]="{ standalone: true }"
+            [disabled]="editFormSubmitting()"
+            maxlength="200"
+          />
+          @if (shouldShowEditNameError()) {
+            <div class="flex items-center gap-1.5 mt-1.5">
+              <i class="ki-filled ki-information text-sm text-red-500"></i>
+              <span class="text-xs text-red-600 dark:text-red-400">
+                {{ getEditNameError() }}
+              </span>
+            </div>
+          }
+        </div>
+
+        <!-- Info Note -->
+        <div
+          class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
+        >
+          <div class="flex items-start gap-2">
+            <i
+              class="ki-filled ki-information-2 text-blue-600 dark:text-blue-400 text-lg mt-0.5"
+            ></i>
+            <div class="text-sm text-blue-800 dark:text-blue-200">
+              <p class="font-medium mb-1">Rol Yetkilendirme</p>
+              <p>
+                Rol yetkilendirmelerini menü yönetimi sayfasından
+                yapabilirsiniz.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Actions -->
+      <div
+        class="flex justify-end gap-2.5 px-6 py-4 border-t border-gray-200 dark:border-gray-700 sticky bottom-0 bg-white dark:bg-gray-800"
+      >
+        <button
+          type="button"
+          class="kt-btn kt-btn-outline"
+          (click)="closeEditModal()"
+          [disabled]="editFormSubmitting()"
+        >
+          İptal
+        </button>
+        <button
+          type="button"
+          class="kt-btn kt-btn-primary"
+          (click)="submitEditForm()"
+          [disabled]="!isEditFormValid() || editFormSubmitting()"
+        >
+          @if (editFormSubmitting()) {
+            <span class="flex items-center gap-2">
+              <span
+                class="spinner animate-spin border-2 border-current border-t-transparent rounded-full w-4 h-4"
+              ></span>
+              Güncelleniyor...
+            </span>
+          } @else {
+            Güncelle
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

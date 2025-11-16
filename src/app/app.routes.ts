@@ -11,6 +11,7 @@ import { LookupComponent } from "./pages/lookup/lookup.component";
 import { CitizenComponent } from "./pages/citizen/citizen.component";
 import { OrganizationComponent } from "./pages/organization/organization.component";
 import { MenuComponent } from "./pages/menu/menu.component";
+import { RoleComponent } from "./pages/role/role.component";
 
 import { authGuard, loginGuard } from "./core/guards/auth.guard";
 
@@ -52,6 +53,10 @@ export const routes: Routes = [
       {
         path: "menu",
         component: MenuComponent,
+      },
+      {
+        path: "role",
+        component: RoleComponent,
       },
     ],
   },
