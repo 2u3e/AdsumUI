@@ -32,7 +32,7 @@ interface EmployeePositionInfo {
   startDate: string;
 }
 
-// Wizard Step 3: İletişim Bilgileri
+// Wizard Step 3: İletişim Bilgileri (merged with Position)
 interface CommunicationInfo {
   workPhone: string;
   mobilePhone: string;
@@ -40,7 +40,7 @@ interface CommunicationInfo {
   personalEmail: string;
 }
 
-// Wizard Step 4: Eğitim Bilgileri (Multiple)
+// Wizard Step 4: Eğitim Bilgileri (Multiple, Optional)
 interface EducationInfo {
   educationTypeId: string | null;
   universityId: string | null;
@@ -49,14 +49,14 @@ interface EducationInfo {
   endDate: string | null;
 }
 
-// Wizard Step 5: Profil Fotoğrafı
+// Profil Fotoğrafı (Part of Step 1)
 interface ProfileImageInfo {
   imageFile: File | null;
   imagePreview: string | null;
   description: string;
 }
 
-// Wizard Step 6: Kullanıcı Hesabı
+// Kullanıcı Hesabı (Step 1)
 interface UserAccountInfo {
   username: string;
   password: string;
@@ -214,7 +214,7 @@ export class UserManagementComponent {
   // Change password checkbox
   changePassword = signal(false);
 
-  // Wizard current step (1-5)
+  // Wizard current step (1-4)
   currentStep = signal(1);
 
   // Is this a real person (employee) or just a user account?
@@ -251,14 +251,14 @@ export class UserManagementComponent {
       titleId: signal<string | null>(null),
       startDate: signal(""),
     },
-    // Step 4: İletişim Bilgileri (only if real person)
+    // Step 3: İletişim Bilgileri (merged with position, only if real person)
     communication: {
       workPhone: signal(""),
       mobilePhone: signal(""),
       workEmail: signal(""),
       personalEmail: signal(""),
     },
-    // Step 5: Eğitim Bilgileri (only if real person)
+    // Step 4: Eğitim Bilgileri (optional, only if real person)
     education: signal<EducationInfo[]>([
       {
         educationTypeId: null,
@@ -282,16 +282,14 @@ export class UserManagementComponent {
     identityNumber: signal(false),
     name: signal(false),
     lastName: signal(false),
+    workPhone: signal(false),
+    mobilePhone: signal(false),
   };
 
   step3Touched = {
     organizationId: signal(false),
     dutyId: signal(false),
     startDate: signal(false),
-  };
-
-  step4Touched = {
-    workEmail: signal(false),
   };
 
   // Edit form
@@ -409,6 +407,12 @@ export class UserManagementComponent {
     this.createEmployeeForm.citizen.birthPlace.set("");
     this.createEmployeeForm.citizen.genderId.set(null);
 
+    // Step 2: Communication (phones moved to step 2)
+    this.createEmployeeForm.communication.workPhone.set("");
+    this.createEmployeeForm.communication.mobilePhone.set("");
+    this.createEmployeeForm.communication.workEmail.set("");
+    this.createEmployeeForm.communication.personalEmail.set("");
+
     // Step 3: Position
     this.createEmployeeForm.position.registrationNumber.set("");
     this.createEmployeeForm.position.organizationId.set(null);
@@ -416,13 +420,7 @@ export class UserManagementComponent {
     this.createEmployeeForm.position.titleId.set(null);
     this.createEmployeeForm.position.startDate.set("");
 
-    // Step 4: Communication
-    this.createEmployeeForm.communication.workPhone.set("");
-    this.createEmployeeForm.communication.mobilePhone.set("");
-    this.createEmployeeForm.communication.workEmail.set("");
-    this.createEmployeeForm.communication.personalEmail.set("");
-
-    // Step 5: Education (optional)
+    // Step 4: Education (optional)
     this.createEmployeeForm.education.set([
       {
         educationTypeId: null,
@@ -441,15 +439,16 @@ export class UserManagementComponent {
     this.step2Touched.identityNumber.set(false);
     this.step2Touched.name.set(false);
     this.step2Touched.lastName.set(false);
+    this.step2Touched.workPhone.set(false);
+    this.step2Touched.mobilePhone.set(false);
     this.step3Touched.organizationId.set(false);
     this.step3Touched.dutyId.set(false);
     this.step3Touched.startDate.set(false);
-    this.step4Touched.workEmail.set(false);
   }
 
   // Wizard Navigation
   goToNextStep() {
-    const maxStep = this.isRealPerson() ? 5 : 1;
+    const maxStep = this.isRealPerson() ? 4 : 1;
     if (this.currentStep() < maxStep) {
       if (this.isCurrentStepValid()) {
         // If not a real person, skip to last step after step 1
@@ -472,13 +471,13 @@ export class UserManagementComponent {
     if (!this.isRealPerson() && step > 1) {
       return;
     }
-    if (step >= 1 && step <= 5) {
+    if (step >= 1 && step <= 4) {
       this.currentStep.set(step);
     }
   }
 
   getMaxStep(): number {
-    return this.isRealPerson() ? 5 : 1;
+    return this.isRealPerson() ? 4 : 1;
   }
 
   isCurrentStepValid(): boolean {
@@ -490,8 +489,6 @@ export class UserManagementComponent {
       case 3:
         return this.isStep3Valid();
       case 4:
-        return this.isStep4Valid();
-      case 5:
         return true; // Education is optional
       default:
         return false;
@@ -612,7 +609,7 @@ export class UserManagementComponent {
     );
   }
 
-  // Step 3 Validation: Position (organizationId, dutyId, titleId, registrationNumber, startDate)
+  // Step 3 Validation: Position (organizationId, dutyId, startDate)
   isStep3Valid(): boolean {
     return (
       !!this.createEmployeeForm.position.organizationId() &&
@@ -641,29 +638,7 @@ export class UserManagementComponent {
     );
   }
 
-  // Step 4 Validation: Communication (workPhone, mobilePhone, workEmail, personalEmail)
-  isStep4Valid(): boolean {
-    const workEmail = this.createEmployeeForm.communication.workEmail();
-    return !!workEmail && this.isValidEmail(workEmail);
-  }
-
-  shouldShowStep4WorkEmailError(): boolean {
-    return (
-      this.step4Touched.workEmail() &&
-      (!this.createEmployeeForm.communication.workEmail() ||
-        !this.isValidEmail(this.createEmployeeForm.communication.workEmail()))
-    );
-  }
-
-  getStep4WorkEmailError(): string {
-    if (!this.createEmployeeForm.communication.workEmail())
-      return "İş e-postası zorunludur";
-    if (!this.isValidEmail(this.createEmployeeForm.communication.workEmail()))
-      return "Geçerli bir e-posta adresi giriniz";
-    return "";
-  }
-
-  // Step 5 is optional (Education)
+  // Step 4 is optional (Education)
 
   // Education Management (Step 4)
   addEducation() {
@@ -696,7 +671,7 @@ export class UserManagementComponent {
     this.createEmployeeForm.education.set(updated);
   }
 
-  // Profile Image Management (Step 5)
+  // Profile Image Management (Part of Step 1)
   onImageSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
@@ -727,10 +702,10 @@ export class UserManagementComponent {
     // If not a real person, only step 1 is required
     if (!this.isRealPerson()) return true;
 
-    // If real person, validate all employee steps
+    // If real person, validate all required employee steps (1-3)
     return (
-      this.isStep2Valid() && this.isStep3Valid() && this.isStep4Valid()
-      // Step 5 (education) is optional
+      this.isStep2Valid() && this.isStep3Valid()
+      // Step 4 (education) is optional
     );
   }
 
@@ -745,29 +720,27 @@ export class UserManagementComponent {
 
     // Only validate employee fields if this is a real person
     if (this.isRealPerson()) {
-      // Step 2: Citizen Identity
+      // Step 2: Citizen Identity and Phones
       this.step2Touched.identityNumber.set(true);
       this.step2Touched.name.set(true);
       this.step2Touched.lastName.set(true);
-      // Step 3: Position
+      this.step2Touched.workPhone.set(true);
+      this.step2Touched.mobilePhone.set(true);
+      // Step 3: Position only (no email)
       this.step3Touched.organizationId.set(true);
       this.step3Touched.dutyId.set(true);
       this.step3Touched.startDate.set(true);
-      // Step 4: Communication
-      this.step4Touched.workEmail.set(true);
 
-      // Validate all employee steps
+      // Validate all employee steps (1-3, step 4 is optional education)
       if (
         !this.isStep1Valid() ||
         !this.isStep2Valid() ||
-        !this.isStep3Valid() ||
-        !this.isStep4Valid()
+        !this.isStep3Valid()
       ) {
         // Find first invalid step
         if (!this.isStep1Valid()) this.currentStep.set(1);
         else if (!this.isStep2Valid()) this.currentStep.set(2);
         else if (!this.isStep3Valid()) this.currentStep.set(3);
-        else if (!this.isStep4Valid()) this.currentStep.set(4);
         return;
       }
     } else {
