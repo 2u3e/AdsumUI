@@ -674,36 +674,62 @@
         <!-- Step 2: Kişisel ve Birim Bilgileri -->
         @if (currentStep() === 2) {
           <div class="space-y-4 animate-fadeIn">
-            <!-- TC Kimlik Numarası -->
-            <div>
-              <label
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                TC Kimlik Numarası
-                <span class="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                class="kt-input w-full"
-                [class.!border-red-500]="shouldShowStep2IdentityError()"
-                placeholder="12345678901"
-                maxlength="11"
-                [ngModel]="createEmployeeForm.citizen.identityNumber()"
-                (ngModelChange)="
-                  createEmployeeForm.citizen.identityNumber.set($event)
-                "
-                (blur)="step2Touched.identityNumber.set(true)"
-                [ngModelOptions]="{ standalone: true }"
-                [disabled]="createFormSubmitting()"
-              />
-              @if (shouldShowStep2IdentityError()) {
-                <div class="flex items-center gap-1.5 mt-1.5">
-                  <i class="ki-filled ki-information text-sm text-red-500"></i>
-                  <span class="text-xs text-red-600 dark:text-red-400">
-                    {{ getStep2IdentityError() }}
-                  </span>
-                </div>
-              }
+            <!-- TC Kimlik Numarası ve Sicil Numarası -->
+            <div class="grid grid-cols-2 gap-4">
+              <!-- TC Kimlik Numarası -->
+              <div>
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  TC Kimlik Numarası
+                  <span class="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  class="kt-input w-full"
+                  [class.!border-red-500]="shouldShowStep2IdentityError()"
+                  placeholder="12345678901"
+                  maxlength="11"
+                  [ngModel]="createEmployeeForm.citizen.identityNumber()"
+                  (ngModelChange)="
+                    createEmployeeForm.citizen.identityNumber.set($event)
+                  "
+                  (blur)="step2Touched.identityNumber.set(true)"
+                  [ngModelOptions]="{ standalone: true }"
+                  [disabled]="createFormSubmitting()"
+                />
+                @if (shouldShowStep2IdentityError()) {
+                  <div class="flex items-center gap-1.5 mt-1.5">
+                    <i
+                      class="ki-filled ki-information text-sm text-red-500"
+                    ></i>
+                    <span class="text-xs text-red-600 dark:text-red-400">
+                      {{ getStep2IdentityError() }}
+                    </span>
+                  </div>
+                }
+              </div>
+
+              <!-- Sicil Numarası -->
+              <div>
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  Sicil Numarası
+                </label>
+                <input
+                  type="text"
+                  class="kt-input w-full"
+                  placeholder="Sicil numarası"
+                  [ngModel]="createEmployeeForm.position.registrationNumber()"
+                  (ngModelChange)="
+                    createEmployeeForm.position.registrationNumber.set($event)
+                  "
+                  [ngModelOptions]="{ standalone: true }"
+                  [disabled]="createFormSubmitting()"
+                  maxlength="50"
+                />
+              </div>
             </div>
 
             <!-- Doğum Tarihi ve Doğum Yeri -->
@@ -800,27 +826,6 @@
             <div
               class="border-t border-gray-200 dark:border-gray-700 my-4"
             ></div>
-
-            <!-- Sicil Numarası -->
-            <div>
-              <label
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Sicil Numarası
-              </label>
-              <input
-                type="text"
-                class="kt-input w-full"
-                placeholder="Sicil numarası"
-                [ngModel]="createEmployeeForm.position.registrationNumber()"
-                (ngModelChange)="
-                  createEmployeeForm.position.registrationNumber.set($event)
-                "
-                [ngModelOptions]="{ standalone: true }"
-                [disabled]="createFormSubmitting()"
-                maxlength="50"
-              />
-            </div>
 
             <!-- Birim/Organizasyon -->
             <div>
