@@ -35,6 +35,15 @@ export const MENU_FILTER_CONFIG: FilterDrawerConfig = {
       colSpan: 2,
     },
     {
+      key: "menuType",
+      label: "Menü Tipi",
+      type: "select",
+      placeholder: "Menü tipi seçiniz",
+      clearable: true,
+      options: [], // Will be populated dynamically from reference data
+      colSpan: 2,
+    },
+    {
       key: "isActive",
       label: "Durum",
       type: "select",

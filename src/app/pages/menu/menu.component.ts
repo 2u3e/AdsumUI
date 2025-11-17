@@ -13,11 +13,13 @@ import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 import { MenuService } from "../../core/services/menu.service";
 import { PermissionService } from "../../core/services/permission.service";
+import { ReferenceService } from "../../core/services/reference.service";
 import { NotificationService } from "../../core/services/notification.service";
 import { MetronicInitService } from "../../core/services/metronic-init.service";
 import { KTSelectService } from "../../core/services/kt-select.service";
-import { MenuListItem } from "../../core/models/menu.models";
+import { MenuListItem, MenuTypes } from "../../core/models/menu.models";
 import { PermissionListItem } from "../../core/models/permission.models";
+import { ReferenceDataSelectItem } from "../../core/models/reference.models";
 import { PaginationMeta } from "../../core/models/api.models";
 import { OffcanvasFilterComponent } from "../../shared/components/offcanvas-filter/offcanvas-filter.component";
 import {
@@ -36,14 +38,22 @@ import { MENU_FILTER_CONFIG } from "./menu-filter.config";
 export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
   private menuService = inject(MenuService);
   private permissionService = inject(PermissionService);
+  private referenceService = inject(ReferenceService);
   private notificationService = inject(NotificationService);
   private metronicInit = inject(MetronicInitService);
   private ktSelectService = inject(KTSelectService);
+
+  // Enum reference for template
+  MenuTypes = MenuTypes;
+
+  // Reference ID for menu types
+  private readonly MENU_TYPES_REFERENCE_ID = 114;
 
   // Signals
   menus = signal<MenuListItem[]>([]);
   parentMenus = signal<MenuListItem[]>([]);
   permissions = signal<PermissionListItem[]>([]);
+  menuTypes = signal<ReferenceDataSelectItem[]>([]);
   pagination = signal<PaginationMeta | null>(null);
   loading = signal<boolean>(false);
   error = signal<string | null>(null);
@@ -56,6 +66,7 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
   createForm = {
     code: signal<string>(""),
     name: signal<string>(""),
+    typeId: signal<MenuTypes | null>(null),
     route: signal<string>(""),
     icon: signal<string>(""),
     order: signal<number>(0),
@@ -69,6 +80,7 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
   createFormTouched = {
     code: signal<boolean>(false),
     name: signal<boolean>(false),
+    typeId: signal<boolean>(false),
   };
 
   // Edit form
@@ -76,6 +88,7 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
     id: signal<string>(""),
     code: signal<string>(""),
     name: signal<string>(""),
+    typeId: signal<MenuTypes | null>(null),
     route: signal<string>(""),
     icon: signal<string>(""),
     order: signal<number>(0),
@@ -89,6 +102,7 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
   editFormTouched = {
     code: signal<boolean>(false),
     name: signal<boolean>(false),
+    typeId: signal<boolean>(false),
   };
 
   // Search ve pagination parametreleri
@@ -208,6 +222,9 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
     // Permission listesini yükle
     this.loadPermissions();
 
+    // Menü tiplerini yükle
+    this.loadMenuTypes();
+
     // İlk yükleme
     this.loadMenus();
 
@@ -279,13 +296,26 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   /**
+   * Menü tiplerini reference data'dan yükler
+   */
+  loadMenuTypes(): void {
+    this.referenceService
+      .getDataForSelect(this.MENU_TYPES_REFERENCE_ID.toString())
+      .subscribe({
+        next: (response) => {
+          this.menuTypes.set(response.data ?? []);
+          this.updateFilterDrawerOptions();
+        },
+        error: (err) => {
+          console.error("Menu types loading error:", err);
+        },
+      });
+  }
+
+  /**
    * Update filter drawer options with loaded data
    */
   updateFilterDrawerOptions(): void {
-    if (this.parentMenus().length === 0) {
-      return;
-    }
-
     // Deep clone the config to ensure Angular detects changes
     const config: FilterDrawerConfig = {
       ...MENU_FILTER_CONFIG,
@@ -294,10 +324,19 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
 
     // Update parentId options
     const parentField = config.fields.find((f) => f.key === "parentId");
-    if (parentField) {
+    if (parentField && this.parentMenus().length > 0) {
       parentField.options = this.parentMenus().map((menu) => ({
         id: menu.id,
         name: menu.name,
+      }));
+    }
+
+    // Update menuType options
+    const menuTypeField = config.fields.find((f) => f.key === "menuType");
+    if (menuTypeField && this.menuTypes().length > 0) {
+      menuTypeField.options = this.menuTypes().map((type) => ({
+        id: type.id.toString(),
+        name: type.name,
       }));
     }
 
@@ -320,6 +359,7 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
         code: filters["code"] || undefined,
         name: filters["name"] || this.searchTerm() || undefined,
         parentId: filters["parentId"] || undefined,
+        menuType: filters["menuType"] ? Number(filters["menuType"]) : undefined,
         isActive:
           filters["isActive"] === "true"
             ? true
@@ -431,6 +471,7 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
           this.editForm.id.set(menuData.id);
           this.editForm.code.set(menuData.code);
           this.editForm.name.set(menuData.name);
+          this.editForm.typeId.set(menuData.typeId);
           this.editForm.route.set(menuData.route ?? "");
           this.editForm.icon.set(menuData.icon ?? "");
           this.editForm.order.set(menuData.order);
@@ -519,6 +560,9 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
   resetCreateForm(): void {
     this.createForm.code.set("");
     this.createForm.name.set("");
+    // Set first menu type as default if available
+    const firstMenuType = this.menuTypes()[0];
+    this.createForm.typeId.set(firstMenuType ? Number(firstMenuType.id) : null);
     this.createForm.route.set("");
     this.createForm.icon.set("");
     this.createForm.order.set(0);
@@ -530,6 +574,7 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.createFormSubmitting.set(false);
     this.createFormTouched.code.set(false);
     this.createFormTouched.name.set(false);
+    this.createFormTouched.typeId.set(false);
   }
 
   /**
@@ -620,9 +665,10 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
   isCreateFormValid(): boolean {
     const code = this.createForm.code().trim();
     const name = this.createForm.name().trim();
+    const typeId = this.createForm.typeId();
 
     // Zorunlu alanlar
-    if (code.length === 0 || name.length === 0) {
+    if (code.length === 0 || name.length === 0 || !typeId) {
       return false;
     }
 
@@ -640,12 +686,23 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
     return this.createForm.name().trim().length > 0;
   }
 
+  isCreateTypeIdValid(): boolean {
+    return (
+      this.createForm.typeId() !== null &&
+      this.createForm.typeId() !== undefined
+    );
+  }
+
   shouldShowCreateCodeError(): boolean {
     return this.createFormTouched.code() && !this.isCreateCodeValid();
   }
 
   shouldShowCreateNameError(): boolean {
     return this.createFormTouched.name() && !this.isCreateNameValid();
+  }
+
+  shouldShowCreateTypeIdError(): boolean {
+    return this.createFormTouched.typeId() && !this.isCreateTypeIdValid();
   }
 
   getCreateCodeError(): string {
@@ -662,6 +719,13 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
     return "";
   }
 
+  getCreateTypeIdError(): string {
+    if (!this.isCreateTypeIdValid()) {
+      return "Menü tipi zorunludur";
+    }
+    return "";
+  }
+
   /**
    * Yeni menu oluştur
    */
@@ -669,6 +733,7 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
     // Mark all fields as touched to show validation errors
     this.createFormTouched.code.set(true);
     this.createFormTouched.name.set(true);
+    this.createFormTouched.typeId.set(true);
 
     if (!this.isCreateFormValid() || this.createFormSubmitting()) {
       return;
@@ -676,9 +741,16 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
 
     this.createFormSubmitting.set(true);
 
+    const typeId = this.createForm.typeId();
+    if (typeId === null) {
+      this.createFormSubmitting.set(false);
+      return;
+    }
+
     const request = {
       code: this.createForm.code().trim(),
       name: this.createForm.name().trim(),
+      typeId: typeId,
       route: this.createForm.route().trim() || undefined,
       icon: this.createForm.icon().trim() || undefined,
       order: this.createForm.order(),
@@ -781,6 +853,7 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.editForm.id.set("");
     this.editForm.code.set("");
     this.editForm.name.set("");
+    this.editForm.typeId.set(null);
     this.editForm.route.set("");
     this.editForm.icon.set("");
     this.editForm.order.set(0);
@@ -792,6 +865,7 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.editFormSubmitting.set(false);
     this.editFormTouched.code.set(false);
     this.editFormTouched.name.set(false);
+    this.editFormTouched.typeId.set(false);
   }
 
   /**
@@ -828,8 +902,15 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
     const code = this.editForm.code().trim();
     const name = this.editForm.name().trim();
     const id = this.editForm.id();
+    const typeId = this.editForm.typeId();
 
-    return id.length > 0 && code.length > 0 && name.length > 0;
+    return (
+      id.length > 0 &&
+      code.length > 0 &&
+      name.length > 0 &&
+      typeId !== null &&
+      typeId !== undefined
+    );
   }
 
   /**
@@ -843,12 +924,22 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
     return this.editForm.name().trim().length > 0;
   }
 
+  isEditTypeIdValid(): boolean {
+    return (
+      this.editForm.typeId() !== null && this.editForm.typeId() !== undefined
+    );
+  }
+
   shouldShowEditCodeError(): boolean {
     return this.editFormTouched.code() && !this.isEditCodeValid();
   }
 
   shouldShowEditNameError(): boolean {
     return this.editFormTouched.name() && !this.isEditNameValid();
+  }
+
+  shouldShowEditTypeIdError(): boolean {
+    return this.editFormTouched.typeId() && !this.isEditTypeIdValid();
   }
 
   getEditCodeError(): string {
@@ -865,6 +956,13 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
     return "";
   }
 
+  getEditTypeIdError(): string {
+    if (!this.isEditTypeIdValid()) {
+      return "Menü tipi zorunludur";
+    }
+    return "";
+  }
+
   /**
    * Menu güncelle
    */
@@ -872,6 +970,7 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
     // Mark all fields as touched to show validation errors
     this.editFormTouched.code.set(true);
     this.editFormTouched.name.set(true);
+    this.editFormTouched.typeId.set(true);
 
     if (!this.isEditFormValid() || this.editFormSubmitting()) {
       return;
@@ -879,10 +978,17 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
 
     this.editFormSubmitting.set(true);
 
+    const typeId = this.editForm.typeId();
+    if (typeId === null) {
+      this.editFormSubmitting.set(false);
+      return;
+    }
+
     const request = {
       id: this.editForm.id(),
       code: this.editForm.code().trim(),
       name: this.editForm.name().trim(),
+      typeId: typeId,
       route: this.editForm.route().trim() || undefined,
       icon: this.editForm.icon().trim() || undefined,
       order: this.editForm.order(),
@@ -1010,6 +1116,16 @@ export class MenuComponent implements OnInit, AfterViewChecked, OnDestroy {
         }
       }
     });
+  }
+
+  /**
+   * Get menu type name from reference data
+   */
+  getMenuTypeName(typeId: MenuTypes | number): string {
+    const menuType = this.menuTypes().find(
+      (type) => Number(type.id) === Number(typeId),
+    );
+    return menuType ? menuType.name : "Bilinmeyen";
   }
 
   /**

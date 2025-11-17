@@ -51,6 +51,10 @@ export class MenuService extends BaseHttpService {
       params.name = request.name;
     }
 
+    if (request.menuType !== undefined) {
+      params.menuType = request.menuType;
+    }
+
     if (request.isActive !== undefined) {
       params.isActive = request.isActive;
     }
@@ -84,10 +88,7 @@ export class MenuService extends BaseHttpService {
    * PUT /Menus/{id}
    * Returns: GuidResponse (UUID string)
    */
-  update(
-    id: string,
-    request: UpdateMenuRequest,
-  ): Observable<Response<string>> {
+  update(id: string, request: UpdateMenuRequest): Observable<Response<string>> {
     return this.put<string>(`${this.endpoint}/${id}`, request);
   }
 

@@ -151,7 +151,38 @@
           </div>
         </div>
 
-        <!-- 3. Satır: Üst Menü ve Sıra -->
+        <!-- 3. Satır: Menü Tipi -->
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            Menü Tipi
+            <span class="text-red-500">*</span>
+          </label>
+          <select
+            class="kt-select w-full"
+            [class.!border-red-500]="shouldShowCreateTypeIdError()"
+            [ngModel]="createForm.typeId()"
+            (ngModelChange)="createForm.typeId.set(+$event)"
+            (blur)="createFormTouched.typeId.set(true)"
+            [ngModelOptions]="{ standalone: true }"
+            [disabled]="createFormSubmitting()"
+          >
+            @for (menuType of menuTypes(); track menuType.id) {
+              <option [value]="menuType.id">{{ menuType.name }}</option>
+            }
+          </select>
+          @if (shouldShowCreateTypeIdError()) {
+            <div class="flex items-center gap-1.5 mt-1.5">
+              <i class="ki-filled ki-information text-sm text-red-500"></i>
+              <span class="text-xs text-red-600 dark:text-red-400">
+                {{ getCreateTypeIdError() }}
+              </span>
+            </div>
+          }
+        </div>
+
+        <!-- 4. Satır: Üst Menü ve Sıra -->
         <div class="grid grid-cols-2 gap-4">
           <!-- Parent Menu Field -->
           <div>
@@ -512,7 +543,38 @@
           </div>
         </div>
 
-        <!-- 3. Satır: Üst Menü ve Sıra -->
+        <!-- 3. Satır: Menü Tipi -->
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            Menü Tipi
+            <span class="text-red-500">*</span>
+          </label>
+          <select
+            class="kt-select w-full"
+            [class.!border-red-500]="shouldShowEditTypeIdError()"
+            [ngModel]="editForm.typeId()"
+            (ngModelChange)="editForm.typeId.set(+$event)"
+            (blur)="editFormTouched.typeId.set(true)"
+            [ngModelOptions]="{ standalone: true }"
+            [disabled]="editFormSubmitting()"
+          >
+            @for (menuType of menuTypes(); track menuType.id) {
+              <option [value]="menuType.id">{{ menuType.name }}</option>
+            }
+          </select>
+          @if (shouldShowEditTypeIdError()) {
+            <div class="flex items-center gap-1.5 mt-1.5">
+              <i class="ki-filled ki-information text-sm text-red-500"></i>
+              <span class="text-xs text-red-600 dark:text-red-400">
+                {{ getEditTypeIdError() }}
+              </span>
+            </div>
+          }
+        </div>
+
+        <!-- 4. Satır: Üst Menü ve Sıra -->
         <div class="grid grid-cols-2 gap-4">
           <!-- Parent Menu Field -->
           <div>
@@ -941,6 +1003,11 @@
                   <span class="kt-table-col-label">Kod</span>
                 </span>
               </th>
+              <th scope="col" class="min-w-[100px]">
+                <span class="kt-table-col">
+                  <span class="kt-table-col-label">Menü Tipi</span>
+                </span>
+              </th>
               <th scope="col" class="min-w-[150px]">
                 <span class="kt-table-col">
                   <span class="kt-table-col-label">Route</span>
@@ -961,7 +1028,7 @@
           <tbody>
             @if (loading()) {
               <tr>
-                <td colspan="8" class="text-center py-12">
+                <td colspan="9" class="text-center py-12">
                   <div class="flex flex-col items-center gap-3">
                     <div
                       class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary dark:border-primary"
@@ -1033,6 +1100,11 @@
                     </span>
                   </td>
                   <td>
+                    <span class="text-sm text-gray-600 dark:text-gray-300">
+                      {{ getMenuTypeName(menu.typeId) }}
+                    </span>
+                  </td>
+                  <td>
                     @if (menu.route) {
                       <span
                         class="text-sm font-mono text-blue-600 dark:text-blue-400"
@@ -1073,7 +1145,7 @@
                 </tr>
               } @empty {
                 <tr>
-                  <td colspan="8" class="text-center py-8">
+                  <td colspan="9" class="text-center py-8">
                     <div class="flex flex-col items-center gap-2">
                       <i
                         class="ki-filled ki-information-2 text-4xl text-gray-400 dark:text-gray-600"

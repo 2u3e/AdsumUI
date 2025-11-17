@@ -1,4 +1,17 @@
 /**
+ * Menu Types Enum
+ * API'deki MenuTypes enum'ına karşılık gelir
+ */
+export enum MenuTypes {
+  /** Menü */
+  Menu = 1,
+  /** Sayfa */
+  Page = 2,
+  /** Buton */
+  Button = 3,
+}
+
+/**
  * Menu kaydı (detay)
  * GET /Menus/{id} response
  */
@@ -14,6 +27,12 @@ export interface MenuResponse {
 
   /** Menu adı */
   name: string;
+
+  /** Menu tipi ID */
+  typeId: MenuTypes;
+
+  /** Menu tipi adı */
+  typeName?: string | null;
 
   /** Route/URL */
   route?: string | null;
@@ -57,6 +76,12 @@ export interface MenuListItem {
   /** Menu adı */
   name: string;
 
+  /** Menu tipi ID */
+  typeId: MenuTypes;
+
+  /** Menu tipi adı */
+  typeName?: string | null;
+
   /** Üst menu adı */
   parentName?: string | null;
 
@@ -99,6 +124,9 @@ export interface GetMenusRequest {
   /** Menu adı (arama) */
   name?: string;
 
+  /** Menu tipi */
+  menuType?: MenuTypes;
+
   /** Aktif mi? */
   isActive?: boolean;
 
@@ -119,6 +147,9 @@ export interface CreateMenuRequest {
 
   /** Menu adı */
   name: string;
+
+  /** Menu tipi ID */
+  typeId: MenuTypes;
 
   /** Route/URL */
   route?: string | null;
@@ -158,6 +189,9 @@ export interface UpdateMenuRequest {
 
   /** Menu adı */
   name: string;
+
+  /** Menu tipi ID */
+  typeId: MenuTypes;
 
   /** Route/URL */
   route?: string | null;
