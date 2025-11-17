@@ -998,11 +998,6 @@
                   <span class="kt-table-col-label">Menü</span>
                 </span>
               </th>
-              <th scope="col" class="min-w-[120px]">
-                <span class="kt-table-col">
-                  <span class="kt-table-col-label">Kod</span>
-                </span>
-              </th>
               <th scope="col" class="min-w-[100px]">
                 <span class="kt-table-col">
                   <span class="kt-table-col-label">Menü Tipi</span>
@@ -1028,7 +1023,7 @@
           <tbody>
             @if (loading()) {
               <tr>
-                <td colspan="9" class="text-center py-12">
+                <td colspan="8" class="text-center py-12">
                   <div class="flex flex-col items-center gap-3">
                     <div
                       class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary dark:border-primary"
@@ -1091,13 +1086,6 @@
                         }
                       </div>
                     </div>
-                  </td>
-                  <td>
-                    <span
-                      class="text-sm font-mono text-gray-600 dark:text-gray-300"
-                    >
-                      {{ menu.code }}
-                    </span>
                   </td>
                   <td>
                     <span class="text-sm text-gray-600 dark:text-gray-300">
