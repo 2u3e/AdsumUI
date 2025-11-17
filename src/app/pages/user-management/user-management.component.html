@@ -242,8 +242,7 @@
         <div class="flex items-start justify-between gap-2">
           <!-- Step 1: Kullanıcı Hesabı -->
           <div
-            class="flex flex-col items-center gap-2 flex-1"
-            [class.cursor-pointer]="true"
+            class="flex flex-col items-center gap-2 flex-1 cursor-pointer"
             (click)="goToStep(1)"
           >
             <div
@@ -276,25 +275,21 @@
 
           <div class="h-px bg-gray-300 dark:bg-gray-600 flex-1 mt-5"></div>
 
-          <!-- Step 2: Kişisel Bilgiler -->
+          <!-- Step 2: Kişisel ve Birim Bilgileri -->
           <div
-            class="flex flex-col items-center gap-2 flex-1"
-            [class.cursor-pointer]="isRealPerson()"
-            [class.cursor-not-allowed]="!isRealPerson()"
-            [class.opacity-50]="!isRealPerson()"
-            (click)="isRealPerson() ? goToStep(2) : null"
+            class="flex flex-col items-center gap-2 flex-1 cursor-pointer"
+            (click)="goToStep(2)"
           >
             <div
               class="shrink-0 rounded-full size-10 flex items-center justify-center text-sm font-semibold transition-all"
               [ngClass]="{
-                'bg-primary text-primary-foreground':
-                  currentStep() === 2 && isRealPerson(),
-                'bg-green-500 text-white': currentStep() > 2 && isRealPerson(),
+                'bg-primary text-primary-foreground': currentStep() === 2,
+                'bg-green-500 text-white': currentStep() > 2,
                 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400':
-                  currentStep() < 2 || !isRealPerson(),
+                  currentStep() < 2,
               }"
             >
-              @if (currentStep() > 2 && isRealPerson()) {
+              @if (currentStep() > 2) {
                 <i class="ki-filled ki-check text-lg" style="color: white"></i>
               } @else {
                 <span>2</span>
@@ -304,38 +299,32 @@
               <span
                 class="text-sm font-semibold text-center transition-all"
                 [ngClass]="{
-                  'text-primary': currentStep() === 2 && isRealPerson(),
-                  'text-gray-900 dark:text-white':
-                    currentStep() !== 2 && isRealPerson(),
-                  'text-gray-400': !isRealPerson(),
+                  'text-primary': currentStep() === 2,
+                  'text-gray-900 dark:text-white': currentStep() !== 2,
                 }"
               >
-                Kişisel Bilgiler
+                Kişisel ve Birim Bilgileri
               </span>
             </div>
           </div>
 
           <div class="h-px bg-gray-300 dark:bg-gray-600 flex-1 mt-5"></div>
 
-          <!-- Step 3: Birim Bilgileri -->
+          <!-- Step 3: Eğitim -->
           <div
-            class="flex flex-col items-center gap-2 flex-1"
-            [class.cursor-pointer]="isRealPerson()"
-            [class.cursor-not-allowed]="!isRealPerson()"
-            [class.opacity-50]="!isRealPerson()"
-            (click)="isRealPerson() ? goToStep(3) : null"
+            class="flex flex-col items-center gap-2 flex-1 cursor-pointer"
+            (click)="goToStep(3)"
           >
             <div
               class="shrink-0 rounded-full size-10 flex items-center justify-center text-sm font-semibold transition-all"
               [ngClass]="{
-                'bg-primary text-primary-foreground':
-                  currentStep() === 3 && isRealPerson(),
-                'bg-green-500 text-white': currentStep() > 3 && isRealPerson(),
+                'bg-primary text-primary-foreground': currentStep() === 3,
+                'bg-green-500 text-white': currentStep() > 3,
                 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400':
-                  currentStep() < 3 || !isRealPerson(),
+                  currentStep() < 3,
               }"
             >
-              @if (currentStep() > 3 && isRealPerson()) {
+              @if (currentStep() > 3) {
                 <i class="ki-filled ki-check text-lg" style="color: white"></i>
               } @else {
                 <span>3</span>
@@ -345,51 +334,8 @@
               <span
                 class="text-sm font-semibold text-center transition-all"
                 [ngClass]="{
-                  'text-primary': currentStep() === 3 && isRealPerson(),
-                  'text-gray-900 dark:text-white':
-                    currentStep() !== 3 && isRealPerson(),
-                  'text-gray-400': !isRealPerson(),
-                }"
-              >
-                Birim Bilgileri
-              </span>
-            </div>
-          </div>
-
-          <div class="h-px bg-gray-300 dark:bg-gray-600 flex-1 mt-5"></div>
-
-          <!-- Step 4: Eğitim -->
-          <div
-            class="flex flex-col items-center gap-2 flex-1"
-            [class.cursor-pointer]="isRealPerson()"
-            [class.cursor-not-allowed]="!isRealPerson()"
-            [class.opacity-50]="!isRealPerson()"
-            (click)="isRealPerson() ? goToStep(4) : null"
-          >
-            <div
-              class="shrink-0 rounded-full size-10 flex items-center justify-center text-sm font-semibold transition-all"
-              [ngClass]="{
-                'bg-primary text-primary-foreground':
-                  currentStep() === 4 && isRealPerson(),
-                'bg-green-500 text-white': currentStep() > 4 && isRealPerson(),
-                'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400':
-                  currentStep() < 4 || !isRealPerson(),
-              }"
-            >
-              @if (currentStep() > 4 && isRealPerson()) {
-                <i class="ki-filled ki-check text-lg" style="color: white"></i>
-              } @else {
-                <span>4</span>
-              }
-            </div>
-            <div class="flex flex-col items-center">
-              <span
-                class="text-sm font-semibold text-center transition-all"
-                [ngClass]="{
-                  'text-primary': currentStep() === 4 && isRealPerson(),
-                  'text-gray-900 dark:text-white':
-                    currentStep() !== 4 && isRealPerson(),
-                  'text-gray-400': !isRealPerson(),
+                  'text-primary': currentStep() === 3,
+                  'text-gray-900 dark:text-white': currentStep() !== 3,
                 }"
               >
                 Eğitim
@@ -406,10 +352,10 @@
         <!-- Step 1: Kullanıcı Hesabı ve Profil -->
         @if (currentStep() === 1) {
           <div class="animate-fadeIn">
-            <!-- 2-Column Layout: Photo Left (1/3), Form Fields Right (2/3) -->
-            <div class="grid grid-cols-3 gap-6">
-              <!-- LEFT COLUMN: Profile Photo (1/3 width) -->
-              <div class="col-span-1">
+            <!-- 2-Column Layout: Photo Left (narrower), Form Fields Right (wider) -->
+            <div class="flex gap-6">
+              <!-- LEFT COLUMN: Profile Photo (narrower, fixed width) -->
+              <div class="flex-shrink-0" style="width: 180px">
                 <label
                   class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3"
                 >
@@ -463,74 +409,144 @@
                 </div>
               </div>
 
-              <!-- RIGHT COLUMN: Form Fields (2/3 width) -->
-              <div class="col-span-2 space-y-4">
-                <!-- Kullanıcı Adı - Full Width -->
-                <div>
-                  <label
-                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    Kullanıcı Adı
-                    <span class="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    class="kt-input w-full"
-                    [class.!border-red-500]="shouldShowStep1UsernameError()"
-                    placeholder="kullaniciadi"
-                    [ngModel]="createEmployeeForm.userAccount.username()"
-                    (ngModelChange)="
-                      createEmployeeForm.userAccount.username.set($event)
-                    "
-                    (blur)="step1Touched.username.set(true)"
-                    [ngModelOptions]="{ standalone: true }"
-                    [disabled]="createFormSubmitting()"
-                    maxlength="100"
-                  />
-                  @if (shouldShowStep1UsernameError()) {
-                    <div class="flex items-center gap-1.5 mt-1.5">
-                      <i
-                        class="ki-filled ki-information text-sm text-red-500"
-                      ></i>
-                      <span class="text-xs text-red-600 dark:text-red-400">
-                        Kullanıcı adı zorunludur
-                      </span>
-                    </div>
-                  }
+              <!-- RIGHT COLUMN: Form Fields (wider, flex-1) -->
+              <div class="flex-1 space-y-4">
+                <!-- Ad ve Soyad - Grid 2 Columns -->
+                <div class="grid grid-cols-2 gap-4">
+                  <!-- Ad -->
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      Ad
+                      <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      class="kt-input w-full"
+                      [class.!border-red-500]="shouldShowStep1NameError()"
+                      placeholder="Ad"
+                      [ngModel]="createEmployeeForm.name()"
+                      (ngModelChange)="createEmployeeForm.name.set($event)"
+                      (blur)="step1Touched.name.set(true)"
+                      [ngModelOptions]="{ standalone: true }"
+                      [disabled]="createFormSubmitting()"
+                      maxlength="100"
+                    />
+                    @if (shouldShowStep1NameError()) {
+                      <div class="flex items-center gap-1.5 mt-1.5">
+                        <i
+                          class="ki-filled ki-information text-sm text-red-500"
+                        ></i>
+                        <span class="text-xs text-red-600 dark:text-red-400">
+                          Ad alanı zorunludur
+                        </span>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Soyad -->
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      Soyad
+                      <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      class="kt-input w-full"
+                      [class.!border-red-500]="shouldShowStep1LastNameError()"
+                      placeholder="Soyad"
+                      [ngModel]="createEmployeeForm.lastName()"
+                      (ngModelChange)="createEmployeeForm.lastName.set($event)"
+                      (blur)="step1Touched.lastName.set(true)"
+                      [ngModelOptions]="{ standalone: true }"
+                      [disabled]="createFormSubmitting()"
+                      maxlength="100"
+                    />
+                    @if (shouldShowStep1LastNameError()) {
+                      <div class="flex items-center gap-1.5 mt-1.5">
+                        <i
+                          class="ki-filled ki-information text-sm text-red-500"
+                        ></i>
+                        <span class="text-xs text-red-600 dark:text-red-400">
+                          Soyad alanı zorunludur
+                        </span>
+                      </div>
+                    }
+                  </div>
                 </div>
 
-                <!-- E-posta - Full Width -->
-                <div>
-                  <label
-                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    E-posta
-                    <span class="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    class="kt-input w-full"
-                    [class.!border-red-500]="shouldShowStep1EmailError()"
-                    placeholder="ornek@email.com"
-                    [ngModel]="createEmployeeForm.userAccount.email()"
-                    (ngModelChange)="
-                      createEmployeeForm.userAccount.email.set($event)
-                    "
-                    (blur)="step1Touched.email.set(true)"
-                    [ngModelOptions]="{ standalone: true }"
-                    [disabled]="createFormSubmitting()"
-                    maxlength="200"
-                  />
-                  @if (shouldShowStep1EmailError()) {
-                    <div class="flex items-center gap-1.5 mt-1.5">
-                      <i
-                        class="ki-filled ki-information text-sm text-red-500"
-                      ></i>
-                      <span class="text-xs text-red-600 dark:text-red-400">
-                        {{ getStep1EmailError() }}
-                      </span>
-                    </div>
-                  }
+                <!-- Kullanıcı Adı ve E-posta - Grid 2 Columns -->
+                <div class="grid grid-cols-2 gap-4">
+                  <!-- Kullanıcı Adı -->
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      Kullanıcı Adı
+                      <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      class="kt-input w-full"
+                      [class.!border-red-500]="shouldShowStep1UsernameError()"
+                      placeholder="kullaniciadi"
+                      [ngModel]="createEmployeeForm.userAccount.username()"
+                      (ngModelChange)="
+                        createEmployeeForm.userAccount.username.set($event)
+                      "
+                      (blur)="step1Touched.username.set(true)"
+                      [ngModelOptions]="{ standalone: true }"
+                      [disabled]="createFormSubmitting()"
+                      maxlength="100"
+                    />
+                    @if (shouldShowStep1UsernameError()) {
+                      <div class="flex items-center gap-1.5 mt-1.5">
+                        <i
+                          class="ki-filled ki-information text-sm text-red-500"
+                        ></i>
+                        <span class="text-xs text-red-600 dark:text-red-400">
+                          Kullanıcı adı zorunludur
+                        </span>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- E-posta -->
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      E-posta
+                      <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      class="kt-input w-full"
+                      [class.!border-red-500]="shouldShowStep1EmailError()"
+                      placeholder="ornek@email.com"
+                      [ngModel]="createEmployeeForm.userAccount.email()"
+                      (ngModelChange)="
+                        createEmployeeForm.userAccount.email.set($event)
+                      "
+                      (blur)="step1Touched.email.set(true)"
+                      [ngModelOptions]="{ standalone: true }"
+                      [disabled]="createFormSubmitting()"
+                      maxlength="200"
+                    />
+                    @if (shouldShowStep1EmailError()) {
+                      <div class="flex items-center gap-1.5 mt-1.5">
+                        <i
+                          class="ki-filled ki-information text-sm text-red-500"
+                        ></i>
+                        <span class="text-xs text-red-600 dark:text-red-400">
+                          {{ getStep1EmailError() }}
+                        </span>
+                      </div>
+                    }
+                  </div>
                 </div>
 
                 <!-- Şifre ve Şifre Tekrar - Grid 2 Columns -->
@@ -610,81 +626,44 @@
                   </div>
                 </div>
 
-                <!-- Kullanıcı Tipi ve Durum - Grid 2 Columns -->
-                <div
-                  class="grid grid-cols-2 gap-4 border-t border-gray-200 dark:border-gray-700 pt-4"
-                >
-                  <!-- Kullanıcı Tipi -->
-                  <div>
+                <!-- Kullanıcı Durumu -->
+                <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3"
+                  >
+                    Kullanıcı Durumu
+                  </label>
+                  <div class="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      class="kt-switch kt-switch-lg"
+                      id="createEmployeeIsActive"
+                      [ngModel]="createEmployeeForm.userAccount.isActive()"
+                      (ngModelChange)="
+                        createEmployeeForm.userAccount.isActive.set($event)
+                      "
+                      [ngModelOptions]="{ standalone: true }"
+                      [disabled]="createFormSubmitting()"
+                    />
                     <label
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3"
+                      for="createEmployeeIsActive"
+                      class="text-base font-semibold cursor-pointer"
+                      [class.text-success]="
+                        createEmployeeForm.userAccount.isActive()
+                      "
+                      [class.text-gray-500]="
+                        !createEmployeeForm.userAccount.isActive()
+                      "
+                      [class.dark:text-gray-400]="
+                        !createEmployeeForm.userAccount.isActive()
+                      "
                     >
-                      Kullanıcı Tipi
+                      {{
+                        createEmployeeForm.userAccount.isActive()
+                          ? "Aktif"
+                          : "Pasif"
+                      }}
                     </label>
-                    <div class="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        class="kt-checkbox"
-                        id="isRealPerson"
-                        [ngModel]="isRealPerson()"
-                        (ngModelChange)="isRealPerson.set($event)"
-                        [ngModelOptions]="{ standalone: true }"
-                        [disabled]="createFormSubmitting()"
-                      />
-                      <label
-                        for="isRealPerson"
-                        class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
-                      >
-                        Bu kullanıcı gerçek bir kişi mi?
-                      </label>
-                    </div>
-                    <p
-                      class="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-6"
-                    >
-                      Eğer bu seçeneği işaretlerseniz, kimlik, pozisyon ve diğer
-                      kişisel bilgiler girilebilir.
-                    </p>
-                  </div>
-
-                  <!-- Kullanıcı Durumu -->
-                  <div>
-                    <label
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3"
-                    >
-                      Kullanıcı Durumu
-                    </label>
-                    <div class="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        class="kt-switch kt-switch-lg"
-                        id="createEmployeeIsActive"
-                        [ngModel]="createEmployeeForm.userAccount.isActive()"
-                        (ngModelChange)="
-                          createEmployeeForm.userAccount.isActive.set($event)
-                        "
-                        [ngModelOptions]="{ standalone: true }"
-                        [disabled]="createFormSubmitting()"
-                      />
-                      <label
-                        for="createEmployeeIsActive"
-                        class="text-base font-semibold cursor-pointer"
-                        [class.text-success]="
-                          createEmployeeForm.userAccount.isActive()
-                        "
-                        [class.text-gray-500]="
-                          !createEmployeeForm.userAccount.isActive()
-                        "
-                        [class.dark:text-gray-400]="
-                          !createEmployeeForm.userAccount.isActive()
-                        "
-                      >
-                        {{
-                          createEmployeeForm.userAccount.isActive()
-                            ? "Aktif"
-                            : "Pasif"
-                        }}
-                      </label>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -692,8 +671,8 @@
           </div>
         }
 
-        <!-- Step 2: Kişisel Bilgiler -->
-        @if (currentStep() === 2 && isRealPerson()) {
+        <!-- Step 2: Kişisel ve Birim Bilgileri -->
+        @if (currentStep() === 2) {
           <div class="space-y-4 animate-fadeIn">
             <!-- TC Kimlik Numarası -->
             <div>
@@ -725,75 +704,6 @@
                   </span>
                 </div>
               }
-            </div>
-
-            <!-- Ad ve Soyad -->
-            <div class="grid grid-cols-2 gap-4">
-              <!-- Ad -->
-              <div>
-                <label
-                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                >
-                  Ad
-                  <span class="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  class="kt-input w-full"
-                  [class.!border-red-500]="shouldShowStep2NameError()"
-                  placeholder="Ad"
-                  [ngModel]="createEmployeeForm.citizen.name()"
-                  (ngModelChange)="createEmployeeForm.citizen.name.set($event)"
-                  (blur)="step2Touched.name.set(true)"
-                  [ngModelOptions]="{ standalone: true }"
-                  [disabled]="createFormSubmitting()"
-                  maxlength="100"
-                />
-                @if (shouldShowStep2NameError()) {
-                  <div class="flex items-center gap-1.5 mt-1.5">
-                    <i
-                      class="ki-filled ki-information text-sm text-red-500"
-                    ></i>
-                    <span class="text-xs text-red-600 dark:text-red-400">
-                      Ad alanı zorunludur
-                    </span>
-                  </div>
-                }
-              </div>
-
-              <!-- Soyad -->
-              <div>
-                <label
-                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                >
-                  Soyad
-                  <span class="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  class="kt-input w-full"
-                  [class.!border-red-500]="shouldShowStep2LastNameError()"
-                  placeholder="Soyad"
-                  [ngModel]="createEmployeeForm.citizen.lastName()"
-                  (ngModelChange)="
-                    createEmployeeForm.citizen.lastName.set($event)
-                  "
-                  (blur)="step2Touched.lastName.set(true)"
-                  [ngModelOptions]="{ standalone: true }"
-                  [disabled]="createFormSubmitting()"
-                  maxlength="100"
-                />
-                @if (shouldShowStep2LastNameError()) {
-                  <div class="flex items-center gap-1.5 mt-1.5">
-                    <i
-                      class="ki-filled ki-information text-sm text-red-500"
-                    ></i>
-                    <span class="text-xs text-red-600 dark:text-red-400">
-                      Soyad alanı zorunludur
-                    </span>
-                  </div>
-                }
-              </div>
             </div>
 
             <!-- Doğum Tarihi ve Doğum Yeri -->
@@ -837,31 +747,6 @@
                   maxlength="100"
                 />
               </div>
-            </div>
-
-            <!-- Cinsiyet -->
-            <div>
-              <label
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Cinsiyet
-              </label>
-              <select
-                class="kt-select w-full"
-                [ngModel]="createEmployeeForm.citizen.genderId() ?? ''"
-                (ngModelChange)="
-                  createEmployeeForm.citizen.genderId.set(
-                    $event !== '' ? $event : null
-                  )
-                "
-                [ngModelOptions]="{ standalone: true }"
-                [disabled]="createFormSubmitting()"
-              >
-                <option value="">Seçiniz</option>
-                <option value="1">Erkek</option>
-                <option value="2">Kadın</option>
-                <option value="3">Belirtmek İstemiyorum</option>
-              </select>
             </div>
 
             <!-- İş Telefonu ve Cep Telefonu -->
@@ -910,12 +795,12 @@
                 />
               </div>
             </div>
-          </div>
-        }
 
-        <!-- Step 3: Birim Bilgileri -->
-        @if (currentStep() === 3 && isRealPerson()) {
-          <div class="space-y-4 animate-fadeIn">
+            <!-- Divider -->
+            <div
+              class="border-t border-gray-200 dark:border-gray-700 my-4"
+            ></div>
+
             <!-- Sicil Numarası -->
             <div>
               <label
@@ -947,17 +832,14 @@
               </label>
               <select
                 class="kt-select w-full"
-                [class.!border-red-500]="
-                  step3Touched.organizationId() &&
-                  !createEmployeeForm.position.organizationId()
-                "
+                [class.!border-red-500]="shouldShowStep2OrganizationError()"
                 [ngModel]="createEmployeeForm.position.organizationId() ?? ''"
                 (ngModelChange)="
                   createEmployeeForm.position.organizationId.set(
                     $event !== '' ? $event : null
                   )
                 "
-                (blur)="step3Touched.organizationId.set(true)"
+                (blur)="step2Touched.organizationId.set(true)"
                 [ngModelOptions]="{ standalone: true }"
                 [disabled]="createFormSubmitting()"
               >
@@ -968,10 +850,7 @@
                 <option value="4">Satış</option>
                 <option value="5">Pazarlama</option>
               </select>
-              @if (
-                step3Touched.organizationId() &&
-                !createEmployeeForm.position.organizationId()
-              ) {
+              @if (shouldShowStep2OrganizationError()) {
                 <div class="flex items-center gap-1.5 mt-1.5">
                   <i class="ki-filled ki-information text-sm text-red-500"></i>
                   <span class="text-xs text-red-600 dark:text-red-400">
@@ -993,17 +872,14 @@
                 </label>
                 <select
                   class="kt-select w-full"
-                  [class.!border-red-500]="
-                    step3Touched.dutyId() &&
-                    !createEmployeeForm.position.dutyId()
-                  "
+                  [class.!border-red-500]="shouldShowStep2DutyError()"
                   [ngModel]="createEmployeeForm.position.dutyId() ?? ''"
                   (ngModelChange)="
                     createEmployeeForm.position.dutyId.set(
                       $event !== '' ? $event : null
                     )
                   "
-                  (blur)="step3Touched.dutyId.set(true)"
+                  (blur)="step2Touched.dutyId.set(true)"
                   [ngModelOptions]="{ standalone: true }"
                   [disabled]="createFormSubmitting()"
                 >
@@ -1013,9 +889,7 @@
                   <option value="3">Yetkili</option>
                   <option value="4">Memur</option>
                 </select>
-                @if (
-                  step3Touched.dutyId() && !createEmployeeForm.position.dutyId()
-                ) {
+                @if (shouldShowStep2DutyError()) {
                   <div class="flex items-center gap-1.5 mt-1.5">
                     <i
                       class="ki-filled ki-information text-sm text-red-500"
@@ -1063,22 +937,16 @@
                 <input
                   type="date"
                   class="kt-input w-full"
-                  [class.!border-red-500]="
-                    step3Touched.startDate() &&
-                    !createEmployeeForm.position.startDate()
-                  "
+                  [class.!border-red-500]="shouldShowStep2StartDateError()"
                   [ngModel]="createEmployeeForm.position.startDate()"
                   (ngModelChange)="
                     createEmployeeForm.position.startDate.set($event)
                   "
-                  (blur)="step3Touched.startDate.set(true)"
+                  (blur)="step2Touched.startDate.set(true)"
                   [ngModelOptions]="{ standalone: true }"
                   [disabled]="createFormSubmitting()"
                 />
-                @if (
-                  step3Touched.startDate() &&
-                  !createEmployeeForm.position.startDate()
-                ) {
+                @if (shouldShowStep2StartDateError()) {
                   <div class="flex items-center gap-1.5 mt-1.5">
                     <i
                       class="ki-filled ki-information text-sm text-red-500"
@@ -1093,8 +961,8 @@
           </div>
         }
 
-        <!-- Step 4: Eğitim Bilgileri -->
-        @if (currentStep() === 4 && isRealPerson()) {
+        <!-- Step 3: Eğitim Bilgileri -->
+        @if (currentStep() === 3) {
           <div class="space-y-4 animate-fadeIn">
             <div class="flex items-center justify-end mb-4">
               <button
@@ -1305,7 +1173,7 @@
           </button>
 
           <!-- İleri Button - Show when not on last step -->
-          @if (currentStep() === 1 || (currentStep() < 4 && isRealPerson())) {
+          @if (currentStep() < 3) {
             <button
               type="button"
               class="kt-btn kt-btn-primary"
@@ -1317,11 +1185,8 @@
             </button>
           }
 
-          <!-- Kaydet Button - Show on last visible step -->
-          @if (
-            (currentStep() === 1 && !isRealPerson()) ||
-            (currentStep() === 4 && isRealPerson())
-          ) {
+          <!-- Kaydet Button - Show on last step (Step 3) -->
+          @if (currentStep() === 3) {
             <button
               type="button"
               class="kt-btn kt-btn-primary"

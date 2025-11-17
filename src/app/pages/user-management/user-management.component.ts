@@ -20,7 +20,6 @@ interface CitizenInfo {
   lastName: string;
   birthDate: string | null;
   birthPlace: string;
-  genderId: string | null;
 }
 
 // Wizard Step 2: Pozisyon ve Birim Bilgileri
@@ -214,11 +213,8 @@ export class UserManagementComponent {
   // Change password checkbox
   changePassword = signal(false);
 
-  // Wizard current step (1-4)
+  // Wizard current step (1-3)
   currentStep = signal(1);
-
-  // Is this a real person (employee) or just a user account?
-  isRealPerson = signal(true);
 
   // Create Employee Wizard Form
   createEmployeeForm = {
@@ -234,14 +230,14 @@ export class UserManagementComponent {
       imageFile: signal<File | null>(null),
       imagePreview: signal<string | null>(null),
     },
-    // Step 2: Temel Kimlik Bilgileri (only if real person)
+    // Step 1: Name/Surname added to user account
+    name: signal(""),
+    lastName: signal(""),
+    // Step 2: Temel Kimlik Bilgileri + Birim Bilgileri (merged)
     citizen: {
       identityNumber: signal(""),
-      name: signal(""),
-      lastName: signal(""),
       birthDate: signal<string | null>(null),
       birthPlace: signal(""),
-      genderId: signal<string | null>(null),
     },
     // Step 3: Pozisyon ve Birim Bilgileri (only if real person)
     position: {
@@ -276,17 +272,14 @@ export class UserManagementComponent {
     password: signal(false),
     passwordConfirm: signal(false),
     email: signal(false),
+    name: signal(false),
+    lastName: signal(false),
   };
 
   step2Touched = {
     identityNumber: signal(false),
-    name: signal(false),
-    lastName: signal(false),
     workPhone: signal(false),
     mobilePhone: signal(false),
-  };
-
-  step3Touched = {
     organizationId: signal(false),
     dutyId: signal(false),
     startDate: signal(false),
@@ -390,37 +383,32 @@ export class UserManagementComponent {
   }
 
   resetCreateEmployeeForm() {
-    // Step 1: User Account and Profile Image
+    // Step 1: User Account, Name/Surname, and Profile Image
     this.createEmployeeForm.userAccount.username.set("");
     this.createEmployeeForm.userAccount.password.set("");
     this.createEmployeeForm.userAccount.passwordConfirm.set("");
     this.createEmployeeForm.userAccount.email.set("");
     this.createEmployeeForm.userAccount.isActive.set(true);
+    this.createEmployeeForm.name.set("");
+    this.createEmployeeForm.lastName.set("");
     this.createEmployeeForm.profileImage.imageFile.set(null);
     this.createEmployeeForm.profileImage.imagePreview.set(null);
 
-    // Step 2: Citizen Identity
+    // Step 2: Citizen Identity + Position + Communication
     this.createEmployeeForm.citizen.identityNumber.set("");
-    this.createEmployeeForm.citizen.name.set("");
-    this.createEmployeeForm.citizen.lastName.set("");
     this.createEmployeeForm.citizen.birthDate.set(null);
     this.createEmployeeForm.citizen.birthPlace.set("");
-    this.createEmployeeForm.citizen.genderId.set(null);
-
-    // Step 2: Communication (phones moved to step 2)
     this.createEmployeeForm.communication.workPhone.set("");
     this.createEmployeeForm.communication.mobilePhone.set("");
     this.createEmployeeForm.communication.workEmail.set("");
     this.createEmployeeForm.communication.personalEmail.set("");
-
-    // Step 3: Position
     this.createEmployeeForm.position.registrationNumber.set("");
     this.createEmployeeForm.position.organizationId.set(null);
     this.createEmployeeForm.position.dutyId.set(null);
     this.createEmployeeForm.position.titleId.set(null);
     this.createEmployeeForm.position.startDate.set("");
 
-    // Step 4: Education (optional)
+    // Step 3: Education (optional)
     this.createEmployeeForm.education.set([
       {
         educationTypeId: null,
@@ -436,25 +424,20 @@ export class UserManagementComponent {
     this.step1Touched.password.set(false);
     this.step1Touched.passwordConfirm.set(false);
     this.step1Touched.email.set(false);
+    this.step1Touched.name.set(false);
+    this.step1Touched.lastName.set(false);
     this.step2Touched.identityNumber.set(false);
-    this.step2Touched.name.set(false);
-    this.step2Touched.lastName.set(false);
     this.step2Touched.workPhone.set(false);
     this.step2Touched.mobilePhone.set(false);
-    this.step3Touched.organizationId.set(false);
-    this.step3Touched.dutyId.set(false);
-    this.step3Touched.startDate.set(false);
+    this.step2Touched.organizationId.set(false);
+    this.step2Touched.dutyId.set(false);
+    this.step2Touched.startDate.set(false);
   }
 
   // Wizard Navigation
   goToNextStep() {
-    const maxStep = this.isRealPerson() ? 4 : 1;
-    if (this.currentStep() < maxStep) {
+    if (this.currentStep() < 3) {
       if (this.isCurrentStepValid()) {
-        // If not a real person, skip to last step after step 1
-        if (!this.isRealPerson() && this.currentStep() === 1) {
-          return; // Stay on step 1, user will submit from there
-        }
         this.currentStep.set(this.currentStep() + 1);
       }
     }
@@ -467,17 +450,9 @@ export class UserManagementComponent {
   }
 
   goToStep(step: number) {
-    // Don't allow navigating to employee steps if not a real person
-    if (!this.isRealPerson() && step > 1) {
-      return;
-    }
-    if (step >= 1 && step <= 4) {
+    if (step >= 1 && step <= 3) {
       this.currentStep.set(step);
     }
-  }
-
-  getMaxStep(): number {
-    return this.isRealPerson() ? 4 : 1;
   }
 
   isCurrentStepValid(): boolean {
@@ -487,21 +462,21 @@ export class UserManagementComponent {
       case 2:
         return this.isStep2Valid();
       case 3:
-        return this.isStep3Valid();
-      case 4:
         return true; // Education is optional
       default:
         return false;
     }
   }
 
-  // Step 1 Validation: User Account (username, email, password, passwordConfirm)
+  // Step 1 Validation: User Account + Name/Surname (username, email, password, passwordConfirm, name, lastName)
   isStep1Valid(): boolean {
     const username = this.createEmployeeForm.userAccount.username();
     const email = this.createEmployeeForm.userAccount.email();
     const password = this.createEmployeeForm.userAccount.password();
     const passwordConfirm =
       this.createEmployeeForm.userAccount.passwordConfirm();
+    const name = this.createEmployeeForm.name();
+    const lastName = this.createEmployeeForm.lastName();
 
     return (
       !!username &&
@@ -510,7 +485,9 @@ export class UserManagementComponent {
       !!password &&
       password.length >= 6 &&
       !!passwordConfirm &&
-      password === passwordConfirm
+      password === passwordConfirm &&
+      !!name &&
+      !!lastName
     );
   }
 
@@ -573,14 +550,23 @@ export class UserManagementComponent {
     return "";
   }
 
-  // Step 2 Validation: Citizen Identity (identityNumber, name, lastName, birthDate, birthPlace, genderId)
+  shouldShowStep1NameError(): boolean {
+    return this.step1Touched.name() && !this.createEmployeeForm.name();
+  }
+
+  shouldShowStep1LastNameError(): boolean {
+    return this.step1Touched.lastName() && !this.createEmployeeForm.lastName();
+  }
+
+  // Step 2 Validation: Citizen Identity + Position (identityNumber, organizationId, dutyId, startDate)
   isStep2Valid(): boolean {
     const tc = this.createEmployeeForm.citizen.identityNumber();
     return (
       !!tc &&
       tc.length === 11 &&
-      !!this.createEmployeeForm.citizen.name() &&
-      !!this.createEmployeeForm.citizen.lastName()
+      !!this.createEmployeeForm.position.organizationId() &&
+      !!this.createEmployeeForm.position.dutyId() &&
+      !!this.createEmployeeForm.position.startDate()
     );
   }
 
@@ -598,47 +584,27 @@ export class UserManagementComponent {
     return "";
   }
 
-  shouldShowStep2NameError(): boolean {
-    return this.step2Touched.name() && !this.createEmployeeForm.citizen.name();
-  }
-
-  shouldShowStep2LastNameError(): boolean {
+  shouldShowStep2OrganizationError(): boolean {
     return (
-      this.step2Touched.lastName() &&
-      !this.createEmployeeForm.citizen.lastName()
-    );
-  }
-
-  // Step 3 Validation: Position (organizationId, dutyId, startDate)
-  isStep3Valid(): boolean {
-    return (
-      !!this.createEmployeeForm.position.organizationId() &&
-      !!this.createEmployeeForm.position.dutyId() &&
-      !!this.createEmployeeForm.position.startDate()
-    );
-  }
-
-  shouldShowStep3OrganizationError(): boolean {
-    return (
-      this.step3Touched.organizationId() &&
+      this.step2Touched.organizationId() &&
       !this.createEmployeeForm.position.organizationId()
     );
   }
 
-  shouldShowStep3DutyError(): boolean {
+  shouldShowStep2DutyError(): boolean {
     return (
-      this.step3Touched.dutyId() && !this.createEmployeeForm.position.dutyId()
+      this.step2Touched.dutyId() && !this.createEmployeeForm.position.dutyId()
     );
   }
 
-  shouldShowStep3StartDateError(): boolean {
+  shouldShowStep2StartDateError(): boolean {
     return (
-      this.step3Touched.startDate() &&
+      this.step2Touched.startDate() &&
       !this.createEmployeeForm.position.startDate()
     );
   }
 
-  // Step 4 is optional (Education)
+  // Step 3 is optional (Education)
 
   // Education Management (Step 4)
   addEducation() {
@@ -696,59 +662,37 @@ export class UserManagementComponent {
 
   // Check if entire form is valid
   isFormValid(): boolean {
-    // Step 1 is always required
-    if (!this.isStep1Valid()) return false;
-
-    // If not a real person, only step 1 is required
-    if (!this.isRealPerson()) return true;
-
-    // If real person, validate all required employee steps (1-3)
     return (
-      this.isStep2Valid() && this.isStep3Valid()
-      // Step 4 (education) is optional
+      this.isStep1Valid() && this.isStep2Valid()
+      // Step 3 (education) is optional
     );
   }
 
   // Final Submit
   submitCreateEmployeeForm() {
     // Mark all required fields as touched
-    // Step 1: User Account
+    // Step 1: User Account + Name/Surname
     this.step1Touched.username.set(true);
     this.step1Touched.email.set(true);
     this.step1Touched.password.set(true);
     this.step1Touched.passwordConfirm.set(true);
+    this.step1Touched.name.set(true);
+    this.step1Touched.lastName.set(true);
 
-    // Only validate employee fields if this is a real person
-    if (this.isRealPerson()) {
-      // Step 2: Citizen Identity and Phones
-      this.step2Touched.identityNumber.set(true);
-      this.step2Touched.name.set(true);
-      this.step2Touched.lastName.set(true);
-      this.step2Touched.workPhone.set(true);
-      this.step2Touched.mobilePhone.set(true);
-      // Step 3: Position only (no email)
-      this.step3Touched.organizationId.set(true);
-      this.step3Touched.dutyId.set(true);
-      this.step3Touched.startDate.set(true);
+    // Step 2: Citizen Identity + Position + Communication
+    this.step2Touched.identityNumber.set(true);
+    this.step2Touched.workPhone.set(true);
+    this.step2Touched.mobilePhone.set(true);
+    this.step2Touched.organizationId.set(true);
+    this.step2Touched.dutyId.set(true);
+    this.step2Touched.startDate.set(true);
 
-      // Validate all employee steps (1-3, step 4 is optional education)
-      if (
-        !this.isStep1Valid() ||
-        !this.isStep2Valid() ||
-        !this.isStep3Valid()
-      ) {
-        // Find first invalid step
-        if (!this.isStep1Valid()) this.currentStep.set(1);
-        else if (!this.isStep2Valid()) this.currentStep.set(2);
-        else if (!this.isStep3Valid()) this.currentStep.set(3);
-        return;
-      }
-    } else {
-      // Not a real person - only validate step 1
-      if (!this.isStep1Valid()) {
-        this.currentStep.set(1);
-        return;
-      }
+    // Validate all steps (1-2, step 3 is optional education)
+    if (!this.isStep1Valid() || !this.isStep2Valid()) {
+      // Find first invalid step
+      if (!this.isStep1Valid()) this.currentStep.set(1);
+      else if (!this.isStep2Valid()) this.currentStep.set(2);
+      return;
     }
 
     this.createFormSubmitting.set(true);
@@ -761,16 +705,15 @@ export class UserManagementComponent {
           email: this.createEmployeeForm.userAccount.email(),
           isActive: this.createEmployeeForm.userAccount.isActive(),
         },
+        name: this.createEmployeeForm.name(),
+        lastName: this.createEmployeeForm.lastName(),
         profileImage: {
           hasImage: !!this.createEmployeeForm.profileImage.imageFile(),
         },
         citizen: {
           identityNumber: this.createEmployeeForm.citizen.identityNumber(),
-          name: this.createEmployeeForm.citizen.name(),
-          lastName: this.createEmployeeForm.citizen.lastName(),
           birthDate: this.createEmployeeForm.citizen.birthDate(),
           birthPlace: this.createEmployeeForm.citizen.birthPlace(),
-          genderId: this.createEmployeeForm.citizen.genderId(),
         },
         position: {
           registrationNumber:
