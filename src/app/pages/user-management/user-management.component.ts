@@ -348,10 +348,11 @@ export class UserManagementComponent {
 
   toggleUserStatus(user: User) {
     // Toggle status
-    const newStatus = user.status === "active" ? "inactive" : "active";
+    const newStatus: "active" | "inactive" =
+      user.status === "active" ? "inactive" : "active";
 
     // Update user status in the list
-    const updatedUsers = this.users().map((u) =>
+    const updatedUsers: User[] = this.users().map((u) =>
       u.id === user.id ? { ...u, status: newStatus } : u,
     );
     this.users.set(updatedUsers);
