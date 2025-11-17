@@ -39,7 +39,13 @@ interface CommunicationInfo {
   personalEmail: string;
 }
 
-// Wizard Step 4: Eğitim Bilgileri (Multiple, Optional)
+// Wizard Step 4: Rol Atama (Multiple)
+interface RoleAssignment {
+  organizationId: string | null;
+  roleId: string | null;
+}
+
+// Wizard Step 5: Eğitim Bilgileri (Multiple, Optional)
 interface EducationInfo {
   educationTypeId: string | null;
   universityId: string | null;
@@ -213,7 +219,7 @@ export class UserManagementComponent {
   // Change password checkbox
   changePassword = signal(false);
 
-  // Wizard current step (1-3)
+  // Wizard current step (1-4)
   currentStep = signal(1);
 
   // Create Employee Wizard Form
@@ -254,7 +260,14 @@ export class UserManagementComponent {
       workEmail: signal(""),
       personalEmail: signal(""),
     },
-    // Step 4: Eğitim Bilgileri (optional, only if real person)
+    // Step 4: Rol Atama (multiple)
+    roles: signal<RoleAssignment[]>([
+      {
+        organizationId: null,
+        roleId: null,
+      },
+    ]),
+    // Step 5: Eğitim Bilgileri (optional, only if real person)
     education: signal<EducationInfo[]>([
       {
         educationTypeId: null,
@@ -451,7 +464,7 @@ export class UserManagementComponent {
 
   // Wizard Navigation
   goToNextStep() {
-    if (this.currentStep() < 3) {
+    if (this.currentStep() < 4) {
       if (this.isCurrentStepValid()) {
         this.currentStep.set(this.currentStep() + 1);
       }
@@ -465,7 +478,7 @@ export class UserManagementComponent {
   }
 
   goToStep(step: number) {
-    if (step >= 1 && step <= 3) {
+    if (step >= 1 && step <= 4) {
       this.currentStep.set(step);
     }
   }
@@ -477,6 +490,8 @@ export class UserManagementComponent {
       case 2:
         return this.isStep2Valid();
       case 3:
+        return this.isStep3Valid(); // Roles validation
+      case 4:
         return true; // Education is optional
       default:
         return false;
@@ -585,6 +600,12 @@ export class UserManagementComponent {
     );
   }
 
+  // Step 3 Validation: Roles (at least one role with organization and role selected)
+  isStep3Valid(): boolean {
+    const roles = this.createEmployeeForm.roles();
+    return roles.every((role) => !!role.organizationId && !!role.roleId);
+  }
+
   shouldShowStep2IdentityError(): boolean {
     return (
       this.step2Touched.identityNumber() &&
@@ -650,6 +671,34 @@ export class UserManagementComponent {
     const updated = [...currentEducation];
     updated[index] = { ...updated[index], [field]: value };
     this.createEmployeeForm.education.set(updated);
+  }
+
+  // Role Assignment Management (Step 4)
+  addRole() {
+    const currentRoles = this.createEmployeeForm.roles();
+    this.createEmployeeForm.roles.set([
+      ...currentRoles,
+      {
+        organizationId: null,
+        roleId: null,
+      },
+    ]);
+  }
+
+  removeRole(index: number) {
+    const currentRoles = this.createEmployeeForm.roles();
+    if (currentRoles.length > 1) {
+      this.createEmployeeForm.roles.set(
+        currentRoles.filter((_, i) => i !== index),
+      );
+    }
+  }
+
+  updateRole(index: number, field: keyof RoleAssignment, value: any) {
+    const currentRoles = this.createEmployeeForm.roles();
+    const updated = [...currentRoles];
+    updated[index] = { ...updated[index], [field]: value };
+    this.createEmployeeForm.roles.set(updated);
   }
 
   // Profile Image Management (Part of Step 1)

@@ -214,7 +214,7 @@
   <div class="fixed inset-0 z-[101] flex items-center justify-center p-4">
     <div
       class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-6xl w-full relative flex flex-col"
-      style="max-height: calc(90vh + 30px)"
+      style="min-height: 700px; max-height: 700px"
       (click)="$event.stopPropagation()"
     >
       <!-- Header -->
@@ -307,7 +307,7 @@
 
           <div class="h-px bg-gray-300 dark:bg-gray-600 flex-1 mt-5"></div>
 
-          <!-- Step 3: Eğitim -->
+          <!-- Step 3: Rol Atama -->
           <div
             class="flex flex-col items-center gap-2 flex-1 cursor-pointer"
             (click)="goToStep(3)"
@@ -335,6 +335,41 @@
                   'text-gray-900 dark:text-white': currentStep() !== 3,
                 }"
               >
+                Rol Atama
+              </span>
+            </div>
+          </div>
+
+          <div class="h-px bg-gray-300 dark:bg-gray-600 flex-1 mt-5"></div>
+
+          <!-- Step 4: Eğitim -->
+          <div
+            class="flex flex-col items-center gap-2 flex-1 cursor-pointer"
+            (click)="goToStep(4)"
+          >
+            <div
+              class="shrink-0 rounded-full size-10 flex items-center justify-center text-sm font-semibold transition-all"
+              [ngClass]="{
+                'bg-primary text-primary-foreground': currentStep() === 4,
+                'bg-green-500 text-white': currentStep() > 4,
+                'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400':
+                  currentStep() < 4,
+              }"
+            >
+              @if (currentStep() > 4) {
+                <i class="ki-filled ki-check text-lg" style="color: white"></i>
+              } @else {
+                <span>4</span>
+              }
+            </div>
+            <div class="flex flex-col items-center">
+              <span
+                class="text-sm font-semibold text-center transition-all"
+                [ngClass]="{
+                  'text-primary': currentStep() === 4,
+                  'text-gray-900 dark:text-white': currentStep() !== 4,
+                }"
+              >
                 Eğitim
               </span>
             </div>
@@ -343,9 +378,7 @@
       </div>
 
       <!-- Form Content - Scrollable with smooth transitions -->
-      <div
-        class="flex-1 overflow-y-auto px-6 py-6 h-[550px] transition-all duration-300 ease-in-out"
-      >
+      <div class="flex-1 overflow-y-auto px-6 py-6">
         <!-- Step 1: Kullanıcı Hesabı ve Profil -->
         @if (currentStep() === 1) {
           <div class="animate-fadeIn">
@@ -922,8 +955,133 @@
           </div>
         }
 
-        <!-- Step 3: Eğitim Bilgileri -->
+        <!-- Step 3: Rol Atama -->
         @if (currentStep() === 3) {
+          <div class="animate-fadeIn flex flex-col h-full">
+            <!-- Table Header & Add Button -->
+            <div class="flex items-center justify-between mb-4">
+              <h4 class="text-sm font-semibold text-gray-900 dark:text-white">
+                Rol Atamaları
+              </h4>
+              <button
+                type="button"
+                class="kt-btn kt-btn-primary kt-btn-sm"
+                (click)="addRole()"
+                [disabled]="createFormSubmitting()"
+              >
+                <i class="ki-filled ki-plus text-sm"></i>
+                Yeni Ekle
+              </button>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-y-auto max-h-[400px]">
+              <table
+                class="table-auto w-full border border-gray-200 dark:border-gray-700"
+              >
+                <thead class="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10">
+                  <tr>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700"
+                    >
+                      #
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700"
+                    >
+                      Birim
+                      <span class="text-red-500">*</span>
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700"
+                    >
+                      Rol
+                      <span class="text-red-500">*</span>
+                    </th>
+                    <th
+                      class="px-4 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700 w-20"
+                    >
+                      İşlem
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white dark:bg-gray-900">
+                  @for (role of createEmployeeForm.roles(); track $index) {
+                    <tr
+                      class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                    >
+                      <td
+                        class="px-4 py-3 text-sm text-gray-900 dark:text-white"
+                      >
+                        {{ $index + 1 }}
+                      </td>
+                      <td class="px-4 py-3">
+                        <select
+                          class="kt-select w-full"
+                          [ngModel]="role.organizationId ?? ''"
+                          (ngModelChange)="
+                            updateRole($index, 'organizationId', $event || null)
+                          "
+                          [ngModelOptions]="{ standalone: true }"
+                          [disabled]="createFormSubmitting()"
+                        >
+                          <option value="">Seçiniz</option>
+                          <option value="1">
+                            Bilgi İşlem Dairesi Başkanlığı
+                          </option>
+                          <option value="2">Saha Ekibi 1</option>
+                          <option value="3">Saha Ekibi 2</option>
+                          <option value="4">İnsan Kaynakları</option>
+                        </select>
+                      </td>
+                      <td class="px-4 py-3">
+                        <select
+                          class="kt-select w-full"
+                          [ngModel]="role.roleId ?? ''"
+                          (ngModelChange)="
+                            updateRole($index, 'roleId', $event || null)
+                          "
+                          [ngModelOptions]="{ standalone: true }"
+                          [disabled]="createFormSubmitting()"
+                        >
+                          <option value="">Seçiniz</option>
+                          <option value="1">Admin</option>
+                          <option value="2">Saha Şefi</option>
+                          <option value="3">Saha Görevlisi</option>
+                          <option value="4">İK Uzmanı</option>
+                        </select>
+                      </td>
+                      <td class="px-4 py-3 text-center">
+                        @if (createEmployeeForm.roles().length > 1) {
+                          <button
+                            type="button"
+                            class="kt-btn kt-btn-sm kt-btn-icon kt-btn-light-danger"
+                            (click)="removeRole($index)"
+                            [disabled]="createFormSubmitting()"
+                            title="Sil"
+                          >
+                            <i class="ki-filled ki-trash text-sm"></i>
+                          </button>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+
+              @if (createEmployeeForm.roles().length === 0) {
+                <div
+                  class="text-center py-8 text-gray-500 dark:text-gray-400 text-sm"
+                >
+                  Henüz rol ataması eklenmedi
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Step 4: Eğitim Bilgileri -->
+        @if (currentStep() === 4) {
           <div class="space-y-4 animate-fadeIn max-h-[450px] overflow-y-auto">
             @for (education of createEmployeeForm.education(); track $index) {
               <div
@@ -1135,7 +1293,7 @@
           </button>
 
           <!-- İleri Button - Show when not on last step -->
-          @if (currentStep() < 3) {
+          @if (currentStep() < 4) {
             <button
               type="button"
               class="kt-btn kt-btn-primary"
@@ -1147,8 +1305,8 @@
             </button>
           }
 
-          <!-- Kaydet Button - Show on last step (Step 3) -->
-          @if (currentStep() === 3) {
+          <!-- Kaydet Button - Show on last step (Step 4) -->
+          @if (currentStep() === 4) {
             <button
               type="button"
               class="kt-btn kt-btn-primary"
