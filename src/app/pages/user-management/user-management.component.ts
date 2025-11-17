@@ -346,6 +346,20 @@ export class UserManagementComponent {
     this.deleteModalOpen.set(true);
   }
 
+  toggleUserStatus(user: User) {
+    // Toggle status
+    const newStatus = user.status === "active" ? "inactive" : "active";
+
+    // Update user status in the list
+    const updatedUsers = this.users().map((u) =>
+      u.id === user.id ? { ...u, status: newStatus } : u,
+    );
+    this.users.set(updatedUsers);
+
+    // Here you would typically make an API call to update the status
+    console.log(`User ${user.name} status changed to: ${newStatus}`);
+  }
+
   changePage(page: number) {
     this.currentPage.set(page);
     console.log("Sayfa değişti:", page);

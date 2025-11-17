@@ -95,17 +95,13 @@
             @for (user of users(); track user.id) {
               <tr>
                 <td>
-                  @if (user.status === "active") {
-                    <span class="kt-badge kt-badge-light kt-badge-success">
-                      <span class="kt-badge-dot"></span>
-                      Aktif
-                    </span>
-                  } @else {
-                    <span class="kt-badge kt-badge-light kt-badge-destructive">
-                      <span class="kt-badge-dot"></span>
-                      Pasif
-                    </span>
-                  }
+                  <input
+                    type="checkbox"
+                    class="kt-switch"
+                    [id]="'userStatus' + user.id"
+                    [checked]="user.status === 'active'"
+                    (change)="toggleUserStatus(user)"
+                  />
                 </td>
                 <td>
                   <div class="flex flex-col">
@@ -405,49 +401,6 @@
                         Kaldır
                       </button>
                     }
-                  </div>
-
-                  <!-- Kullanıcı Durumu (under photo) -->
-                  <div
-                    class="pt-3 border-t border-gray-200 dark:border-gray-700"
-                  >
-                    <label
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                    >
-                      Durum
-                    </label>
-                    <div class="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        class="kt-switch"
-                        id="createEmployeeIsActive"
-                        [ngModel]="createEmployeeForm.userAccount.isActive()"
-                        (ngModelChange)="
-                          createEmployeeForm.userAccount.isActive.set($event)
-                        "
-                        [ngModelOptions]="{ standalone: true }"
-                        [disabled]="createFormSubmitting()"
-                      />
-                      <label
-                        for="createEmployeeIsActive"
-                        class="text-sm font-medium cursor-pointer"
-                        [class.text-success]="
-                          createEmployeeForm.userAccount.isActive()
-                        "
-                        [class.text-gray-500]="
-                          !createEmployeeForm.userAccount.isActive()
-                        "
-                        [class.dark:text-gray-400]="
-                          !createEmployeeForm.userAccount.isActive()
-                        "
-                      >
-                        {{
-                          createEmployeeForm.userAccount.isActive()
-                            ? "Aktif"
-                            : "Pasif"
-                        }}
-                      </label>
-                    </div>
                   </div>
                 </div>
               </div>
