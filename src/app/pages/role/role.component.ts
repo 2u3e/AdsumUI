@@ -277,11 +277,45 @@ export class RoleComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.menuPermissionService.getMenuTree().subscribe({
       next: (response) => {
         this.menuTree.set(response.data ?? []);
+        // İlk açıldığında menülere kadar aç, permissionlar kapalı kalsın
+        this.expandMenuTreeToMenuLevel(response.data ?? []);
       },
       error: (err) => {
         console.error("Menu tree loading error:", err);
       },
     });
+  }
+
+  /**
+   * Menü ağacını menü seviyesine kadar aç (permissionlar kapalı)
+   */
+  private expandMenuTreeToMenuLevel(
+    menuItems: GetMenuTreeWithPermissionsResponse[],
+  ): void {
+    const expanded = new Set<string>();
+
+    // Level 1 (Folders) - açık olsun
+    menuItems.forEach((item) => {
+      if (
+        (item.children?.length || 0) > 0 ||
+        (item.permissions?.length || 0) > 0
+      ) {
+        expanded.add(item.id);
+      }
+
+      // Level 2 (Menus) - açık olsun ama permissionlar kapalı
+      item.children?.forEach((child) => {
+        // Menüleri aç ama içinde permission varsa onları kapalı tut
+        // Burada sadece folder olup olmadığını kontrol ediyoruz
+        // Eğer child'ın da child'ı varsa (yani alt menü varsa) aç
+        if ((child.children?.length || 0) > 0) {
+          expanded.add(child.id);
+        }
+        // Eğer sadece permission varsa kapalı bırak
+      });
+    });
+
+    this.expandedMenuIds.set(expanded);
   }
 
   /**
@@ -737,6 +771,52 @@ export class RoleComponent implements OnInit, AfterViewChecked, OnDestroy {
       this.removeEditMenuPermission(menuPermissionId);
     } else {
       this.addEditMenuPermission(menuPermissionId);
+    }
+  }
+
+  /**
+   * Menü için checkbox durumunu kontrol et (edit form)
+   * Returns: 'checked' | 'indeterminate' | 'unchecked'
+   */
+  getEditMenuCheckboxState(
+    menuItem: GetMenuTreeWithPermissionsResponse,
+  ): "checked" | "indeterminate" | "unchecked" {
+    const allPermissionIds = this.getAllMenuPermissionIds(menuItem);
+    if (allPermissionIds.length === 0) return "unchecked";
+
+    const selectedIds = this.editForm.menuPermissionIds();
+    const selectedCount = allPermissionIds.filter((id) =>
+      selectedIds.includes(id),
+    ).length;
+
+    if (selectedCount === 0) return "unchecked";
+    if (selectedCount === allPermissionIds.length) return "checked";
+    return "indeterminate";
+  }
+
+  /**
+   * Menü checkbox'ını toggle et (edit form)
+   */
+  toggleEditMenu(menuItem: GetMenuTreeWithPermissionsResponse): void {
+    const allPermissionIds = this.getAllMenuPermissionIds(menuItem);
+    const currentState = this.getEditMenuCheckboxState(menuItem);
+
+    if (currentState === "checked") {
+      // Tümünü kaldır
+      const current = this.editForm.menuPermissionIds();
+      this.editForm.menuPermissionIds.set(
+        current.filter((id) => !allPermissionIds.includes(id)),
+      );
+    } else {
+      // Tümünü ekle
+      const current = this.editForm.menuPermissionIds();
+      const newIds = [...current];
+      for (const id of allPermissionIds) {
+        if (!newIds.includes(id)) {
+          newIds.push(id);
+        }
+      }
+      this.editForm.menuPermissionIds.set(newIds);
     }
   }
 
