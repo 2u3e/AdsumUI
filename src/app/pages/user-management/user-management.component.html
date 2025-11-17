@@ -592,7 +592,8 @@
                     <input
                       type="password"
                       class="kt-input w-full"
-                      [class.!border-red-500]="
+                      [class.!border-red-5
+                      00]="
                         shouldShowStep1PasswordConfirmError()
                       "
                       placeholder="Şifreyi tekrar girin"
@@ -619,6 +620,53 @@
                         </span>
                       </div>
                     }
+                  </div>
+                </div>
+
+                <!-- İş Telefonu ve Cep Telefonu -->
+                <div class="grid grid-cols-2 gap-4">
+                  <!-- İş Telefonu -->
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      İş Telefonu
+                    </label>
+                    <input
+                      type="tel"
+                      class="kt-input w-full"
+                      placeholder="0212 123 45 67"
+                      [ngModel]="createEmployeeForm.communication.workPhone()"
+                      (ngModelChange)="
+                        createEmployeeForm.communication.workPhone.set($event)
+                      "
+                      (blur)="step2Touched.workPhone.set(true)"
+                      [ngModelOptions]="{ standalone: true }"
+                      [disabled]="createFormSubmitting()"
+                      maxlength="20"
+                    />
+                  </div>
+
+                  <!-- Cep Telefonu -->
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      Cep Telefonu
+                    </label>
+                    <input
+                      type="tel"
+                      class="kt-input w-full"
+                      placeholder="0532 123 45 67"
+                      [ngModel]="createEmployeeForm.communication.mobilePhone()"
+                      (ngModelChange)="
+                        createEmployeeForm.communication.mobilePhone.set($event)
+                      "
+                      (blur)="step2Touched.mobilePhone.set(true)"
+                      [ngModelOptions]="{ standalone: true }"
+                      [disabled]="createFormSubmitting()"
+                      maxlength="20"
+                    />
                   </div>
                 </div>
               </div>
@@ -726,53 +774,6 @@
                   [ngModelOptions]="{ standalone: true }"
                   [disabled]="createFormSubmitting()"
                   maxlength="100"
-                />
-              </div>
-            </div>
-
-            <!-- İş Telefonu ve Cep Telefonu -->
-            <div class="grid grid-cols-2 gap-4">
-              <!-- İş Telefonu -->
-              <div>
-                <label
-                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                >
-                  İş Telefonu
-                </label>
-                <input
-                  type="tel"
-                  class="kt-input w-full"
-                  placeholder="0212 123 45 67"
-                  [ngModel]="createEmployeeForm.communication.workPhone()"
-                  (ngModelChange)="
-                    createEmployeeForm.communication.workPhone.set($event)
-                  "
-                  (blur)="step2Touched.workPhone.set(true)"
-                  [ngModelOptions]="{ standalone: true }"
-                  [disabled]="createFormSubmitting()"
-                  maxlength="20"
-                />
-              </div>
-
-              <!-- Cep Telefonu -->
-              <div>
-                <label
-                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                >
-                  Cep Telefonu
-                </label>
-                <input
-                  type="tel"
-                  class="kt-input w-full"
-                  placeholder="0532 123 45 67"
-                  [ngModel]="createEmployeeForm.communication.mobilePhone()"
-                  (ngModelChange)="
-                    createEmployeeForm.communication.mobilePhone.set($event)
-                  "
-                  (blur)="step2Touched.mobilePhone.set(true)"
-                  [ngModelOptions]="{ standalone: true }"
-                  [disabled]="createFormSubmitting()"
-                  maxlength="20"
                 />
               </div>
             </div>
