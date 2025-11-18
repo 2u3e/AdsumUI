@@ -878,11 +878,9 @@
                 [disabled]="createFormSubmitting()"
               >
                 <option value="">Birim seçiniz</option>
-                <option value="1">Yönetim</option>
-                <option value="2">İnsan Kaynakları</option>
-                <option value="3">Teknoloji</option>
-                <option value="4">Satış</option>
-                <option value="5">Pazarlama</option>
+                @for (org of organizations(); track org.id) {
+                  <option [value]="org.id">{{ org.name }}</option>
+                }
               </select>
               @if (shouldShowStep2OrganizationError()) {
                 <div class="flex items-center gap-1.5 mt-1.5">
@@ -918,10 +916,9 @@
                   [disabled]="createFormSubmitting()"
                 >
                   <option value="">Görev seçiniz</option>
-                  <option value="1">Müdür</option>
-                  <option value="2">Uzman</option>
-                  <option value="3">Yetkili</option>
-                  <option value="4">Memur</option>
+                  @for (duty of duties(); track duty.id) {
+                    <option [value]="duty.id">{{ duty.name }}</option>
+                  }
                 </select>
                 @if (shouldShowStep2DutyError()) {
                   <div class="flex items-center gap-1.5 mt-1.5">
@@ -954,9 +951,9 @@
                   [disabled]="createFormSubmitting()"
                 >
                   <option value="">Ünvan seçiniz</option>
-                  <option value="1">Kıdemli</option>
-                  <option value="2">Orta</option>
-                  <option value="3">Junior</option>
+                  @for (title of titles(); track title.id) {
+                    <option [value]="title.id">{{ title.name }}</option>
+                  }
                 </select>
               </div>
 
@@ -1066,12 +1063,9 @@
                           [disabled]="createFormSubmitting()"
                         >
                           <option value="">Seçiniz</option>
-                          <option value="1">
-                            Bilgi İşlem Dairesi Başkanlığı
-                          </option>
-                          <option value="2">Saha Ekibi 1</option>
-                          <option value="3">Saha Ekibi 2</option>
-                          <option value="4">İnsan Kaynakları</option>
+                          @for (org of organizations(); track org.id) {
+                            <option [value]="org.id">{{ org.name }}</option>
+                          }
                         </select>
                       </td>
                       <td class="px-4 py-3">
@@ -1085,10 +1079,9 @@
                           [disabled]="createFormSubmitting()"
                         >
                           <option value="">Seçiniz</option>
-                          <option value="1">Admin</option>
-                          <option value="2">Saha Şefi</option>
-                          <option value="3">Saha Görevlisi</option>
-                          <option value="4">İK Uzmanı</option>
+                          @for (role of roles(); track role.id) {
+                            <option [value]="role.id">{{ role.name }}</option>
+                          }
                         </select>
                       </td>
                       <td class="px-4 py-3 text-center">
@@ -1168,12 +1161,9 @@
                     [disabled]="createFormSubmitting()"
                   >
                     <option value="">Seçiniz</option>
-                    <option value="1">İlköğretim</option>
-                    <option value="2">Lise</option>
-                    <option value="3">Ön Lisans</option>
-                    <option value="4">Lisans</option>
-                    <option value="5">Yüksek Lisans</option>
-                    <option value="6">Doktora</option>
+                    @for (eduType of educationTypes(); track eduType.id) {
+                      <option [value]="eduType.id">{{ eduType.name }}</option>
+                    }
                   </select>
                 </div>
 
@@ -1200,11 +1190,9 @@
                       [disabled]="createFormSubmitting()"
                     >
                       <option value="">Seçiniz</option>
-                      <option value="1">İstanbul Üniversitesi</option>
-                      <option value="2">Ankara Üniversitesi</option>
-                      <option value="3">ODTÜ</option>
-                      <option value="4">Boğaziçi Üniversitesi</option>
-                      <option value="5">Hacettepe Üniversitesi</option>
+                      @for (uni of universities(); track uni.id) {
+                        <option [value]="uni.id">{{ uni.name }}</option>
+                      }
                     </select>
                   </div>
 
@@ -1229,13 +1217,9 @@
                       [disabled]="createFormSubmitting()"
                     >
                       <option value="">Seçiniz</option>
-                      <option value="1">Bilgisayar Mühendisliği</option>
-                      <option value="2">
-                        Elektrik-Elektronik Mühendisliği
-                      </option>
-                      <option value="3">İşletme</option>
-                      <option value="4">İktisat</option>
-                      <option value="5">Hukuk</option>
+                      @for (dept of departments(); track dept.id) {
+                        <option [value]="dept.id">{{ dept.name }}</option>
+                      }
                     </select>
                   </div>
                 </div>

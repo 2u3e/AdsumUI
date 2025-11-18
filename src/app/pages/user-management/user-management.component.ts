@@ -1,6 +1,21 @@
-import { Component, signal } from "@angular/core";
+import { Component, OnInit, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
+import {
+  EmployeeService,
+  CreateEmployeeWithUserCommand,
+  UserRoleDto,
+  EducationDto,
+} from "../../services/employee.service";
+import {
+  OrganizationService,
+  OrganizationSelectResponse,
+} from "../../services/organization.service";
+import { RoleService, RoleSelectResponse } from "../../services/role.service";
+import {
+  ReferenceService,
+  SelectItemResponse,
+} from "../../services/reference.service";
 
 // User Interface
 interface User {
@@ -99,7 +114,16 @@ interface EditUserForm {
   templateUrl: "./user-management.component.html",
   styleUrl: "./user-management.component.scss",
 })
-export class UserManagementComponent {
+export class UserManagementComponent implements OnInit {
+  // Dropdown data
+  organizations = signal<OrganizationSelectResponse[]>([]);
+  roles = signal<RoleSelectResponse[]>([]);
+  duties = signal<SelectItemResponse[]>([]);
+  titles = signal<SelectItemResponse[]>([]);
+  educationTypes = signal<SelectItemResponse[]>([]);
+  universities = signal<SelectItemResponse[]>([]);
+  departments = signal<SelectItemResponse[]>([]);
+
   // Filters
   searchTerm = signal("");
   selectedRole = signal("");
@@ -319,6 +343,103 @@ export class UserManagementComponent {
     password: signal(false),
     passwordConfirm: signal(false),
   };
+
+  constructor(
+    private employeeService: EmployeeService,
+    private organizationService: OrganizationService,
+    private roleService: RoleService,
+    private referenceService: ReferenceService,
+  ) {}
+
+  ngOnInit() {
+    this.loadDropdownData();
+  }
+
+  private loadDropdownData() {
+    // Load organizations
+    this.organizationService.getAllOrganizationsForSelect().subscribe({
+      next: (response) => {
+        if (response.data) {
+          this.organizations.set(response.data);
+        }
+      },
+      error: (error) => {
+        console.error("Error loading organizations:", error);
+      },
+    });
+
+    // Load roles
+    this.roleService.getAllRolesForSelect().subscribe({
+      next: (response) => {
+        if (response.data) {
+          this.roles.set(response.data);
+        }
+      },
+      error: (error) => {
+        console.error("Error loading roles:", error);
+      },
+    });
+
+    // Load employee duty types
+    this.referenceService.getEmployeeDutyTypes().subscribe({
+      next: (response) => {
+        if (response.data) {
+          this.duties.set(response.data);
+        }
+      },
+      error: (error) => {
+        console.error("Error loading employee duty types:", error);
+      },
+    });
+
+    // Load employee title types
+    this.referenceService.getEmployeeTitleTypes().subscribe({
+      next: (response) => {
+        if (response.data) {
+          this.titles.set(response.data);
+        }
+      },
+      error: (error) => {
+        console.error("Error loading employee title types:", error);
+      },
+    });
+
+    // Load education types
+    this.referenceService.getEducationTypes().subscribe({
+      next: (response) => {
+        if (response.data) {
+          this.educationTypes.set(response.data);
+        }
+      },
+      error: (error) => {
+        console.error("Error loading education types:", error);
+      },
+    });
+
+    // Load universities
+    this.referenceService.getUniversities().subscribe({
+      next: (response) => {
+        if (response.data) {
+          this.universities.set(response.data);
+        }
+      },
+      error: (error) => {
+        console.error("Error loading universities:", error);
+      },
+    });
+
+    // Load university departments
+    this.referenceService.getUniversityDepartments().subscribe({
+      next: (response) => {
+        if (response.data) {
+          this.departments.set(response.data);
+        }
+      },
+      error: (error) => {
+        console.error("Error loading university departments:", error);
+      },
+    });
+  }
 
   // Methods
   onAddUser() {
@@ -851,53 +972,83 @@ export class UserManagementComponent {
     this.step2Touched.startDate.set(true);
 
     // Validate all steps (1-2, step 3 is optional education)
-    if (!this.isStep1Valid() || !this.isStep2Valid()) {
+    if (!this.isStep1Valid() || !this.isStep2Valid() || !this.isStep3Valid()) {
       // Find first invalid step
       if (!this.isStep1Valid()) this.currentStep.set(1);
       else if (!this.isStep2Valid()) this.currentStep.set(2);
+      else if (!this.isStep3Valid()) this.currentStep.set(3);
       return;
     }
 
     this.createFormSubmitting.set(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Creating employee:", {
-        userAccount: {
-          username: this.createEmployeeForm.userAccount.username(),
-          email: this.createEmployeeForm.userAccount.email(),
-          isActive: this.createEmployeeForm.userAccount.isActive(),
-        },
-        name: this.createEmployeeForm.name(),
-        lastName: this.createEmployeeForm.lastName(),
-        profileImage: {
-          hasImage: !!this.createEmployeeForm.profileImage.imageFile(),
-        },
-        citizen: {
-          identityNumber: this.createEmployeeForm.citizen.identityNumber(),
-          birthDate: this.createEmployeeForm.citizen.birthDate(),
-          birthPlace: this.createEmployeeForm.citizen.birthPlace(),
-        },
-        position: {
-          registrationNumber:
-            this.createEmployeeForm.position.registrationNumber(),
-          organizationId: this.createEmployeeForm.position.organizationId(),
-          dutyId: this.createEmployeeForm.position.dutyId(),
-          titleId: this.createEmployeeForm.position.titleId(),
-          startDate: this.createEmployeeForm.position.startDate(),
-        },
-        communication: {
-          workPhone: this.createEmployeeForm.communication.workPhone(),
-          mobilePhone: this.createEmployeeForm.communication.mobilePhone(),
-          workEmail: this.createEmployeeForm.communication.workEmail(),
-          personalEmail: this.createEmployeeForm.communication.personalEmail(),
-        },
-        education: this.createEmployeeForm.education(),
-      });
+    // Prepare the command for API
+    const command: CreateEmployeeWithUserCommand = {
+      username: this.createEmployeeForm.userAccount.username(),
+      email: this.createEmployeeForm.userAccount.email(),
+      password: this.createEmployeeForm.userAccount.password(),
+      name: this.createEmployeeForm.name(),
+      lastName: this.createEmployeeForm.lastName(),
+      workPhone: this.createEmployeeForm.communication.workPhone() || null,
+      mobilePhone: this.createEmployeeForm.communication.mobilePhone() || null,
+      profileImageId: null, // Handle file upload separately if needed
+      profileImageDescription: null,
+      identityNumber: this.createEmployeeForm.citizen.identityNumber(),
+      birthDate: this.createEmployeeForm.citizen.birthDate()
+        ? new Date(this.createEmployeeForm.citizen.birthDate()!)
+        : null,
+      birthPlace: this.createEmployeeForm.citizen.birthPlace() || null,
+      registrationNumber:
+        this.createEmployeeForm.position.registrationNumber() || null,
+      organizationId: this.createEmployeeForm.position.organizationId()!,
+      dutyId: parseInt(this.createEmployeeForm.position.dutyId()!),
+      titleId: this.createEmployeeForm.position.titleId()
+        ? parseInt(this.createEmployeeForm.position.titleId()!)
+        : null,
+      startDate: new Date(this.createEmployeeForm.position.startDate()),
+      workEmail: this.createEmployeeForm.communication.workEmail() || null,
+      personalEmail:
+        this.createEmployeeForm.communication.personalEmail() || null,
+      roles: this.createEmployeeForm.roles().map((r) => ({
+        organizationId: r.organizationId!,
+        roleId: r.roleId!,
+      })),
+      education: this.createEmployeeForm.education().map((e) => ({
+        educationTypeId: e.educationTypeId
+          ? parseInt(e.educationTypeId as any)
+          : null,
+        universityId: e.universityId ? parseInt(e.universityId as any) : null,
+        departmentId: e.departmentId ? parseInt(e.departmentId as any) : null,
+        startDate: e.startDate ? new Date(e.startDate) : new Date(),
+        endDate: e.endDate ? new Date(e.endDate) : null,
+      })),
+      isActive: this.createEmployeeForm.userAccount.isActive(),
+    };
 
-      this.createFormSubmitting.set(false);
-      this.closeCreateModal();
-    }, 1500);
+    // Call the API
+    this.employeeService.createEmployeeWithUser(command).subscribe({
+      next: (response) => {
+        console.log("Employee created successfully:", response);
+        this.createFormSubmitting.set(false);
+        this.closeCreateModal();
+        // Optionally refresh the users list
+        // this.loadUsers();
+
+        // Show success message (if you have a toast/notification service)
+        alert("Kullanıcı başarıyla oluşturuldu!");
+      },
+      error: (error) => {
+        console.error("Error creating employee:", error);
+        this.createFormSubmitting.set(false);
+
+        // Show error message
+        const errorMessage =
+          error?.error?.detail ||
+          error?.error?.message ||
+          "Kullanıcı oluşturulurken bir hata oluştu!";
+        alert(errorMessage);
+      },
+    });
   }
 
   // Edit Modal methods
