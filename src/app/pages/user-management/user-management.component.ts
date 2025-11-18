@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, effect } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
+import { PhoneMaskDirective } from "../../directives/phone-mask.directive";
 import {
   EmployeeService,
   CreateEmployeeWithUserCommand,
@@ -112,7 +113,7 @@ interface EditUserForm {
 @Component({
   selector: "app-user-management",
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PhoneMaskDirective],
   templateUrl: "./user-management.component.html",
   styleUrl: "./user-management.component.scss",
 })
@@ -713,7 +714,7 @@ export class UserManagementComponent implements OnInit {
       !!email &&
       this.isValidEmail(email) &&
       !!password &&
-      password.length >= 6 &&
+      this.isPasswordValid(password) &&
       !!passwordConfirm &&
       password === passwordConfirm &&
       !!name &&
@@ -748,16 +749,20 @@ export class UserManagementComponent implements OnInit {
     return (
       this.step1Touched.password() &&
       (!this.createEmployeeForm.userAccount.password() ||
-        this.createEmployeeForm.userAccount.password().length < 6)
+        !this.isPasswordValid(this.createEmployeeForm.userAccount.password()))
     );
   }
 
   getStep1PasswordError(): string {
-    if (!this.createEmployeeForm.userAccount.password())
-      return "Şifre alanı zorunludur";
-    if (this.createEmployeeForm.userAccount.password().length < 6)
-      return "Şifre en az 6 karakter olmalıdır";
+    const password = this.createEmployeeForm.userAccount.password();
+    if (!password) return "Şifre alanı zorunludur";
+    if (password.length < 8) return "Şifre en az 8 karakter olmalıdır";
+    if (!/\d/.test(password)) return "Şifre en az bir rakam içermelidir";
     return "";
+  }
+
+  isPasswordValid(password: string): boolean {
+    return password.length >= 8 && /\d/.test(password);
   }
 
   shouldShowStep1PasswordConfirmError(): boolean {
