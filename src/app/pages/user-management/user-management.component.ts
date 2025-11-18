@@ -466,6 +466,8 @@ export class UserManagementComponent {
   goToNextStep() {
     if (this.currentStep() < 4) {
       if (this.isCurrentStepValid()) {
+        // Mark current step fields as touched before moving
+        this.markStepAsTouched(this.currentStep());
         this.currentStep.set(this.currentStep() + 1);
       }
     }
@@ -479,7 +481,104 @@ export class UserManagementComponent {
 
   goToStep(step: number) {
     if (step >= 1 && step <= 4) {
+      // Mark all previous steps as touched if jumping forward
+      if (step > this.currentStep()) {
+        for (let i = 1; i < step; i++) {
+          this.markStepAsTouched(i);
+        }
+      }
       this.currentStep.set(step);
+    }
+  }
+
+  // Mark step fields as touched to trigger validation display
+  markStepAsTouched(step: number) {
+    switch (step) {
+      case 1:
+        this.step1Touched.username.set(true);
+        this.step1Touched.email.set(true);
+        this.step1Touched.password.set(true);
+        this.step1Touched.passwordConfirm.set(true);
+        this.step1Touched.name.set(true);
+        this.step1Touched.lastName.set(true);
+        break;
+      case 2:
+        this.step2Touched.identityNumber.set(true);
+        this.step2Touched.organizationId.set(true);
+        this.step2Touched.dutyId.set(true);
+        this.step2Touched.startDate.set(true);
+        break;
+      case 3:
+        // Roles don't have specific touched states but validate on check
+        break;
+      case 4:
+        // Education is optional, no validation required
+        break;
+    }
+  }
+
+  // Check if a specific step has been visited and validated
+  getStepStatus(stepNumber: number): "completed" | "error" | "pending" {
+    // If we haven't reached this step yet, it's pending
+    if (stepNumber > this.currentStep()) {
+      return "pending";
+    }
+
+    // Check validation based on step
+    switch (stepNumber) {
+      case 1:
+        // Check if any Step 1 field has been touched
+        const step1Visited =
+          this.step1Touched.username() ||
+          this.step1Touched.email() ||
+          this.step1Touched.password() ||
+          this.step1Touched.passwordConfirm() ||
+          this.step1Touched.name() ||
+          this.step1Touched.lastName();
+
+        if (!step1Visited && stepNumber < this.currentStep()) {
+          // If we've moved past this step without touching fields, mark as touched
+          this.markStepAsTouched(1);
+        }
+
+        return this.isStep1Valid()
+          ? "completed"
+          : step1Visited || stepNumber < this.currentStep()
+            ? "error"
+            : "pending";
+
+      case 2:
+        // Check if any Step 2 field has been touched
+        const step2Visited =
+          this.step2Touched.identityNumber() ||
+          this.step2Touched.organizationId() ||
+          this.step2Touched.dutyId() ||
+          this.step2Touched.startDate();
+
+        if (!step2Visited && stepNumber < this.currentStep()) {
+          // If we've moved past this step without touching fields, mark as touched
+          this.markStepAsTouched(2);
+        }
+
+        return this.isStep2Valid()
+          ? "completed"
+          : step2Visited || stepNumber < this.currentStep()
+            ? "error"
+            : "pending";
+
+      case 3:
+        // Roles validation - check if we've passed this step
+        if (stepNumber < this.currentStep()) {
+          return this.isStep3Valid() ? "completed" : "error";
+        }
+        return "pending";
+
+      case 4:
+        // Education is optional, always valid if visited
+        return stepNumber <= this.currentStep() ? "completed" : "pending";
+
+      default:
+        return "pending";
     }
   }
 

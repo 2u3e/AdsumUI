@@ -246,13 +246,18 @@
               class="shrink-0 rounded-full size-10 flex items-center justify-center text-sm font-semibold transition-all"
               [ngClass]="{
                 'bg-primary text-primary-foreground': currentStep() === 1,
-                'bg-green-500 text-white': currentStep() > 1,
+                'bg-green-500 text-white':
+                  getStepStatus(1) === 'completed' && currentStep() !== 1,
+                'bg-red-500 text-white':
+                  getStepStatus(1) === 'error' && currentStep() !== 1,
                 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400':
-                  currentStep() < 1,
+                  getStepStatus(1) === 'pending' && currentStep() !== 1,
               }"
             >
-              @if (currentStep() > 1) {
+              @if (getStepStatus(1) === "completed" && currentStep() !== 1) {
                 <i class="ki-filled ki-check text-lg" style="color: white"></i>
+              } @else if (getStepStatus(1) === "error" && currentStep() !== 1) {
+                <i class="ki-filled ki-cross text-lg" style="color: white"></i>
               } @else {
                 <span>1</span>
               }
@@ -262,7 +267,12 @@
                 class="text-sm font-semibold text-center transition-all"
                 [ngClass]="{
                   'text-primary': currentStep() === 1,
-                  'text-gray-900 dark:text-white': currentStep() !== 1,
+                  'text-green-600 dark:text-green-400':
+                    getStepStatus(1) === 'completed' && currentStep() !== 1,
+                  'text-red-600 dark:text-red-400':
+                    getStepStatus(1) === 'error' && currentStep() !== 1,
+                  'text-gray-900 dark:text-white':
+                    getStepStatus(1) === 'pending' && currentStep() !== 1,
                 }"
               >
                 Kullanıcı Hesabı
@@ -281,13 +291,18 @@
               class="shrink-0 rounded-full size-10 flex items-center justify-center text-sm font-semibold transition-all"
               [ngClass]="{
                 'bg-primary text-primary-foreground': currentStep() === 2,
-                'bg-green-500 text-white': currentStep() > 2,
+                'bg-green-500 text-white':
+                  getStepStatus(2) === 'completed' && currentStep() !== 2,
+                'bg-red-500 text-white':
+                  getStepStatus(2) === 'error' && currentStep() !== 2,
                 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400':
-                  currentStep() < 2,
+                  getStepStatus(2) === 'pending' && currentStep() !== 2,
               }"
             >
-              @if (currentStep() > 2) {
+              @if (getStepStatus(2) === "completed" && currentStep() !== 2) {
                 <i class="ki-filled ki-check text-lg" style="color: white"></i>
+              } @else if (getStepStatus(2) === "error" && currentStep() !== 2) {
+                <i class="ki-filled ki-cross text-lg" style="color: white"></i>
               } @else {
                 <span>2</span>
               }
@@ -297,7 +312,12 @@
                 class="text-sm font-semibold text-center transition-all"
                 [ngClass]="{
                   'text-primary': currentStep() === 2,
-                  'text-gray-900 dark:text-white': currentStep() !== 2,
+                  'text-green-600 dark:text-green-400':
+                    getStepStatus(2) === 'completed' && currentStep() !== 2,
+                  'text-red-600 dark:text-red-400':
+                    getStepStatus(2) === 'error' && currentStep() !== 2,
+                  'text-gray-900 dark:text-white':
+                    getStepStatus(2) === 'pending' && currentStep() !== 2,
                 }"
               >
                 Kişisel ve Birim Bilgileri
@@ -316,13 +336,18 @@
               class="shrink-0 rounded-full size-10 flex items-center justify-center text-sm font-semibold transition-all"
               [ngClass]="{
                 'bg-primary text-primary-foreground': currentStep() === 3,
-                'bg-green-500 text-white': currentStep() > 3,
+                'bg-green-500 text-white':
+                  getStepStatus(3) === 'completed' && currentStep() !== 3,
+                'bg-red-500 text-white':
+                  getStepStatus(3) === 'error' && currentStep() !== 3,
                 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400':
-                  currentStep() < 3,
+                  getStepStatus(3) === 'pending' && currentStep() !== 3,
               }"
             >
-              @if (currentStep() > 3) {
+              @if (getStepStatus(3) === "completed" && currentStep() !== 3) {
                 <i class="ki-filled ki-check text-lg" style="color: white"></i>
+              } @else if (getStepStatus(3) === "error" && currentStep() !== 3) {
+                <i class="ki-filled ki-cross text-lg" style="color: white"></i>
               } @else {
                 <span>3</span>
               }
@@ -332,7 +357,12 @@
                 class="text-sm font-semibold text-center transition-all"
                 [ngClass]="{
                   'text-primary': currentStep() === 3,
-                  'text-gray-900 dark:text-white': currentStep() !== 3,
+                  'text-green-600 dark:text-green-400':
+                    getStepStatus(3) === 'completed' && currentStep() !== 3,
+                  'text-red-600 dark:text-red-400':
+                    getStepStatus(3) === 'error' && currentStep() !== 3,
+                  'text-gray-900 dark:text-white':
+                    getStepStatus(3) === 'pending' && currentStep() !== 3,
                 }"
               >
                 Rol Atama
@@ -351,13 +381,18 @@
               class="shrink-0 rounded-full size-10 flex items-center justify-center text-sm font-semibold transition-all"
               [ngClass]="{
                 'bg-primary text-primary-foreground': currentStep() === 4,
-                'bg-green-500 text-white': currentStep() > 4,
+                'bg-green-500 text-white':
+                  getStepStatus(4) === 'completed' && currentStep() !== 4,
+                'bg-red-500 text-white':
+                  getStepStatus(4) === 'error' && currentStep() !== 4,
                 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400':
-                  currentStep() < 4,
+                  getStepStatus(4) === 'pending' && currentStep() !== 4,
               }"
             >
-              @if (currentStep() > 4) {
+              @if (getStepStatus(4) === "completed" && currentStep() !== 4) {
                 <i class="ki-filled ki-check text-lg" style="color: white"></i>
+              } @else if (getStepStatus(4) === "error" && currentStep() !== 4) {
+                <i class="ki-filled ki-cross text-lg" style="color: white"></i>
               } @else {
                 <span>4</span>
               }
@@ -367,7 +402,12 @@
                 class="text-sm font-semibold text-center transition-all"
                 [ngClass]="{
                   'text-primary': currentStep() === 4,
-                  'text-gray-900 dark:text-white': currentStep() !== 4,
+                  'text-green-600 dark:text-green-400':
+                    getStepStatus(4) === 'completed' && currentStep() !== 4,
+                  'text-red-600 dark:text-red-400':
+                    getStepStatus(4) === 'error' && currentStep() !== 4,
+                  'text-gray-900 dark:text-white':
+                    getStepStatus(4) === 'pending' && currentStep() !== 4,
                 }"
               >
                 Eğitim
@@ -1087,32 +1127,33 @@
               <div
                 class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-4 bg-gray-50 dark:bg-gray-800/50"
               >
-                <div class="flex items-center justify-between mb-2">
-                  <h5
-                    class="text-sm font-semibold text-gray-900 dark:text-white"
-                  >
-                    Eğitim {{ $index + 1 }}
-                  </h5>
-                  @if (createEmployeeForm.education().length > 1) {
-                    <button
-                      type="button"
-                      class="kt-btn kt-btn-sm kt-btn-icon kt-btn-light-danger"
-                      (click)="removeEducation($index)"
-                      [disabled]="createFormSubmitting()"
-                      title="Eğitimi Kaldır"
-                    >
-                      <i class="ki-filled ki-trash text-sm"></i>
-                    </button>
-                  }
-                </div>
-
                 <!-- Eğitim Türü -->
                 <div>
-                  <label
-                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    Eğitim Türü
-                  </label>
+                  <div class="flex items-center justify-between mb-2">
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Eğitim Türü
+                    </label>
+                    <div class="flex items-center gap-2">
+                      <span
+                        class="text-sm font-semibold text-gray-900 dark:text-white"
+                      >
+                        Eğitim {{ $index + 1 }}
+                      </span>
+                      @if (createEmployeeForm.education().length > 1) {
+                        <button
+                          type="button"
+                          class="kt-btn kt-btn-sm kt-btn-icon kt-btn-light-danger"
+                          (click)="removeEducation($index)"
+                          [disabled]="createFormSubmitting()"
+                          title="Eğitimi Kaldır"
+                        >
+                          <i class="ki-filled ki-trash text-sm"></i>
+                        </button>
+                      }
+                    </div>
+                  </div>
                   <select
                     class="kt-select w-full"
                     [ngModel]="education.educationTypeId ?? ''"
