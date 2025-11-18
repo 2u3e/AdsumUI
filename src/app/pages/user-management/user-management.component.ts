@@ -1046,12 +1046,8 @@ export class UserManagementComponent implements OnInit {
         console.error("Error creating employee:", error);
         this.createFormSubmitting.set(false);
 
-        // Show error message
-        const errorMessage =
-          error?.error?.detail ||
-          error?.error?.message ||
-          "Kullanıcı oluşturulurken bir hata oluştu!";
-        this.notificationService.fromHttpError(error);
+        // Error interceptor otomatik olarak notification gösterecek
+        // Bu yüzden burada tekrar çağırmaya gerek yok
       },
     });
   }
