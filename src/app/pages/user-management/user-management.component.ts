@@ -16,6 +16,7 @@ import {
   ReferenceService,
   SelectItemResponse,
 } from "../../services/reference.service";
+import { NotificationService } from "../../core/services/notification.service";
 
 // User Interface
 interface User {
@@ -349,6 +350,7 @@ export class UserManagementComponent implements OnInit {
     private organizationService: OrganizationService,
     private roleService: RoleService,
     private referenceService: ReferenceService,
+    private notificationService: NotificationService,
   ) {}
 
   ngOnInit() {
@@ -1035,7 +1037,10 @@ export class UserManagementComponent implements OnInit {
         // this.loadUsers();
 
         // Show success message (if you have a toast/notification service)
-        alert("Kullanıcı başarıyla oluşturuldu!");
+        this.notificationService.success(
+          "Başarılı",
+          "Kullanıcı başarıyla oluşturuldu!",
+        );
       },
       error: (error) => {
         console.error("Error creating employee:", error);
@@ -1046,7 +1051,7 @@ export class UserManagementComponent implements OnInit {
           error?.error?.detail ||
           error?.error?.message ||
           "Kullanıcı oluşturulurken bir hata oluştu!";
-        alert(errorMessage);
+        this.notificationService.fromHttpError(error);
       },
     });
   }
