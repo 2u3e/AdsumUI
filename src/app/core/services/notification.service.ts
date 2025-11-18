@@ -128,8 +128,20 @@ export class NotificationService {
     const title = problem.title || "Hata";
     const message = problem.detail || "Bir hata oluştu";
 
-    // Validasyon hataları varsa
-    if (problem.errors && Object.keys(problem.errors).length > 0) {
+    // Eğer errors bir array ise (yeni format: [{field, message}])
+    if (Array.isArray(problem.errors)) {
+      problem.errors.forEach((error: any) => {
+        const errorMessage = error.message || error.detail || String(error);
+        const errorField = error.field || error.code || title;
+        this.error(errorMessage, errorField, { duration: 7000 });
+      });
+    }
+    // Eğer errors bir object ise (eski format: {field: messages})
+    else if (
+      problem.errors &&
+      typeof problem.errors === "object" &&
+      Object.keys(problem.errors).length > 0
+    ) {
       Object.entries(problem.errors).forEach(([field, messages]) => {
         // messages string veya array olabilir
         const messageArray = Array.isArray(messages) ? messages : [messages];
@@ -156,6 +168,25 @@ export class NotificationService {
     // Response formatı kontrolü
     if (error?.error && this.isApiResponse(error.error)) {
       this.fromApiResponse(error.error);
+      return;
+    }
+
+    // Database/EntityFramework hataları için özel kontrol
+    if (error?.error && typeof error.error === "string") {
+      // Duplicate key hatası kontrolü
+      if (
+        error.error.includes("duplicate key") ||
+        error.error.includes("IX_Citizens_IdentityNumber")
+      ) {
+        this.error(
+          "Bu kimlik numarası ile kayıtlı bir kullanıcı zaten mevcut.",
+          "Kayıt Hatası",
+          { duration: 7000 },
+        );
+        return;
+      }
+      // Diğer string hatalar
+      this.error(error.error, "Hata", { duration: 7000 });
       return;
     }
 
