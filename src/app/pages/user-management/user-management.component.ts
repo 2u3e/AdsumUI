@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from "@angular/core";
+import { Component, OnInit, signal, effect } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import {
@@ -18,15 +18,16 @@ import {
 } from "../../services/reference.service";
 import { NotificationService } from "../../core/services/notification.service";
 
-// User Interface
+// User Interface - Matches API Response
 interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  status: "active" | "inactive";
-  createdDate: string;
-  department: string;
+  id: string; // UUID from API
+  fullName: string;
+  organizationName: string | null;
+  isActive: boolean;
+  userName: string | null;
+  email: string | null;
+  title: string | null;
+  duty: string | null;
 }
 
 // Create Form Interface - Wizard Step 1: Temel Kimlik Bilgileri
@@ -133,100 +134,22 @@ export class UserManagementComponent implements OnInit {
   // Pagination
   currentPage = signal(1);
   pageSize = signal(10);
+  totalItems = signal(0);
+  totalPages = signal(0);
 
-  // Dummy users data
-  users = signal<User[]>([
-    {
-      id: 1,
-      name: "Ahmet Yılmaz",
-      email: "ahmet@example.com",
-      role: "Admin",
-      status: "active",
-      createdDate: "2024-01-15",
-      department: "Yönetim",
-    },
-    {
-      id: 2,
-      name: "Ayşe Demir",
-      email: "ayse@example.com",
-      role: "User",
-      status: "active",
-      createdDate: "2024-02-20",
-      department: "İnsan Kaynakları",
-    },
-    {
-      id: 3,
-      name: "Mehmet Kaya",
-      email: "mehmet@example.com",
-      role: "Manager",
-      status: "active",
-      createdDate: "2024-03-10",
-      department: "Satış",
-    },
-    {
-      id: 4,
-      name: "Fatma Şahin",
-      email: "fatma@example.com",
-      role: "User",
-      status: "inactive",
-      createdDate: "2024-01-25",
-      department: "Muhasebe",
-    },
-    {
-      id: 5,
-      name: "Ali Çelik",
-      email: "ali@example.com",
-      role: "Admin",
-      status: "active",
-      createdDate: "2024-02-15",
-      department: "Yönetim",
-    },
-    {
-      id: 6,
-      name: "Zeynep Arslan",
-      email: "zeynep@example.com",
-      role: "User",
-      status: "active",
-      createdDate: "2024-03-05",
-      department: "Teknoloji",
-    },
-    {
-      id: 7,
-      name: "Mustafa Öztürk",
-      email: "mustafa@example.com",
-      role: "Manager",
-      status: "active",
-      createdDate: "2024-01-30",
-      department: "Pazarlama",
-    },
-    {
-      id: 8,
-      name: "Emine Yıldız",
-      email: "emine@example.com",
-      role: "User",
-      status: "inactive",
-      createdDate: "2024-02-10",
-      department: "İnsan Kaynakları",
-    },
-    {
-      id: 9,
-      name: "Hasan Koç",
-      email: "hasan@example.com",
-      role: "User",
-      status: "active",
-      createdDate: "2024-03-15",
-      department: "Teknoloji",
-    },
-    {
-      id: 10,
-      name: "Merve Aydın",
-      email: "merve@example.com",
-      role: "Admin",
-      status: "active",
-      createdDate: "2024-01-20",
-      department: "Yönetim",
-    },
-  ]);
+  // Users data from API
+  users = signal<User[]>([]);
+
+  // Loading state
+  isLoading = signal(false);
+
+  // Math for template
+  Math = Math;
+
+  // Active users count
+  get activeUsersCount(): number {
+    return this.users().filter((u) => u.isActive).length;
+  }
 
   // Filter offcanvas state
   filterOffcanvasOpen = signal(false);
@@ -345,6 +268,8 @@ export class UserManagementComponent implements OnInit {
     passwordConfirm: signal(false),
   };
 
+  private searchTimeout: any;
+
   constructor(
     private employeeService: EmployeeService,
     private organizationService: OrganizationService,
@@ -355,6 +280,43 @@ export class UserManagementComponent implements OnInit {
 
   ngOnInit() {
     this.loadDropdownData();
+    this.loadEmployees();
+  }
+
+  loadEmployees() {
+    this.isLoading.set(true);
+
+    this.employeeService
+      .getAllEmployeesPaged({
+        pageNumber: this.currentPage(),
+        pageSize: this.pageSize(),
+        fullName: this.searchTerm() || undefined,
+        organizationId: undefined,
+        userName: undefined,
+        email: undefined,
+        isActive: this.selectedStatus()
+          ? this.selectedStatus() === "active"
+          : undefined,
+      })
+      .subscribe({
+        next: (response: any) => {
+          if (response.data) {
+            this.users.set(response.data);
+          }
+
+          if (response.pagination) {
+            this.totalItems.set(response.pagination.totalItems);
+            this.totalPages.set(response.pagination.totalPages);
+            this.currentPage.set(response.pagination.page);
+          }
+
+          this.isLoading.set(false);
+        },
+        error: (error: any) => {
+          console.error("Error loading employees:", error);
+          this.isLoading.set(false);
+        },
+      });
   }
 
   private loadDropdownData() {
@@ -451,19 +413,19 @@ export class UserManagementComponent implements OnInit {
   onEditUser(user: User) {
     this.selectedUser.set(user);
     // Parse name into first and last name
-    const nameParts = user.name.split(" ");
+    const nameParts = user.fullName.split(" ");
     const firstName = nameParts[0] || "";
     const lastName = nameParts.slice(1).join(" ") || "";
 
-    this.editForm.id.set(user.id);
+    this.editForm.id.set(0); // Keep as number for now, you may need to adjust based on your edit endpoint
     this.editForm.firstName.set(firstName);
     this.editForm.lastName.set(lastName);
-    this.editForm.email.set(user.email);
-    this.editForm.username.set(user.email.split("@")[0]);
+    this.editForm.email.set(user.email || "");
+    this.editForm.username.set(user.userName || "");
     this.editForm.password.set("");
     this.editForm.passwordConfirm.set("");
     this.editForm.organizationId.set(null);
-    this.editForm.isActive.set(user.status === "active");
+    this.editForm.isActive.set(user.isActive);
     this.changePassword.set(false);
 
     // Reset touched state
@@ -484,22 +446,36 @@ export class UserManagementComponent implements OnInit {
 
   toggleUserStatus(user: User) {
     // Toggle status
-    const newStatus: "active" | "inactive" =
-      user.status === "active" ? "inactive" : "active";
+    const newStatus = !user.isActive;
 
-    // Update user status in the list
+    // Update user status in the list optimistically
     const updatedUsers: User[] = this.users().map((u) =>
-      u.id === user.id ? { ...u, status: newStatus } : u,
+      u.id === user.id ? { ...u, isActive: newStatus } : u,
     );
     this.users.set(updatedUsers);
 
     // Here you would typically make an API call to update the status
-    console.log(`User ${user.name} status changed to: ${newStatus}`);
+    console.log(`User ${user.fullName} status changed to: ${newStatus}`);
+
+    // TODO: Implement actual API call to update employee status
+    // this.employeeService.updateEmployeeStatus(user.id, newStatus).subscribe(...)
   }
 
   changePage(page: number) {
     this.currentPage.set(page);
-    console.log("Sayfa değişti:", page);
+    this.loadEmployees();
+  }
+
+  // Search with debounce
+  onSearchChange() {
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+    }
+
+    this.searchTimeout = setTimeout(() => {
+      this.currentPage.set(1);
+      this.loadEmployees();
+    }, 500);
   }
 
   // Filter methods
@@ -511,6 +487,8 @@ export class UserManagementComponent implements OnInit {
     this.searchTerm.set("");
     this.selectedRole.set("");
     this.selectedStatus.set("");
+    this.currentPage.set(1);
+    this.loadEmployees();
   }
 
   getActiveFilterCount(): number {
@@ -1033,10 +1011,11 @@ export class UserManagementComponent implements OnInit {
         console.log("Employee created successfully:", response);
         this.createFormSubmitting.set(false);
         this.closeCreateModal();
-        // Optionally refresh the users list
-        // this.loadUsers();
 
-        // Show success message (if you have a toast/notification service)
+        // Refresh the users list
+        this.refreshEmployeeList();
+
+        // Show success message
         this.notificationService.success(
           "Başarılı",
           "Kullanıcı başarıyla oluşturuldu!",
@@ -1050,6 +1029,12 @@ export class UserManagementComponent implements OnInit {
         // Bu yüzden burada tekrar çağırmaya gerek yok
       },
     });
+  }
+
+  // Refresh employee list after create
+  private refreshEmployeeList() {
+    this.currentPage.set(1);
+    this.loadEmployees();
   }
 
   // Edit Modal methods

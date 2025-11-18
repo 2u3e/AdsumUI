@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { Injectable } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
+import { Observable } from "rxjs";
+import { environment } from "../../environments/environment";
 
 // Request/Response interfaces
 export interface CreateEmployeeWithUserCommand {
@@ -82,35 +82,87 @@ export interface UpdateEmployeeWithUserResponse {
   email: string;
 }
 
+export interface GetAllEmployeesParams {
+  pageNumber?: number;
+  pageSize?: number;
+  organizationId?: string;
+  fullName?: string;
+  userName?: string;
+  email?: string;
+  isActive?: boolean;
+}
+
+export interface EmployeeListItem {
+  id: string;
+  fullName: string;
+  organizationName: string | null;
+  isActive: boolean;
+  userName: string | null;
+  email: string | null;
+  title: string | null;
+  duty: string | null;
+}
+
+export interface PaginationMeta {
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  totalItems: number;
+}
+
 export interface ApiResponse<T> {
   statusCode: number;
   message?: string | null;
   data: T;
   errors?: any[] | null;
-  pagination?: any;
+  pagination?: PaginationMeta;
   correlationId?: string | null;
   timestampUtc: Date;
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: "root",
 })
 export class EmployeeService {
   private apiUrl = `${environment.apiUrl}/Employees`;
 
   constructor(private http: HttpClient) {}
 
-  createEmployeeWithUser(command: CreateEmployeeWithUserCommand): Observable<ApiResponse<CreateEmployeeWithUserResponse>> {
+  getAllEmployeesPaged(
+    params: GetAllEmployeesParams,
+  ): Observable<ApiResponse<EmployeeListItem[]>> {
+    const queryParams: any = {};
+
+    if (params.pageNumber) queryParams.pageNumber = params.pageNumber;
+    if (params.pageSize) queryParams.pageSize = params.pageSize;
+    if (params.organizationId)
+      queryParams.organizationId = params.organizationId;
+    if (params.fullName) queryParams.fullName = params.fullName;
+    if (params.userName) queryParams.userName = params.userName;
+    if (params.email) queryParams.email = params.email;
+    if (params.isActive !== undefined) queryParams.isActive = params.isActive;
+
+    return this.http.get<ApiResponse<EmployeeListItem[]>>(this.apiUrl, {
+      params: queryParams,
+    });
+  }
+
+  createEmployeeWithUser(
+    command: CreateEmployeeWithUserCommand,
+  ): Observable<ApiResponse<CreateEmployeeWithUserResponse>> {
     return this.http.post<ApiResponse<CreateEmployeeWithUserResponse>>(
       `${this.apiUrl}/with-user`,
-      command
+      command,
     );
   }
 
-  updateEmployeeWithUser(employeeId: string, command: UpdateEmployeeWithUserCommand): Observable<ApiResponse<UpdateEmployeeWithUserResponse>> {
+  updateEmployeeWithUser(
+    employeeId: string,
+    command: UpdateEmployeeWithUserCommand,
+  ): Observable<ApiResponse<UpdateEmployeeWithUserResponse>> {
     return this.http.put<ApiResponse<UpdateEmployeeWithUserResponse>>(
       `${this.apiUrl}/${employeeId}/with-user`,
-      command
+      command,
     );
   }
 }

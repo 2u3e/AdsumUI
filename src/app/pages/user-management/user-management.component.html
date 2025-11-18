@@ -10,9 +10,13 @@
         <span class="text-base text-secondary-foreground">
           Toplam Kullanıcı:
         </span>
-        <span class="text-base gray-800 font-semibold me-2"> 49,053 </span>
+        <span class="text-base gray-800 font-semibold me-2">
+          {{ totalItems() }}
+        </span>
         <span class="text-base text-secondary-foreground"> Aktif </span>
-        <span class="text-base gray-800 font-semibold"> 1724 </span>
+        <span class="text-base gray-800 font-semibold">
+          {{ activeUsersCount }}
+        </span>
       </div>
     </div>
     <div class="flex items-center gap-2.5">
@@ -43,6 +47,7 @@
           placeholder="Kullanıcı ara..."
           class="kt-input sm:w-64"
           [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearchChange()"
           [ngModelOptions]="{ standalone: true }"
         />
         <button
@@ -92,70 +97,85 @@
             </tr>
           </thead>
           <tbody>
-            @for (user of users(); track user.id) {
-              <tr>
-                <td>
-                  <input
-                    type="checkbox"
-                    class="kt-switch"
-                    [id]="'userStatus' + user.id"
-                    [checked]="user.status === 'active'"
-                    (change)="toggleUserStatus(user)"
-                  />
-                </td>
-                <td>
-                  <div class="flex flex-col">
-                    <span class="text-xs text-gray-500 dark:text-gray-400">
-                      {{ user.department }}
-                    </span>
-                    <span
-                      class="text-sm font-medium text-gray-900 dark:text-gray-100"
-                    >
-                      {{ user.name }}
-                    </span>
-                  </div>
-                </td>
-                <td>
-                  <div class="flex flex-col">
-                    <span
-                      class="text-sm font-medium text-gray-900 dark:text-gray-100"
-                    >
-                      {{ user.email.split("@")[0] }}
-                    </span>
-                    <span class="text-xs text-gray-500 dark:text-gray-400">
-                      {{ user.email }}
-                    </span>
-                  </div>
-                </td>
-                <td>
-                  <div class="flex items-center gap-2">
-                    <button
-                      type="button"
-                      class="kt-btn kt-btn-icon bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 dark:text-blue-400 dark:hover:text-blue-300 border-0 transition-all"
-                      (click)="onEditUser(user)"
-                      title="Düzenle"
-                    >
-                      <i class="ki-filled ki-pencil text-lg"></i>
-                    </button>
-                    <button
-                      type="button"
-                      class="kt-btn kt-btn-icon bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 dark:bg-red-900/20 dark:hover:bg-red-900/30 dark:text-red-400 dark:hover:text-red-300 border-0 transition-all"
-                      (click)="onDeleteUser(user)"
-                      title="Sil"
-                    >
-                      <i class="ki-filled ki-trash text-lg"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            } @empty {
+            @if (isLoading()) {
               <tr>
                 <td colspan="4" class="text-center py-8">
-                  <div class="text-gray-500 dark:text-gray-400">
-                    Kullanıcı bulunamadı
+                  <div
+                    class="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400"
+                  >
+                    <div
+                      class="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"
+                    ></div>
+                    <span>Yükleniyor...</span>
                   </div>
                 </td>
               </tr>
+            } @else {
+              @for (user of users(); track user.id) {
+                <tr>
+                  <td>
+                    <input
+                      type="checkbox"
+                      class="kt-switch"
+                      [id]="'userStatus' + user.id"
+                      [checked]="user.isActive"
+                      (change)="toggleUserStatus(user)"
+                    />
+                  </td>
+                  <td>
+                    <div class="flex flex-col">
+                      <span class="text-xs text-gray-500 dark:text-gray-400">
+                        {{ user.organizationName || "Birim Belirtilmemiş" }}
+                      </span>
+                      <span
+                        class="text-sm font-medium text-gray-900 dark:text-gray-100"
+                      >
+                        {{ user.fullName }}
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="flex flex-col">
+                      <span
+                        class="text-sm font-medium text-gray-900 dark:text-gray-100"
+                      >
+                        {{ user.userName || "Kullanıcı adı yok" }}
+                      </span>
+                      <span class="text-xs text-gray-500 dark:text-gray-400">
+                        {{ user.email || "E-posta yok" }}
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        class="kt-btn kt-btn-icon bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 dark:text-blue-400 dark:hover:text-blue-300 border-0 transition-all"
+                        (click)="onEditUser(user)"
+                        title="Düzenle"
+                      >
+                        <i class="ki-filled ki-pencil text-lg"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="kt-btn kt-btn-icon bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 dark:bg-red-900/20 dark:hover:bg-red-900/30 dark:text-red-400 dark:hover:text-red-300 border-0 transition-all"
+                        (click)="onDeleteUser(user)"
+                        title="Sil"
+                      >
+                        <i class="ki-filled ki-trash text-lg"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="4" class="text-center py-8">
+                    <div class="text-gray-500 dark:text-gray-400">
+                      Kullanıcı bulunamadı
+                    </div>
+                  </td>
+                </tr>
+              }
             }
           </tbody>
         </table>
@@ -168,6 +188,7 @@
           <select
             class="kt-select kt-select-sm w-16"
             [(ngModel)]="pageSize"
+            (ngModelChange)="currentPage.set(1); loadEmployees()"
             [ngModelOptions]="{ standalone: true }"
           >
             <option value="5">5</option>
@@ -178,22 +199,60 @@
         </div>
 
         <div class="kt-datatable-info">
-          Gösterilen: 1-{{ users().length }} / {{ users().length }}
+          Gösterilen: {{ (currentPage() - 1) * pageSize() + 1 }}-{{
+            Math.min(currentPage() * pageSize(), totalItems())
+          }}
+          / {{ totalItems() }}
         </div>
 
         <div>
           <ol class="kt-pagination">
             <li class="kt-pagination-item">
-              <a class="kt-btn kt-btn-ghost">Önceki</a>
+              <a
+                class="kt-btn kt-btn-ghost"
+                [class.disabled]="currentPage() === 1"
+                (click)="currentPage() > 1 && changePage(currentPage() - 1)"
+                style="cursor: pointer"
+              >
+                Önceki
+              </a>
             </li>
+            @for (page of [].constructor(totalPages()); track $index) {
+              @if (
+                $index + 1 === 1 ||
+                $index + 1 === totalPages() ||
+                Math.abs($index + 1 - currentPage()) <= 2
+              ) {
+                <li class="kt-pagination-item">
+                  <a
+                    class="kt-btn kt-btn-icon kt-btn-ghost"
+                    [class.active]="currentPage() === $index + 1"
+                    (click)="changePage($index + 1)"
+                    style="cursor: pointer"
+                  >
+                    {{ $index + 1 }}
+                  </a>
+                </li>
+              } @else if (
+                $index + 1 === currentPage() - 3 ||
+                $index + 1 === currentPage() + 3
+              ) {
+                <li class="kt-pagination-item">
+                  <span class="kt-btn kt-btn-icon kt-btn-ghost">...</span>
+                </li>
+              }
+            }
             <li class="kt-pagination-item">
-              <a class="kt-btn kt-btn-icon kt-btn-ghost active">1</a>
-            </li>
-            <li class="kt-pagination-item">
-              <a class="kt-btn kt-btn-icon kt-btn-ghost">2</a>
-            </li>
-            <li class="kt-pagination-item">
-              <a class="kt-btn kt-btn-ghost">Sonraki</a>
+              <a
+                class="kt-btn kt-btn-ghost"
+                [class.disabled]="currentPage() === totalPages()"
+                (click)="
+                  currentPage() < totalPages() && changePage(currentPage() + 1)
+                "
+                style="cursor: pointer"
+              >
+                Sonraki
+              </a>
             </li>
           </ol>
         </div>
@@ -1741,7 +1800,7 @@
                 Silinecek Kullanıcı:
               </p>
               <p class="text-base font-semibold text-gray-900 dark:text-white">
-                {{ selectedUser()!.name }}
+                {{ selectedUser()!.fullName }}
               </p>
               @if (selectedUser()!.email) {
                 <p class="text-sm text-gray-500 dark:text-gray-300 mt-1">
