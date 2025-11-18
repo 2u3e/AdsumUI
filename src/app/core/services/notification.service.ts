@@ -131,8 +131,10 @@ export class NotificationService {
     // Validasyon hataları varsa
     if (problem.errors && Object.keys(problem.errors).length > 0) {
       Object.entries(problem.errors).forEach(([field, messages]) => {
-        messages.forEach((msg) => {
-          this.error(msg, field, { duration: 7000 });
+        // messages string veya array olabilir
+        const messageArray = Array.isArray(messages) ? messages : [messages];
+        messageArray.forEach((msg) => {
+          this.error(String(msg), field, { duration: 7000 });
         });
       });
     } else {
