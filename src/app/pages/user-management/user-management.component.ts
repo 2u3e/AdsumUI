@@ -2,6 +2,7 @@ import { Component, OnInit, signal, effect } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { PhoneMaskDirective } from "../../directives/phone-mask.directive";
+import { DatepickerDirective } from "../../directives/datepicker.directive";
 import {
   EmployeeService,
   CreateEmployeeWithUserCommand,
@@ -113,7 +114,7 @@ interface EditUserForm {
 @Component({
   selector: "app-user-management",
   standalone: true,
-  imports: [CommonModule, FormsModule, PhoneMaskDirective],
+  imports: [CommonModule, FormsModule, PhoneMaskDirective, DatepickerDirective],
   templateUrl: "./user-management.component.html",
   styleUrl: "./user-management.component.scss",
 })

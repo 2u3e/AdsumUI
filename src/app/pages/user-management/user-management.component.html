@@ -877,8 +877,10 @@
                   Doğum Tarihi
                 </label>
                 <input
-                  type="date"
+                  type="text"
                   class="kt-input w-full"
+                  placeholder="Tarih seçiniz"
+                  appDatepicker
                   [ngModel]="createEmployeeForm.citizen.birthDate()"
                   (ngModelChange)="
                     createEmployeeForm.citizen.birthDate.set($event)
@@ -1025,8 +1027,10 @@
                   <span class="text-red-500">*</span>
                 </label>
                 <input
-                  type="date"
+                  type="text"
                   class="kt-input w-full"
+                  placeholder="Tarih seçiniz"
+                  appDatepicker
                   [class.!border-red-500]="shouldShowStep2StartDateError()"
                   [ngModel]="createEmployeeForm.position.startDate()"
                   (ngModelChange)="
@@ -1293,8 +1297,10 @@
                       Başlangıç Tarihi
                     </label>
                     <input
-                      type="date"
+                      type="text"
                       class="kt-input w-full"
+                      placeholder="Tarih seçiniz"
+                      appDatepicker
                       [ngModel]="education.startDate"
                       (ngModelChange)="
                         updateEducation($index, 'startDate', $event)
@@ -1312,8 +1318,10 @@
                       Bitiş Tarihi
                     </label>
                     <input
-                      type="date"
+                      type="text"
                       class="kt-input w-full"
+                      placeholder="Tarih seçiniz"
+                      appDatepicker
                       [ngModel]="education.endDate ?? ''"
                       (ngModelChange)="
                         updateEducation(
