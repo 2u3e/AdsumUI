@@ -1,4 +1,10 @@
-import { Component, OnInit, signal, effect } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  signal,
+  effect,
+  AfterViewChecked,
+} from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { PhoneMaskDirective } from "../../directives/phone-mask.directive";
@@ -19,6 +25,7 @@ import {
   SelectItemResponse,
 } from "../../services/reference.service";
 import { NotificationService } from "../../core/services/notification.service";
+import { MetronicInitService } from "../../core/services/metronic-init.service";
 
 // User Interface - Matches API Response
 interface User {
@@ -118,7 +125,7 @@ interface EditUserForm {
   templateUrl: "./user-management.component.html",
   styleUrl: "./user-management.component.scss",
 })
-export class UserManagementComponent implements OnInit {
+export class UserManagementComponent implements OnInit, AfterViewChecked {
   // Dropdown data
   organizations = signal<OrganizationSelectResponse[]>([]);
   roles = signal<RoleSelectResponse[]>([]);
@@ -272,17 +279,106 @@ export class UserManagementComponent implements OnInit {
 
   private searchTimeout: any;
 
+  // Flags to track if modal selects have been initialized
+  private createModalSelectsInitialized = false;
+  private editModalSelectsInitialized = false;
+
   constructor(
     private employeeService: EmployeeService,
     private organizationService: OrganizationService,
     private roleService: RoleService,
     private referenceService: ReferenceService,
     private notificationService: NotificationService,
+    private metronicInit: MetronicInitService,
   ) {}
 
   ngOnInit() {
     this.loadDropdownData();
     this.loadEmployees();
+
+    // Initialize select and tooltip components after a short delay to ensure DOM is ready
+    setTimeout(() => {
+      this.metronicInit.initSelect();
+      this.metronicInit.initTooltips();
+    }, 100);
+  }
+
+  ngAfterViewChecked(): void {
+    // Initialize create modal selects only once when modal is open
+    if (this.createModalOpen() && !this.createModalSelectsInitialized) {
+      let selectsFound = false;
+
+      // Step 2: Check for organization, duty, and title selects
+      if (this.currentStep() === 2) {
+        const createModalOrganizationId = document.getElementById(
+          "createModalOrganizationId",
+        );
+        const createModalDutyId = document.getElementById("createModalDutyId");
+        const createModalTitleId =
+          document.getElementById("createModalTitleId");
+
+        if (
+          createModalOrganizationId &&
+          createModalDutyId &&
+          createModalTitleId
+        ) {
+          selectsFound = true;
+        }
+      }
+
+      // Step 3: Check for role assignment selects (dynamic IDs)
+      if (this.currentStep() === 3) {
+        const roleOrgSelect = document.getElementById("roleOrganization_0");
+        const roleRoleSelect = document.getElementById("roleRole_0");
+
+        if (roleOrgSelect || roleRoleSelect) {
+          selectsFound = true;
+        }
+      }
+
+      // Step 4: Check for education selects (dynamic IDs)
+      if (this.currentStep() === 4) {
+        const educationTypeSelect = document.getElementById("educationType_0");
+        const universitySelect = document.getElementById("university_0");
+        const departmentSelect = document.getElementById("department_0");
+
+        if (educationTypeSelect || universitySelect || departmentSelect) {
+          selectsFound = true;
+        }
+      }
+
+      // Initialize all selects if any are found
+      if (selectsFound) {
+        setTimeout(() => {
+          this.metronicInit.initSelect();
+          this.createModalSelectsInitialized = true;
+        }, 0);
+      }
+    }
+
+    // Reset flag when modal is closed
+    if (!this.createModalOpen() && this.createModalSelectsInitialized) {
+      this.createModalSelectsInitialized = false;
+    }
+
+    // Initialize edit modal selects only once when modal is open
+    if (this.editModalOpen() && !this.editModalSelectsInitialized) {
+      const editModalOrganizationId = document.getElementById(
+        "editModalOrganizationId",
+      );
+
+      if (editModalOrganizationId) {
+        setTimeout(() => {
+          this.metronicInit.initSelect();
+          this.editModalSelectsInitialized = true;
+        }, 0);
+      }
+    }
+
+    // Reset flag when modal is closed
+    if (!this.editModalOpen() && this.editModalSelectsInitialized) {
+      this.editModalSelectsInitialized = false;
+    }
   }
 
   loadEmployees() {
@@ -572,6 +668,9 @@ export class UserManagementComponent implements OnInit {
         // Mark current step fields as touched before moving
         this.markStepAsTouched(this.currentStep());
         this.currentStep.set(this.currentStep() + 1);
+
+        // Reset select initialization flag when changing steps
+        this.createModalSelectsInitialized = false;
       }
     }
   }
@@ -579,6 +678,9 @@ export class UserManagementComponent implements OnInit {
   goToPreviousStep() {
     if (this.currentStep() > 1) {
       this.currentStep.set(this.currentStep() - 1);
+
+      // Reset select initialization flag when changing steps
+      this.createModalSelectsInitialized = false;
     }
   }
 
@@ -591,6 +693,10 @@ export class UserManagementComponent implements OnInit {
         }
       }
       this.currentStep.set(step);
+
+      // Reset select initialization flag when changing steps
+      // This ensures selects are re-initialized when returning to a step
+      this.createModalSelectsInitialized = false;
     }
   }
 
@@ -861,6 +967,9 @@ export class UserManagementComponent implements OnInit {
         endDate: null,
       },
     ]);
+
+    // Reset flag to reinitialize selects for the new row
+    this.createModalSelectsInitialized = false;
   }
 
   removeEducation(index: number) {
@@ -869,6 +978,9 @@ export class UserManagementComponent implements OnInit {
       this.createEmployeeForm.education.set(
         currentEducation.filter((_, i) => i !== index),
       );
+
+      // Reset flag to reinitialize selects after removal
+      this.createModalSelectsInitialized = false;
     }
   }
 
@@ -889,6 +1001,9 @@ export class UserManagementComponent implements OnInit {
         roleId: null,
       },
     ]);
+
+    // Reset flag to reinitialize selects for the new row
+    this.createModalSelectsInitialized = false;
   }
 
   removeRole(index: number) {
@@ -897,6 +1012,9 @@ export class UserManagementComponent implements OnInit {
       this.createEmployeeForm.roles.set(
         currentRoles.filter((_, i) => i !== index),
       );
+
+      // Reset flag to reinitialize selects after removal
+      this.createModalSelectsInitialized = false;
     }
   }
 
