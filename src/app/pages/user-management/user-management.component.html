@@ -1081,7 +1081,7 @@
 
         <!-- Step 3: Rol Atama -->
         @if (currentStep() === 3) {
-          <div class="animate-fadeIn flex flex-col h-full">
+          <div class="animate-fadeIn">
             <!-- Table Header & Add Button -->
             <div class="flex items-center justify-between mb-4">
               <h4 class="text-sm font-semibold text-gray-900 dark:text-white">
@@ -1099,7 +1099,7 @@
             </div>
 
             <!-- Table -->
-            <div class="overflow-y-auto max-h-[400px]">
+            <div>
               <table
                 class="table-auto w-full border border-gray-200 dark:border-gray-700"
               >
@@ -1218,7 +1218,7 @@
 
         <!-- Step 4: Eğitim Bilgileri -->
         @if (currentStep() === 4) {
-          <div class="space-y-4 animate-fadeIn max-h-[450px] overflow-y-auto">
+          <div class="space-y-4 animate-fadeIn">
             @for (education of createEmployeeForm.education(); track $index) {
               <div
                 class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-4 bg-gray-50 dark:bg-gray-800/50"
