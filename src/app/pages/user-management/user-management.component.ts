@@ -12,6 +12,7 @@ import { DatepickerDirective } from "../../directives/datepicker.directive";
 import {
   EmployeeService,
   CreateEmployeeWithUserCommand,
+  UpdateEmployeeWithUserCommand,
   UserRoleDto,
   EducationDto,
 } from "../../services/employee.service";
@@ -178,6 +179,7 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
 
   // Wizard current step (1-4)
   currentStep = signal(1);
+  editCurrentStep = signal(1);
 
   // Create Employee Wizard Form
   createEmployeeForm = {
@@ -255,17 +257,31 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
     startDate: signal(false),
   };
 
-  // Edit form
+  // Edit form - Full employee data
   editForm = {
-    id: signal(0),
+    employeeId: signal(""),
+    userId: signal(""),
     firstName: signal(""),
     lastName: signal(""),
     email: signal(""),
     username: signal(""),
     password: signal(""),
     passwordConfirm: signal(""),
+    identityNumber: signal(""),
+    birthDate: signal<string | null>(null),
+    birthPlace: signal(""),
+    workPhone: signal(""),
+    mobilePhone: signal(""),
+    workEmail: signal(""),
+    personalEmail: signal(""),
+    registrationNumber: signal(""),
     organizationId: signal<string | null>(null),
+    dutyId: signal<number | null>(null),
+    titleId: signal<number | null>(null),
+    startDate: signal(""),
     isActive: signal(true),
+    roles: signal<RoleAssignment[]>([]),
+    education: signal<EducationInfo[]>([]),
   };
 
   editFormTouched = {
@@ -275,6 +291,10 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
     username: signal(false),
     password: signal(false),
     passwordConfirm: signal(false),
+    identityNumber: signal(false),
+    organizationId: signal(false),
+    dutyId: signal(false),
+    startDate: signal(false),
   };
 
   private searchTimeout: any;
@@ -510,21 +530,49 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
 
   onEditUser(user: User) {
     this.selectedUser.set(user);
+
     // Parse name into first and last name
     const nameParts = user.fullName.split(" ");
     const firstName = nameParts[0] || "";
     const lastName = nameParts.slice(1).join(" ") || "";
 
-    this.editForm.id.set(0); // Keep as number for now, you may need to adjust based on your edit endpoint
+    // Set basic user data
+    this.editForm.employeeId.set(user.id);
+    this.editForm.userId.set(user.id);
     this.editForm.firstName.set(firstName);
     this.editForm.lastName.set(lastName);
     this.editForm.email.set(user.email || "");
     this.editForm.username.set(user.userName || "");
+    this.editForm.isActive.set(user.isActive);
+
+    // Reset password fields
     this.editForm.password.set("");
     this.editForm.passwordConfirm.set("");
-    this.editForm.organizationId.set(null);
-    this.editForm.isActive.set(user.isActive);
     this.changePassword.set(false);
+
+    // Set additional fields (these will be empty for now, but ready for API data)
+    this.editForm.identityNumber.set("");
+    this.editForm.birthDate.set(null);
+    this.editForm.birthPlace.set("");
+    this.editForm.workPhone.set("");
+    this.editForm.mobilePhone.set("");
+    this.editForm.workEmail.set("");
+    this.editForm.personalEmail.set("");
+    this.editForm.registrationNumber.set("");
+    this.editForm.organizationId.set(null);
+    this.editForm.dutyId.set(null);
+    this.editForm.titleId.set(null);
+    this.editForm.startDate.set("");
+    this.editForm.roles.set([{ organizationId: null, roleId: null }]);
+    this.editForm.education.set([
+      {
+        educationTypeId: null,
+        universityId: null,
+        departmentId: null,
+        startDate: "",
+        endDate: null,
+      },
+    ]);
 
     // Reset touched state
     this.editFormTouched.firstName.set(false);
@@ -533,8 +581,77 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
     this.editFormTouched.username.set(false);
     this.editFormTouched.password.set(false);
     this.editFormTouched.passwordConfirm.set(false);
+    this.editFormTouched.identityNumber.set(false);
+    this.editFormTouched.organizationId.set(false);
+    this.editFormTouched.dutyId.set(false);
+    this.editFormTouched.startDate.set(false);
 
+    this.editCurrentStep.set(1);
     this.editModalOpen.set(true);
+
+    // Fetch full employee data from API
+    this.employeeService.getEmployeeById(user.id).subscribe({
+      next: (response) => {
+        const employee = response.data;
+
+        // Update form with full employee data
+        this.editForm.employeeId.set(employee.employeeId);
+        this.editForm.userId.set(employee.userId);
+        this.editForm.firstName.set(employee.name || "");
+        this.editForm.lastName.set(employee.lastName || "");
+        this.editForm.email.set(employee.email || "");
+        this.editForm.username.set(employee.username || "");
+        this.editForm.identityNumber.set(employee.identityNumber || "");
+        this.editForm.birthDate.set(employee.birthDate || null);
+        this.editForm.birthPlace.set(employee.birthPlace || "");
+        this.editForm.workPhone.set(employee.workPhone || "");
+        this.editForm.mobilePhone.set(employee.mobilePhone || "");
+        this.editForm.workEmail.set(employee.workEmail || "");
+        this.editForm.personalEmail.set(employee.personalEmail || "");
+        this.editForm.registrationNumber.set(employee.registrationNumber || "");
+        this.editForm.organizationId.set(employee.organizationId || null);
+        this.editForm.dutyId.set(employee.dutyId || null);
+        this.editForm.titleId.set(employee.titleId || null);
+        this.editForm.startDate.set(employee.startDate || "");
+        this.editForm.isActive.set(employee.isActive);
+
+        // Set roles
+        if (employee.roles && employee.roles.length > 0) {
+          this.editForm.roles.set(employee.roles);
+        } else {
+          this.editForm.roles.set([{ organizationId: null, roleId: null }]);
+        }
+
+        // Set education (convert EducationDto to EducationInfo)
+        if (employee.education && employee.education.length > 0) {
+          const educationList = employee.education.map((edu: any) => ({
+            educationTypeId: edu.educationTypeId?.toString() || null,
+            universityId: edu.universityId?.toString() || null,
+            departmentId: edu.departmentId?.toString() || null,
+            startDate: edu.startDate || "",
+            endDate: edu.endDate || null,
+          }));
+          this.editForm.education.set(educationList);
+        } else {
+          this.editForm.education.set([
+            {
+              educationTypeId: null,
+              universityId: null,
+              departmentId: null,
+              startDate: "",
+              endDate: null,
+            },
+          ]);
+        }
+
+        // Trigger select initialization after data is loaded
+        this.editModalSelectsInitialized = false;
+      },
+      error: (error) => {
+        console.error("Error fetching employee details:", error);
+        // Modal is already open with basic data, user can still see the form
+      },
+    });
   }
 
   onDeleteUser(user: User) {
@@ -1166,75 +1283,280 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
     this.editModalOpen.set(false);
     this.selectedUser.set(null);
     this.changePassword.set(false);
+    this.editCurrentStep.set(1);
   }
 
-  // Edit form validation
-  shouldShowEditFirstNameError(): boolean {
-    return this.editFormTouched.firstName() && !this.editForm.firstName();
+  // Edit form role management
+  addEditRole(): void {
+    const currentRoles = this.editForm.roles();
+    this.editForm.roles.set([
+      ...currentRoles,
+      { organizationId: null, roleId: null },
+    ]);
+    this.editModalSelectsInitialized = false;
   }
 
-  getEditFirstNameError(): string {
-    if (!this.editForm.firstName()) return "Ad alanı zorunludur";
-    return "";
+  removeEditRole(index: number): void {
+    const currentRoles = this.editForm.roles();
+    if (currentRoles.length > 1) {
+      this.editForm.roles.set(currentRoles.filter((_, i) => i !== index));
+      this.editModalSelectsInitialized = false;
+    }
   }
 
-  shouldShowEditLastNameError(): boolean {
-    return this.editFormTouched.lastName() && !this.editForm.lastName();
+  updateEditRole(index: number, field: keyof RoleAssignment, value: any): void {
+    const currentRoles = this.editForm.roles();
+    const updated = [...currentRoles];
+    updated[index] = { ...updated[index], [field]: value };
+    this.editForm.roles.set(updated);
   }
 
-  getEditLastNameError(): string {
-    if (!this.editForm.lastName()) return "Soyad alanı zorunludur";
-    return "";
+  // Edit form education management
+  addEditEducation(): void {
+    const currentEducation = this.editForm.education();
+    this.editForm.education.set([
+      ...currentEducation,
+      {
+        educationTypeId: null,
+        universityId: null,
+        departmentId: null,
+        startDate: "",
+        endDate: null,
+      },
+    ]);
+    this.editModalSelectsInitialized = false;
   }
 
-  shouldShowEditEmailError(): boolean {
+  removeEditEducation(index: number): void {
+    const currentEducation = this.editForm.education();
+    if (currentEducation.length > 0) {
+      this.editForm.education.set(
+        currentEducation.filter((_, i) => i !== index),
+      );
+      this.editModalSelectsInitialized = false;
+    }
+  }
+
+  updateEditEducation(
+    index: number,
+    field: keyof EducationInfo,
+    value: any,
+  ): void {
+    const currentEducation = this.editForm.education();
+    const updated = [...currentEducation];
+    updated[index] = { ...updated[index], [field]: value };
+    this.editForm.education.set(updated);
+  }
+
+  // Edit Wizard Navigation
+  goToEditNextStep(): void {
+    if (this.editCurrentStep() < 4) {
+      if (this.isEditCurrentStepValid()) {
+        this.markEditStepAsTouched(this.editCurrentStep());
+        this.editCurrentStep.set(this.editCurrentStep() + 1);
+        this.editModalSelectsInitialized = false;
+      }
+    }
+  }
+
+  goToEditPreviousStep(): void {
+    if (this.editCurrentStep() > 1) {
+      this.editCurrentStep.set(this.editCurrentStep() - 1);
+      this.editModalSelectsInitialized = false;
+    }
+  }
+
+  goToEditStep(step: number): void {
+    if (step >= 1 && step <= 4) {
+      if (step > this.editCurrentStep()) {
+        for (let i = 1; i < step; i++) {
+          this.markEditStepAsTouched(i);
+        }
+      }
+      this.editCurrentStep.set(step);
+      this.editModalSelectsInitialized = false;
+    }
+  }
+
+  markEditStepAsTouched(step: number): void {
+    switch (step) {
+      case 1:
+        this.editFormTouched.firstName.set(true);
+        this.editFormTouched.lastName.set(true);
+        this.editFormTouched.email.set(true);
+        this.editFormTouched.username.set(true);
+        break;
+      case 2:
+        this.editFormTouched.identityNumber.set(true);
+        this.editFormTouched.organizationId.set(true);
+        this.editFormTouched.dutyId.set(true);
+        this.editFormTouched.startDate.set(true);
+        break;
+      case 3:
+        break;
+      case 4:
+        break;
+    }
+  }
+
+  getEditStepStatus(stepNumber: number): "completed" | "error" | "pending" {
+    if (stepNumber > this.editCurrentStep()) {
+      return "pending";
+    }
+
+    switch (stepNumber) {
+      case 1:
+        const step1Visited =
+          this.editFormTouched.firstName() ||
+          this.editFormTouched.lastName() ||
+          this.editFormTouched.email() ||
+          this.editFormTouched.username();
+
+        if (!step1Visited && stepNumber < this.editCurrentStep()) {
+          this.markEditStepAsTouched(1);
+        }
+
+        return this.isEditStep1Valid()
+          ? "completed"
+          : step1Visited || stepNumber < this.editCurrentStep()
+            ? "error"
+            : "pending";
+
+      case 2:
+        const step2Visited =
+          this.editFormTouched.identityNumber() ||
+          this.editFormTouched.organizationId() ||
+          this.editFormTouched.dutyId() ||
+          this.editFormTouched.startDate();
+
+        if (!step2Visited && stepNumber < this.editCurrentStep()) {
+          this.markEditStepAsTouched(2);
+        }
+
+        return this.isEditStep2Valid()
+          ? "completed"
+          : step2Visited || stepNumber < this.editCurrentStep()
+            ? "error"
+            : "pending";
+
+      case 3:
+        if (stepNumber < this.editCurrentStep()) {
+          return this.isEditStep3Valid() ? "completed" : "error";
+        }
+        return "pending";
+
+      case 4:
+        return stepNumber <= this.editCurrentStep() ? "completed" : "pending";
+
+      default:
+        return "pending";
+    }
+  }
+
+  isEditCurrentStepValid(): boolean {
+    switch (this.editCurrentStep()) {
+      case 1:
+        return this.isEditStep1Valid();
+      case 2:
+        return this.isEditStep2Valid();
+      case 3:
+        return this.isEditStep3Valid();
+      case 4:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  isEditStep1Valid(): boolean {
+    const username = this.editForm.username();
+    const email = this.editForm.email();
+    const firstName = this.editForm.firstName();
+    const lastName = this.editForm.lastName();
+
+    return (
+      !!username &&
+      !!email &&
+      this.isValidEmail(email) &&
+      !!firstName &&
+      !!lastName
+    );
+  }
+
+  isEditStep2Valid(): boolean {
+    const tc = this.editForm.identityNumber();
+    return (
+      !!tc &&
+      tc.length === 11 &&
+      !!this.editForm.organizationId() &&
+      !!this.editForm.dutyId() &&
+      !!this.editForm.startDate()
+    );
+  }
+
+  isEditStep3Valid(): boolean {
+    const roles = this.editForm.roles();
+    return roles.every((role) => !!role.organizationId && !!role.roleId);
+  }
+
+  // Edit Step 1 validation helpers
+  shouldShowEditStep1UsernameError(): boolean {
+    return this.editFormTouched.username() && !this.editForm.username();
+  }
+
+  shouldShowEditStep1EmailError(): boolean {
     return (
       this.editFormTouched.email() &&
       (!this.editForm.email() || !this.isValidEmail(this.editForm.email()))
     );
   }
 
-  getEditEmailError(): string {
+  getEditStep1EmailError(): string {
     if (!this.editForm.email()) return "E-posta alanı zorunludur";
     if (!this.isValidEmail(this.editForm.email()))
       return "Geçerli bir e-posta adresi giriniz";
     return "";
   }
 
-  shouldShowEditUsernameError(): boolean {
-    return this.editFormTouched.username() && !this.editForm.username();
+  shouldShowEditStep1FirstNameError(): boolean {
+    return this.editFormTouched.firstName() && !this.editForm.firstName();
   }
 
-  getEditUsernameError(): string {
-    if (!this.editForm.username()) return "Kullanıcı adı alanı zorunludur";
-    return "";
+  shouldShowEditStep1LastNameError(): boolean {
+    return this.editFormTouched.lastName() && !this.editForm.lastName();
   }
 
-  shouldShowEditPasswordError(): boolean {
+  shouldShowEditStep1NameError(): boolean {
     return (
-      this.changePassword() &&
-      this.editFormTouched.password() &&
-      (!this.editForm.password() || this.editForm.password().length < 6)
+      this.shouldShowEditStep1FirstNameError() ||
+      this.shouldShowEditStep1LastNameError()
     );
   }
 
-  getEditPasswordError(): string {
+  shouldShowEditStep1PasswordError(): boolean {
+    return (
+      this.changePassword() &&
+      this.editFormTouched.password() &&
+      !this.editForm.password()
+    );
+  }
+
+  getEditStep1PasswordError(): string {
     if (!this.editForm.password()) return "Şifre alanı zorunludur";
     if (this.editForm.password().length < 6)
       return "Şifre en az 6 karakter olmalıdır";
     return "";
   }
 
-  shouldShowEditPasswordConfirmError(): boolean {
+  shouldShowEditStep1PasswordConfirmError(): boolean {
     return (
       this.changePassword() &&
       this.editFormTouched.passwordConfirm() &&
-      (!this.editForm.passwordConfirm() ||
-        this.editForm.password() !== this.editForm.passwordConfirm())
+      this.editForm.password() !== this.editForm.passwordConfirm()
     );
   }
 
-  getEditPasswordConfirmError(): string {
+  getEditStep1PasswordConfirmError(): string {
     if (!this.editForm.passwordConfirm())
       return "Şifre tekrar alanı zorunludur";
     if (this.editForm.password() !== this.editForm.passwordConfirm())
@@ -1242,25 +1564,45 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
     return "";
   }
 
-  isEditFormValid(): boolean {
-    const basicValidation =
-      !!this.editForm.firstName() &&
-      !!this.editForm.lastName() &&
-      !!this.editForm.email() &&
-      this.isValidEmail(this.editForm.email()) &&
-      !!this.editForm.username();
-
-    if (!this.changePassword()) {
-      return basicValidation;
-    }
-
+  // Edit Step 2 validation helpers
+  shouldShowEditStep2IdentityError(): boolean {
     return (
-      basicValidation &&
-      !!this.editForm.password() &&
-      this.editForm.password().length >= 6 &&
-      !!this.editForm.passwordConfirm() &&
-      this.editForm.password() === this.editForm.passwordConfirm()
+      this.editFormTouched.identityNumber() && !this.editForm.identityNumber()
     );
+  }
+
+  getEditStep2IdentityError(): string {
+    const tc = this.editForm.identityNumber();
+    if (!tc) return "TC Kimlik Numarası zorunludur";
+    if (tc.length !== 11) return "TC Kimlik Numarası 11 haneli olmalıdır";
+    return "";
+  }
+
+  shouldShowEditStep2OrganizationError(): boolean {
+    return (
+      this.editFormTouched.organizationId() && !this.editForm.organizationId()
+    );
+  }
+
+  shouldShowEditStep2DutyError(): boolean {
+    return this.editFormTouched.dutyId() && !this.editForm.dutyId();
+  }
+
+  shouldShowEditStep2StartDateError(): boolean {
+    return this.editFormTouched.startDate() && !this.editForm.startDate();
+  }
+
+  isEditFormValid(): boolean {
+    // Step 1 validation
+    if (!this.isEditStep1Valid()) return false;
+
+    // Step 2 validation
+    if (!this.isEditStep2Valid()) return false;
+
+    // Step 3 validation (roles can be empty)
+    if (!this.isEditStep3Valid()) return false;
+
+    return true;
   }
 
   submitEditForm() {
@@ -1281,22 +1623,59 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
 
     this.editFormSubmitting.set(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Updating user:", {
-        id: this.editForm.id(),
-        firstName: this.editForm.firstName(),
-        lastName: this.editForm.lastName(),
-        email: this.editForm.email(),
-        username: this.editForm.username(),
-        organizationId: this.editForm.organizationId(),
-        isActive: this.editForm.isActive(),
-        changePassword: this.changePassword(),
-      });
+    // Prepare update command
+    const command: UpdateEmployeeWithUserCommand = {
+      employeeId: this.editForm.employeeId(),
+      userId: this.editForm.userId(),
+      username: this.editForm.username() || null,
+      email: this.editForm.email() || null,
+      name: this.editForm.firstName() || null,
+      lastName: this.editForm.lastName() || null,
+      workPhone: this.editForm.workPhone() || null,
+      mobilePhone: this.editForm.mobilePhone() || null,
+      birthDate: this.editForm.birthDate()
+        ? new Date(this.editForm.birthDate()!)
+        : null,
+      birthPlace: this.editForm.birthPlace() || null,
+      registrationNumber: this.editForm.registrationNumber() || null,
+      organizationId: this.editForm.organizationId() || null,
+      dutyId: this.editForm.dutyId() || null,
+      titleId: this.editForm.titleId() || null,
+      workEmail: this.editForm.workEmail() || null,
+      personalEmail: this.editForm.personalEmail() || null,
+      roles: this.editForm.roles().map((r) => ({
+        organizationId: r.organizationId!,
+        roleId: r.roleId!,
+      })),
+      education: this.editForm.education().map((e) => ({
+        educationTypeId: e.educationTypeId
+          ? parseInt(e.educationTypeId as any)
+          : null,
+        universityId: e.universityId ? parseInt(e.universityId as any) : null,
+        departmentId: e.departmentId ? parseInt(e.departmentId as any) : null,
+        startDate: e.startDate ? new Date(e.startDate) : new Date(),
+        endDate: e.endDate ? new Date(e.endDate) : null,
+      })),
+      isActive: this.editForm.isActive(),
+    };
 
-      this.editFormSubmitting.set(false);
-      this.closeEditModal();
-    }, 1000);
+    this.employeeService
+      .updateEmployeeWithUser(this.editForm.employeeId(), command)
+      .subscribe({
+        next: () => {
+          this.notificationService.success(
+            "Kullanıcı başarıyla güncellendi!",
+            "Başarılı",
+          );
+          this.editFormSubmitting.set(false);
+          this.closeEditModal();
+          this.refreshEmployeeList();
+        },
+        error: (error) => {
+          console.error("Error updating user:", error);
+          this.editFormSubmitting.set(false);
+        },
+      });
   }
 
   // Delete Modal methods

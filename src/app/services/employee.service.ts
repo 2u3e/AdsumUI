@@ -103,6 +103,30 @@ export interface EmployeeListItem {
   duty: string | null;
 }
 
+export interface EmployeeDetailResponse {
+  employeeId: string;
+  userId: string;
+  username: string;
+  email: string;
+  name: string;
+  lastName: string;
+  workPhone?: string | null;
+  mobilePhone?: string | null;
+  identityNumber?: string | null;
+  birthDate?: string | null;
+  birthPlace?: string | null;
+  registrationNumber?: string | null;
+  organizationId?: string | null;
+  dutyId?: number | null;
+  titleId?: number | null;
+  startDate?: string | null;
+  workEmail?: string | null;
+  personalEmail?: string | null;
+  roles?: UserRoleDto[] | null;
+  education?: EducationDto[] | null;
+  isActive: boolean;
+}
+
 export interface PaginationMeta {
   page: number;
   pageSize: number;
@@ -163,6 +187,14 @@ export class EmployeeService {
     return this.http.put<ApiResponse<UpdateEmployeeWithUserResponse>>(
       `${this.apiUrl}/${employeeId}/with-user`,
       command,
+    );
+  }
+
+  getEmployeeById(
+    employeeId: string,
+  ): Observable<ApiResponse<EmployeeDetailResponse>> {
+    return this.http.get<ApiResponse<EmployeeDetailResponse>>(
+      `${environment.apiUrl}/Organizations/${employeeId}`,
     );
   }
 }

@@ -1489,6 +1489,7 @@
 }
 
 <!-- Edit Modal -->
+
 @if (editModalOpen()) {
   <!-- Modal Backdrop -->
   <div
@@ -1499,15 +1500,16 @@
   <!-- Modal Content -->
   <div class="fixed inset-0 z-[101] flex items-center justify-center p-4">
     <div
-      class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full relative max-h-[90vh] overflow-y-auto"
+      class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-6xl w-full relative flex flex-col"
+      style="min-height: 700px; max-height: 700px"
       (click)="$event.stopPropagation()"
     >
       <!-- Header -->
       <div
-        class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10"
+        class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700"
       >
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-          Kullanıcı Düzenle
+          Yeni Kullanıcı Kaydı
         </h3>
         <button
           type="button"
@@ -1519,310 +1521,1246 @@
         </button>
       </div>
 
-      <!-- Form Content -->
-      <div class="p-6 space-y-4">
-        <!-- 1. Satır: Ad ve Soyad -->
-        <div class="grid grid-cols-2 gap-4">
-          <!-- First Name Field -->
-          <div>
-            <label
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+      <!-- Stepper Navigation -->
+      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+        <div class="flex items-start justify-between gap-2">
+          <!-- Step 1: Kullanıcı Hesabı -->
+          <div
+            class="flex flex-col items-center gap-2 flex-1 cursor-pointer"
+            (click)="goToEditStep(1)"
+          >
+            <div
+              class="shrink-0 rounded-full size-10 flex items-center justify-center text-sm font-semibold transition-all"
+              [ngClass]="{
+                'bg-primary text-primary-foreground': editCurrentStep() === 1,
+                'bg-green-500 text-white':
+                  getEditStepStatus(1) === 'completed' &&
+                  editCurrentStep() !== 1,
+                'bg-red-500 text-white':
+                  getEditStepStatus(1) === 'error' && editCurrentStep() !== 1,
+                'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400':
+                  getEditStepStatus(1) === 'pending' && editCurrentStep() !== 1,
+              }"
             >
-              Ad
-              <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              class="kt-input w-full"
-              [class.!border-red-500]="shouldShowEditFirstNameError()"
-              placeholder="Ad"
-              [ngModel]="editForm.firstName()"
-              (ngModelChange)="editForm.firstName.set($event)"
-              (blur)="editFormTouched.firstName.set(true)"
-              [ngModelOptions]="{ standalone: true }"
-              [disabled]="editFormSubmitting()"
-              maxlength="100"
-            />
-            @if (shouldShowEditFirstNameError()) {
-              <div class="flex items-center gap-1.5 mt-1.5">
-                <i class="ki-filled ki-information text-sm text-red-500"></i>
-                <span class="text-xs text-red-600 dark:text-red-400">
-                  {{ getEditFirstNameError() }}
-                </span>
-              </div>
-            }
-          </div>
-
-          <!-- Last Name Field -->
-          <div>
-            <label
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Soyad
-              <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              class="kt-input w-full"
-              [class.!border-red-500]="shouldShowEditLastNameError()"
-              placeholder="Soyad"
-              [ngModel]="editForm.lastName()"
-              (ngModelChange)="editForm.lastName.set($event)"
-              (blur)="editFormTouched.lastName.set(true)"
-              [ngModelOptions]="{ standalone: true }"
-              [disabled]="editFormSubmitting()"
-              maxlength="100"
-            />
-            @if (shouldShowEditLastNameError()) {
-              <div class="flex items-center gap-1.5 mt-1.5">
-                <i class="ki-filled ki-information text-sm text-red-500"></i>
-                <span class="text-xs text-red-600 dark:text-red-400">
-                  {{ getEditLastNameError() }}
-                </span>
-              </div>
-            }
-          </div>
-        </div>
-
-        <!-- 2. Satır: Email ve Kullanıcı Adı -->
-        <div class="grid grid-cols-2 gap-4">
-          <!-- Email Field -->
-          <div>
-            <label
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
-              E-posta
-              <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="email"
-              class="kt-input w-full"
-              [class.!border-red-500]="shouldShowEditEmailError()"
-              placeholder="ornek@email.com"
-              [ngModel]="editForm.email()"
-              (ngModelChange)="editForm.email.set($event)"
-              (blur)="editFormTouched.email.set(true)"
-              [ngModelOptions]="{ standalone: true }"
-              [disabled]="editFormSubmitting()"
-              maxlength="200"
-            />
-            @if (shouldShowEditEmailError()) {
-              <div class="flex items-center gap-1.5 mt-1.5">
-                <i class="ki-filled ki-information text-sm text-red-500"></i>
-                <span class="text-xs text-red-600 dark:text-red-400">
-                  {{ getEditEmailError() }}
-                </span>
-              </div>
-            }
-          </div>
-
-          <!-- Username Field -->
-          <div>
-            <label
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Kullanıcı Adı
-              <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              class="kt-input w-full"
-              [class.!border-red-500]="shouldShowEditUsernameError()"
-              placeholder="Kullanıcı adı"
-              [ngModel]="editForm.username()"
-              (ngModelChange)="editForm.username.set($event)"
-              (blur)="editFormTouched.username.set(true)"
-              [ngModelOptions]="{ standalone: true }"
-              [disabled]="editFormSubmitting()"
-              maxlength="100"
-            />
-            @if (shouldShowEditUsernameError()) {
-              <div class="flex items-center gap-1.5 mt-1.5">
-                <i class="ki-filled ki-information text-sm text-red-500"></i>
-                <span class="text-xs text-red-600 dark:text-red-400">
-                  {{ getEditUsernameError() }}
-                </span>
-              </div>
-            }
-          </div>
-        </div>
-
-        <!-- 3. Satır: Birim ve Durum -->
-        <div class="grid grid-cols-2 gap-4">
-          <!-- Organization Field -->
-          <div>
-            <label
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Birim
-            </label>
-            <select
-              id="editModalOrganizationId"
-              class="kt-select w-full text-sm"
-              data-kt-select="true"
-              data-kt-select-placeholder="Birim seçiniz"
-              data-kt-select-enable-search="true"
-              data-kt-select-search-placeholder="Ara..."
-              [attr.data-kt-select-config]="
-                '{&quot;optionsClass&quot;: &quot;kt-scrollable overflow-auto max-h-[250px]&quot;}'
-              "
-              [ngModel]="editForm.organizationId() ?? ''"
-              (ngModelChange)="
-                editForm.organizationId.set($event !== '' ? $event : null)
-              "
-              [ngModelOptions]="{ standalone: true }"
-              [disabled]="editFormSubmitting()"
-            >
-              <option value=""></option>
-              <!-- Organizations will be loaded here -->
-            </select>
-          </div>
-
-          <!-- Is Active Switch -->
-          <div>
-            <label
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Durum
-            </label>
-            <div class="flex items-center gap-2 mt-1">
-              <input
-                type="checkbox"
-                class="kt-switch"
-                id="editIsActive"
-                [ngModel]="editForm.isActive()"
-                (ngModelChange)="editForm.isActive.set($event)"
-                [ngModelOptions]="{ standalone: true }"
-                [disabled]="editFormSubmitting()"
-              />
-              <label
-                for="editIsActive"
-                class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+              @if (
+                getEditStepStatus(1) === "completed" && editCurrentStep() !== 1
+              ) {
+                <i class="ki-filled ki-check text-lg" style="color: white"></i>
+              } @else if (
+                getEditStepStatus(1) === "error" && editCurrentStep() !== 1
+              ) {
+                <i class="ki-filled ki-cross text-lg" style="color: white"></i>
+              } @else {
+                <span>1</span>
+              }
+            </div>
+            <div class="flex flex-col items-center">
+              <span
+                class="text-sm font-semibold text-center transition-all"
+                [ngClass]="{
+                  'text-primary': editCurrentStep() === 1,
+                  'text-green-600 dark:text-green-400':
+                    getEditStepStatus(1) === 'completed' &&
+                    editCurrentStep() !== 1,
+                  'text-red-600 dark:text-red-400':
+                    getEditStepStatus(1) === 'error' && editCurrentStep() !== 1,
+                  'text-gray-900 dark:text-white':
+                    getEditStepStatus(1) === 'pending' &&
+                    editCurrentStep() !== 1,
+                }"
               >
-                {{ editForm.isActive() ? "Aktif" : "Pasif" }}
-              </label>
+                Kullanıcı Hesabı
+              </span>
             </div>
           </div>
-        </div>
 
-        <!-- Şifre Değiştirme Bölümü -->
-        <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
-          <div class="flex items-center gap-2 mb-4">
-            <input
-              type="checkbox"
-              class="kt-checkbox"
-              id="changePassword"
-              [ngModel]="changePassword()"
-              (ngModelChange)="changePassword.set($event)"
-              [ngModelOptions]="{ standalone: true }"
-            />
-            <label
-              for="changePassword"
-              class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+          <div class="h-px bg-gray-300 dark:bg-gray-600 flex-1 mt-5"></div>
+
+          <!-- Step 2: Kişisel ve Birim Bilgileri -->
+          <div
+            class="flex flex-col items-center gap-2 flex-1 cursor-pointer"
+            (click)="goToEditStep(2)"
+          >
+            <div
+              class="shrink-0 rounded-full size-10 flex items-center justify-center text-sm font-semibold transition-all"
+              [ngClass]="{
+                'bg-primary text-primary-foreground': editCurrentStep() === 2,
+                'bg-green-500 text-white':
+                  getEditStepStatus(2) === 'completed' &&
+                  editCurrentStep() !== 2,
+                'bg-red-500 text-white':
+                  getEditStepStatus(2) === 'error' && editCurrentStep() !== 2,
+                'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400':
+                  getEditStepStatus(2) === 'pending' && editCurrentStep() !== 2,
+              }"
             >
-              Şifre Değiştir
-            </label>
+              @if (
+                getEditStepStatus(2) === "completed" && editCurrentStep() !== 2
+              ) {
+                <i class="ki-filled ki-check text-lg" style="color: white"></i>
+              } @else if (
+                getEditStepStatus(2) === "error" && editCurrentStep() !== 2
+              ) {
+                <i class="ki-filled ki-cross text-lg" style="color: white"></i>
+              } @else {
+                <span>2</span>
+              }
+            </div>
+            <div class="flex flex-col items-center">
+              <span
+                class="text-sm font-semibold text-center transition-all"
+                [ngClass]="{
+                  'text-primary': editCurrentStep() === 2,
+                  'text-green-600 dark:text-green-400':
+                    getEditStepStatus(2) === 'completed' &&
+                    editCurrentStep() !== 2,
+                  'text-red-600 dark:text-red-400':
+                    getEditStepStatus(2) === 'error' && editCurrentStep() !== 2,
+                  'text-gray-900 dark:text-white':
+                    getEditStepStatus(2) === 'pending' &&
+                    editCurrentStep() !== 2,
+                }"
+              >
+                Kişisel ve Birim Bilgileri
+              </span>
+            </div>
           </div>
 
-          @if (changePassword()) {
-            <div class="grid grid-cols-2 gap-4">
-              <!-- New Password Field -->
-              <div>
-                <label
-                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                >
-                  Yeni Şifre
-                  <span class="text-red-500">*</span>
-                </label>
-                <input
-                  type="password"
-                  class="kt-input w-full"
-                  [class.!border-red-500]="shouldShowEditPasswordError()"
-                  placeholder="Yeni şifre"
-                  [ngModel]="editForm.password()"
-                  (ngModelChange)="editForm.password.set($event)"
-                  (blur)="editFormTouched.password.set(true)"
-                  [ngModelOptions]="{ standalone: true }"
-                  [disabled]="editFormSubmitting()"
-                  maxlength="100"
-                />
-                @if (shouldShowEditPasswordError()) {
-                  <div class="flex items-center gap-1.5 mt-1.5">
-                    <i
-                      class="ki-filled ki-information text-sm text-red-500"
-                    ></i>
-                    <span class="text-xs text-red-600 dark:text-red-400">
-                      {{ getEditPasswordError() }}
-                    </span>
-                  </div>
-                }
-              </div>
+          <div class="h-px bg-gray-300 dark:bg-gray-600 flex-1 mt-5"></div>
 
-              <!-- Password Confirm Field -->
-              <div>
-                <label
-                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                >
-                  Yeni Şifre Tekrar
-                  <span class="text-red-500">*</span>
-                </label>
-                <input
-                  type="password"
-                  class="kt-input w-full"
-                  [class.!border-red-500]="shouldShowEditPasswordConfirmError()"
-                  placeholder="Yeni şifre tekrar"
-                  [ngModel]="editForm.passwordConfirm()"
-                  (ngModelChange)="editForm.passwordConfirm.set($event)"
-                  (blur)="editFormTouched.passwordConfirm.set(true)"
-                  [ngModelOptions]="{ standalone: true }"
-                  [disabled]="editFormSubmitting()"
-                  maxlength="100"
-                />
-                @if (shouldShowEditPasswordConfirmError()) {
-                  <div class="flex items-center gap-1.5 mt-1.5">
-                    <i
-                      class="ki-filled ki-information text-sm text-red-500"
-                    ></i>
-                    <span class="text-xs text-red-600 dark:text-red-400">
-                      {{ getEditPasswordConfirmError() }}
-                    </span>
-                  </div>
-                }
-              </div>
+          <!-- Step 3: Rol Atama -->
+          <div
+            class="flex flex-col items-center gap-2 flex-1 cursor-pointer"
+            (click)="goToEditStep(3)"
+          >
+            <div
+              class="shrink-0 rounded-full size-10 flex items-center justify-center text-sm font-semibold transition-all"
+              [ngClass]="{
+                'bg-primary text-primary-foreground': editCurrentStep() === 3,
+                'bg-green-500 text-white':
+                  getEditStepStatus(3) === 'completed' &&
+                  editCurrentStep() !== 3,
+                'bg-red-500 text-white':
+                  getEditStepStatus(3) === 'error' && editCurrentStep() !== 3,
+                'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400':
+                  getEditStepStatus(3) === 'pending' && editCurrentStep() !== 3,
+              }"
+            >
+              @if (
+                getEditStepStatus(3) === "completed" && editCurrentStep() !== 3
+              ) {
+                <i class="ki-filled ki-check text-lg" style="color: white"></i>
+              } @else if (
+                getEditStepStatus(3) === "error" && editCurrentStep() !== 3
+              ) {
+                <i class="ki-filled ki-cross text-lg" style="color: white"></i>
+              } @else {
+                <span>3</span>
+              }
             </div>
-          }
+            <div class="flex flex-col items-center">
+              <span
+                class="text-sm font-semibold text-center transition-all"
+                [ngClass]="{
+                  'text-primary': editCurrentStep() === 3,
+                  'text-green-600 dark:text-green-400':
+                    getEditStepStatus(3) === 'completed' &&
+                    editCurrentStep() !== 3,
+                  'text-red-600 dark:text-red-400':
+                    getEditStepStatus(3) === 'error' && editCurrentStep() !== 3,
+                  'text-gray-900 dark:text-white':
+                    getEditStepStatus(3) === 'pending' &&
+                    editCurrentStep() !== 3,
+                }"
+              >
+                Rol Atama
+              </span>
+            </div>
+          </div>
+
+          <div class="h-px bg-gray-300 dark:bg-gray-600 flex-1 mt-5"></div>
+
+          <!-- Step 4: Eğitim -->
+          <div
+            class="flex flex-col items-center gap-2 flex-1 cursor-pointer"
+            (click)="goToEditStep(4)"
+          >
+            <div
+              class="shrink-0 rounded-full size-10 flex items-center justify-center text-sm font-semibold transition-all"
+              [ngClass]="{
+                'bg-primary text-primary-foreground': editCurrentStep() === 4,
+                'bg-green-500 text-white':
+                  getEditStepStatus(4) === 'completed' &&
+                  editCurrentStep() !== 4,
+                'bg-red-500 text-white':
+                  getEditStepStatus(4) === 'error' && editCurrentStep() !== 4,
+                'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400':
+                  getEditStepStatus(4) === 'pending' && editCurrentStep() !== 4,
+              }"
+            >
+              @if (
+                getEditStepStatus(4) === "completed" && editCurrentStep() !== 4
+              ) {
+                <i class="ki-filled ki-check text-lg" style="color: white"></i>
+              } @else if (
+                getEditStepStatus(4) === "error" && editCurrentStep() !== 4
+              ) {
+                <i class="ki-filled ki-cross text-lg" style="color: white"></i>
+              } @else {
+                <span>4</span>
+              }
+            </div>
+            <div class="flex flex-col items-center">
+              <span
+                class="text-sm font-semibold text-center transition-all"
+                [ngClass]="{
+                  'text-primary': editCurrentStep() === 4,
+                  'text-green-600 dark:text-green-400':
+                    getEditStepStatus(4) === 'completed' &&
+                    editCurrentStep() !== 4,
+                  'text-red-600 dark:text-red-400':
+                    getEditStepStatus(4) === 'error' && editCurrentStep() !== 4,
+                  'text-gray-900 dark:text-white':
+                    getEditStepStatus(4) === 'pending' &&
+                    editCurrentStep() !== 4,
+                }"
+              >
+                Eğitim
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Footer Actions -->
+      <!-- Form Content - Scrollable with smooth transitions -->
+      <div class="flex-1 overflow-y-auto px-6 py-6">
+        <!-- Step 1: Kullanıcı Hesabı ve Profil -->
+        @if (editCurrentStep() === 1) {
+          <div class="animate-fadeIn">
+            <!-- 2-Column Layout: Photo Left (narrower), Form Fields Right (wider) -->
+            <div class="flex gap-6">
+              <!-- LEFT COLUMN: Profile Photo (narrower, fixed width) -->
+              <div class="flex-shrink-0" style="width: 180px">
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 text-center"
+                >
+                  Profil Fotoğrafı
+                </label>
+
+                <!-- Circular Photo Preview -->
+                <div class="flex flex-col items-center gap-3">
+                  @if (!createEmployeeForm.profileImage.imagePreview()) {
+                    <div
+                      class="size-32 rounded-full border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center bg-gray-50 dark:bg-gray-700"
+                    >
+                      <i class="ki-filled ki-user text-4xl text-gray-400"></i>
+                    </div>
+                  } @else {
+                    <img
+                      [src]="createEmployeeForm.profileImage.imagePreview()"
+                      alt="Profil Fotoğrafı"
+                      class="size-32 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
+                    />
+                  }
+
+                  <!-- Upload/Remove Buttons -->
+                  <div class="flex flex-col gap-2 w-full">
+                    @if (!createEmployeeForm.profileImage.imagePreview()) {
+                      <label
+                        class="kt-btn kt-btn-sm kt-btn-light w-full cursor-pointer"
+                      >
+                        <i class="ki-filled ki-file-up text-sm"></i>
+                        Yükle
+                        <input
+                          type="file"
+                          class="hidden"
+                          accept="image/*"
+                          (change)="onImageSelected($event)"
+                          [disabled]="editFormSubmitting()"
+                        />
+                      </label>
+                    } @else {
+                      <button
+                        type="button"
+                        class="kt-btn kt-btn-sm kt-btn-light-danger w-full"
+                        (click)="removeImage()"
+                        [disabled]="editFormSubmitting()"
+                      >
+                        <i class="ki-filled ki-trash text-sm"></i>
+                        Kaldır
+                      </button>
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <!-- RIGHT COLUMN: Form Fields (wider, flex-1) -->
+              <div class="flex-1 space-y-4">
+                <!-- Kullanıcı Adı ve E-posta - Grid 2 Columns -->
+                <div class="grid grid-cols-2 gap-4">
+                  <!-- Kullanıcı Adı -->
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      Kullanıcı Adı
+                      <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      class="kt-input w-full"
+                      [class.!border-red-500]="
+                        shouldShowEditStep1UsernameError()
+                      "
+                      placeholder="kullaniciadi"
+                      [ngModel]="createEmployeeForm.userAccount.username()"
+                      (ngModelChange)="
+                        createEmployeeForm.userAccount.username.set($event)
+                      "
+                      (blur)="step1Touched.username.set(true)"
+                      [ngModelOptions]="{ standalone: true }"
+                      [disabled]="editFormSubmitting()"
+                      maxlength="100"
+                    />
+                    @if (shouldShowEditStep1UsernameError()) {
+                      <div class="flex items-center gap-1.5 mt-1.5">
+                        <i
+                          class="ki-filled ki-information text-sm text-red-500"
+                        ></i>
+                        <span class="text-xs text-red-600 dark:text-red-400">
+                          Kullanıcı adı zorunludur
+                        </span>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- E-posta -->
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      E-posta
+                      <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      class="kt-input w-full"
+                      [class.!border-red-500]="shouldShowEditStep1EmailError()"
+                      placeholder="ornek@email.com"
+                      [ngModel]="createEmployeeForm.userAccount.email()"
+                      (ngModelChange)="
+                        createEmployeeForm.userAccount.email.set($event)
+                      "
+                      (blur)="step1Touched.email.set(true)"
+                      [ngModelOptions]="{ standalone: true }"
+                      [disabled]="editFormSubmitting()"
+                      maxlength="200"
+                    />
+                    @if (shouldShowEditStep1EmailError()) {
+                      <div class="flex items-center gap-1.5 mt-1.5">
+                        <i
+                          class="ki-filled ki-information text-sm text-red-500"
+                        ></i>
+                        <span class="text-xs text-red-600 dark:text-red-400">
+                          {{ getEditStep1EmailError() }}
+                        </span>
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <!-- Ad ve Soyad - Grid 2 Columns -->
+                <div class="grid grid-cols-2 gap-4">
+                  <!-- Ad -->
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      Ad
+                      <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      class="kt-input w-full"
+                      [class.!border-red-500]="shouldShowEditStep1NameError()"
+                      placeholder="Ad"
+                      [ngModel]="createEmployeeForm.name()"
+                      (ngModelChange)="createEmployeeForm.name.set($event)"
+                      (blur)="step1Touched.name.set(true)"
+                      [ngModelOptions]="{ standalone: true }"
+                      [disabled]="editFormSubmitting()"
+                      maxlength="100"
+                    />
+                    @if (shouldShowEditStep1NameError()) {
+                      <div class="flex items-center gap-1.5 mt-1.5">
+                        <i
+                          class="ki-filled ki-information text-sm text-red-500"
+                        ></i>
+                        <span class="text-xs text-red-600 dark:text-red-400">
+                          Ad alanı zorunludur
+                        </span>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Soyad -->
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      Soyad
+                      <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      class="kt-input w-full"
+                      [class.!border-red-500]="
+                        shouldShowEditStep1LastNameError()
+                      "
+                      placeholder="Soyad"
+                      [ngModel]="createEmployeeForm.lastName()"
+                      (ngModelChange)="createEmployeeForm.lastName.set($event)"
+                      (blur)="step1Touched.lastName.set(true)"
+                      [ngModelOptions]="{ standalone: true }"
+                      [disabled]="editFormSubmitting()"
+                      maxlength="100"
+                    />
+                    @if (shouldShowEditStep1LastNameError()) {
+                      <div class="flex items-center gap-1.5 mt-1.5">
+                        <i
+                          class="ki-filled ki-information text-sm text-red-500"
+                        ></i>
+                        <span class="text-xs text-red-600 dark:text-red-400">
+                          Soyad alanı zorunludur
+                        </span>
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <!-- Şifre Değiştirme Checkbox -->
+                <div class="flex items-center gap-2 mb-4">
+                  <input
+                    type="checkbox"
+                    class="kt-checkbox"
+                    id="changePasswordEdit"
+                    [ngModel]="changePassword()"
+                    (ngModelChange)="changePassword.set($event)"
+                    [ngModelOptions]="{ standalone: true }"
+                  />
+                  <label
+                    for="changePasswordEdit"
+                    class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+                  >
+                    Şifre Değiştir
+                  </label>
+                </div>
+
+                @if (changePassword()) {
+                  <!-- Şifre ve Şifre Tekrar - Grid 2 Columns -->
+                  <div class="grid grid-cols-2 gap-4">
+                    <!-- Şifre -->
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                      >
+                        Yeni Şifre
+                        <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="password"
+                        class="kt-input w-full"
+                        [class.!border-red-500]="
+                          shouldShowEditStep1PasswordError()
+                        "
+                        placeholder="En az 6 karakter"
+                        [ngModel]="editForm.password()"
+                        (ngModelChange)="editForm.password.set($event)"
+                        (blur)="editFormTouched.password.set(true)"
+                        [ngModelOptions]="{ standalone: true }"
+                        [disabled]="editFormSubmitting()"
+                        maxlength="100"
+                      />
+                      @if (shouldShowEditStep1PasswordError()) {
+                        <div class="flex items-center gap-1.5 mt-1.5">
+                          <i
+                            class="ki-filled ki-information text-sm text-red-500"
+                          ></i>
+                          <span class="text-xs text-red-600 dark:text-red-400">
+                            {{ getEditStep1PasswordError() }}
+                          </span>
+                        </div>
+                      }
+                    </div>
+
+                    <!-- Şifre Tekrar -->
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                      >
+                        Yeni Şifre Tekrar
+                        <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="password"
+                        class="kt-input w-full"
+                        [class.!border-red-500]="
+                          shouldShowEditStep1PasswordConfirmError()
+                        "
+                        placeholder="Şifreyi tekrar girin"
+                        [ngModel]="editForm.passwordConfirm()"
+                        (ngModelChange)="editForm.passwordConfirm.set($event)"
+                        (blur)="editFormTouched.passwordConfirm.set(true)"
+                        [ngModelOptions]="{ standalone: true }"
+                        [disabled]="editFormSubmitting()"
+                        maxlength="100"
+                      />
+                      @if (shouldShowEditStep1PasswordConfirmError()) {
+                        <div class="flex items-center gap-1.5 mt-1.5">
+                          <i
+                            class="ki-filled ki-information text-sm text-red-500"
+                          ></i>
+                          <span class="text-xs text-red-600 dark:text-red-400">
+                            {{ getEditStep1PasswordConfirmError() }}
+                          </span>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+
+                <!-- İş Telefonu ve Cep Telefonu -->
+                <div class="grid grid-cols-2 gap-4">
+                  <!-- İş Telefonu -->
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      İş Telefonu
+                    </label>
+                    <input
+                      type="tel"
+                      class="kt-input w-full"
+                      placeholder="0212 123 45 67"
+                      appPhoneMask
+                      [ngModel]="createEmployeeForm.communication.workPhone()"
+                      (ngModelChange)="
+                        createEmployeeForm.communication.workPhone.set($event)
+                      "
+                      (blur)="step2Touched.workPhone.set(true)"
+                      [ngModelOptions]="{ standalone: true }"
+                      [disabled]="editFormSubmitting()"
+                    />
+                  </div>
+
+                  <!-- Cep Telefonu -->
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      Cep Telefonu
+                    </label>
+                    <input
+                      type="tel"
+                      class="kt-input w-full"
+                      placeholder="0532 123 45 67"
+                      appPhoneMask
+                      [ngModel]="createEmployeeForm.communication.mobilePhone()"
+                      (ngModelChange)="
+                        createEmployeeForm.communication.mobilePhone.set($event)
+                      "
+                      (blur)="step2Touched.mobilePhone.set(true)"
+                      [ngModelOptions]="{ standalone: true }"
+                      [disabled]="editFormSubmitting()"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Step 2: Kişisel ve Birim Bilgileri -->
+        @if (editCurrentStep() === 2) {
+          <div class="space-y-4 animate-fadeIn">
+            <!-- TC Kimlik Numarası ve Sicil Numarası -->
+            <div class="grid grid-cols-2 gap-4">
+              <!-- TC Kimlik Numarası -->
+              <div>
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  TC Kimlik Numarası
+                  <span class="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  class="kt-input w-full"
+                  [class.!border-red-500]="shouldShowEditStep2IdentityError()"
+                  placeholder="12345678901"
+                  maxlength="11"
+                  [ngModel]="createEmployeeForm.citizen.identityNumber()"
+                  (ngModelChange)="
+                    createEmployeeForm.citizen.identityNumber.set($event)
+                  "
+                  (blur)="step2Touched.identityNumber.set(true)"
+                  [ngModelOptions]="{ standalone: true }"
+                  [disabled]="editFormSubmitting()"
+                />
+                @if (shouldShowEditStep2IdentityError()) {
+                  <div class="flex items-center gap-1.5 mt-1.5">
+                    <i
+                      class="ki-filled ki-information text-sm text-red-500"
+                    ></i>
+                    <span class="text-xs text-red-600 dark:text-red-400">
+                      {{ getEditStep2IdentityError() }}
+                    </span>
+                  </div>
+                }
+              </div>
+
+              <!-- Sicil Numarası -->
+              <div>
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  Sicil Numarası
+                </label>
+                <input
+                  type="text"
+                  class="kt-input w-full"
+                  placeholder="Sicil numarası"
+                  [ngModel]="createEmployeeForm.position.registrationNumber()"
+                  (ngModelChange)="
+                    createEmployeeForm.position.registrationNumber.set($event)
+                  "
+                  [ngModelOptions]="{ standalone: true }"
+                  [disabled]="editFormSubmitting()"
+                  maxlength="50"
+                />
+              </div>
+            </div>
+
+            <!-- Doğum Tarihi ve Doğum Yeri -->
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Doğum Tarihi -->
+              <div>
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  Doğum Tarihi
+                </label>
+                <input
+                  type="text"
+                  class="kt-input w-full"
+                  placeholder="Tarih seçiniz"
+                  appDatepicker
+                  [ngModel]="createEmployeeForm.citizen.birthDate()"
+                  (ngModelChange)="
+                    createEmployeeForm.citizen.birthDate.set($event)
+                  "
+                  [ngModelOptions]="{ standalone: true }"
+                  [disabled]="editFormSubmitting()"
+                />
+              </div>
+
+              <!-- Doğum Yeri -->
+              <div>
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  Doğum Yeri
+                </label>
+                <input
+                  type="text"
+                  class="kt-input w-full"
+                  placeholder="Doğum yeri"
+                  [ngModel]="createEmployeeForm.citizen.birthPlace()"
+                  (ngModelChange)="
+                    createEmployeeForm.citizen.birthPlace.set($event)
+                  "
+                  [ngModelOptions]="{ standalone: true }"
+                  [disabled]="editFormSubmitting()"
+                  maxlength="100"
+                />
+              </div>
+            </div>
+
+            <!-- Divider -->
+            <div
+              class="border-t border-gray-200 dark:border-gray-700 my-4"
+            ></div>
+
+            <!-- Birim/Organizasyon -->
+            <div>
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Birim
+                <span class="text-red-500">*</span>
+              </label>
+              <select
+                id="editModalOrganizationId"
+                class="kt-select w-full text-sm"
+                data-kt-select="true"
+                data-kt-select-placeholder="Birim seçiniz"
+                data-kt-select-enable-search="true"
+                data-kt-select-search-placeholder="Ara..."
+                [attr.data-kt-select-config]="
+                  '{&quot;optionsClass&quot;: &quot;kt-scrollable overflow-auto max-h-[250px]&quot;}'
+                "
+                [class.!border-red-500]="shouldShowEditStep2OrganizationError()"
+                [ngModel]="createEmployeeForm.position.organizationId() ?? ''"
+                (ngModelChange)="
+                  createEmployeeForm.position.organizationId.set(
+                    $event !== '' ? $event : null
+                  )
+                "
+                (blur)="step2Touched.organizationId.set(true)"
+                [ngModelOptions]="{ standalone: true }"
+                [disabled]="editFormSubmitting()"
+              >
+                <option value=""></option>
+                @for (org of organizations(); track org.id) {
+                  <option [value]="org.id">{{ org.name }}</option>
+                }
+              </select>
+              @if (shouldShowEditStep2OrganizationError()) {
+                <div class="flex items-center gap-1.5 mt-1.5">
+                  <i class="ki-filled ki-information text-sm text-red-500"></i>
+                  <span class="text-xs text-red-600 dark:text-red-400">
+                    Birim seçimi zorunludur
+                  </span>
+                </div>
+              }
+            </div>
+
+            <!-- Görev, Ünvan, Atama Başlangıç Tarihi -->
+            <div class="grid grid-cols-3 gap-4">
+              <!-- Görev -->
+              <div>
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  Görev
+                  <span class="text-red-500">*</span>
+                </label>
+                <select
+                  id="editModalDutyId"
+                  class="kt-select w-full text-sm"
+                  data-kt-select="true"
+                  data-kt-select-placeholder="Görev seçiniz"
+                  data-kt-select-enable-search="true"
+                  data-kt-select-search-placeholder="Ara..."
+                  [attr.data-kt-select-config]="
+                    '{&quot;optionsClass&quot;: &quot;kt-scrollable overflow-auto max-h-[250px]&quot;}'
+                  "
+                  [class.!border-red-500]="shouldShowEditStep2DutyError()"
+                  [ngModel]="createEmployeeForm.position.dutyId() ?? ''"
+                  (ngModelChange)="
+                    createEmployeeForm.position.dutyId.set(
+                      $event !== '' ? $event : null
+                    )
+                  "
+                  (blur)="step2Touched.dutyId.set(true)"
+                  [ngModelOptions]="{ standalone: true }"
+                  [disabled]="editFormSubmitting()"
+                >
+                  <option value=""></option>
+                  @for (duty of duties(); track duty.id) {
+                    <option [value]="duty.id">{{ duty.name }}</option>
+                  }
+                </select>
+                @if (shouldShowEditStep2DutyError()) {
+                  <div class="flex items-center gap-1.5 mt-1.5">
+                    <i
+                      class="ki-filled ki-information text-sm text-red-500"
+                    ></i>
+                    <span class="text-xs text-red-600 dark:text-red-400">
+                      Görev seçimi zorunludur
+                    </span>
+                  </div>
+                }
+              </div>
+
+              <!-- Ünvan -->
+              <div>
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  Ünvan
+                </label>
+                <select
+                  id="editModalTitleId"
+                  class="kt-select w-full text-sm"
+                  data-kt-select="true"
+                  data-kt-select-placeholder="Ünvan seçiniz"
+                  data-kt-select-enable-search="true"
+                  data-kt-select-search-placeholder="Ara..."
+                  [attr.data-kt-select-config]="
+                    '{&quot;optionsClass&quot;: &quot;kt-scrollable overflow-auto max-h-[250px]&quot;}'
+                  "
+                  [ngModel]="createEmployeeForm.position.titleId() ?? ''"
+                  (ngModelChange)="
+                    createEmployeeForm.position.titleId.set(
+                      $event !== '' ? $event : null
+                    )
+                  "
+                  [ngModelOptions]="{ standalone: true }"
+                  [disabled]="editFormSubmitting()"
+                >
+                  <option value=""></option>
+                  @for (title of titles(); track title.id) {
+                    <option [value]="title.id">{{ title.name }}</option>
+                  }
+                </select>
+              </div>
+
+              <!-- Atama Başlangıç Tarihi -->
+              <div>
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  Atama Başlangıç Tarihi
+                  <span class="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  class="kt-input w-full"
+                  placeholder="Tarih seçiniz"
+                  appDatepicker
+                  [class.!border-red-500]="shouldShowEditStep2StartDateError()"
+                  [ngModel]="createEmployeeForm.position.startDate()"
+                  (ngModelChange)="
+                    createEmployeeForm.position.startDate.set($event)
+                  "
+                  (blur)="step2Touched.startDate.set(true)"
+                  [ngModelOptions]="{ standalone: true }"
+                  [disabled]="editFormSubmitting()"
+                />
+                @if (shouldShowEditStep2StartDateError()) {
+                  <div class="flex items-center gap-1.5 mt-1.5">
+                    <i
+                      class="ki-filled ki-information text-sm text-red-500"
+                    ></i>
+                    <span class="text-xs text-red-600 dark:text-red-400">
+                      Atama başlangıç tarihi zorunludur
+                    </span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Step 3: Rol Atama -->
+        @if (editCurrentStep() === 3) {
+          <div class="animate-fadeIn">
+            <!-- Table Header & Add Button -->
+            <div class="flex items-center justify-between mb-4">
+              <h4 class="text-sm font-semibold text-gray-900 dark:text-white">
+                Rol Atamaları
+              </h4>
+              <button
+                type="button"
+                class="kt-btn kt-btn-primary kt-btn-sm"
+                (click)="addEditRole()"
+                [disabled]="editFormSubmitting()"
+              >
+                <i class="ki-filled ki-plus text-sm"></i>
+                Yeni Ekle
+              </button>
+            </div>
+
+            <!-- Table -->
+            <div>
+              <table
+                class="table-auto w-full border border-gray-200 dark:border-gray-700"
+              >
+                <thead class="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10">
+                  <tr>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700"
+                    >
+                      #
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700"
+                    >
+                      Birim
+                      <span class="text-red-500">*</span>
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700"
+                    >
+                      Rol
+                      <span class="text-red-500">*</span>
+                    </th>
+                    <th
+                      class="px-4 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700 w-20"
+                    >
+                      İşlem
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white dark:bg-gray-900">
+                  @for (role of createEmployeeForm.roles(); track $index) {
+                    <tr
+                      class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                    >
+                      <td
+                        class="px-4 py-3 text-sm text-gray-900 dark:text-white"
+                      >
+                        {{ $index + 1 }}
+                      </td>
+                      <td class="px-4 py-3">
+                        <select
+                          [id]="'roleOrganization_' + $index"
+                          class="kt-select w-full text-sm"
+                          data-kt-select="true"
+                          data-kt-select-placeholder="Birim seçiniz"
+                          data-kt-select-enable-search="true"
+                          data-kt-select-search-placeholder="Ara..."
+                          [attr.data-kt-select-config]="
+                            '{&quot;optionsClass&quot;: &quot;kt-scrollable overflow-auto max-h-[250px]&quot;}'
+                          "
+                          [ngModel]="role.organizationId ?? ''"
+                          (ngModelChange)="
+                            updateEditRole(
+                              $index,
+                              'organizationId',
+                              $event || null
+                            )
+                          "
+                          [ngModelOptions]="{ standalone: true }"
+                          [disabled]="editFormSubmitting()"
+                        >
+                          <option value=""></option>
+                          @for (org of organizations(); track org.id) {
+                            <option [value]="org.id">{{ org.name }}</option>
+                          }
+                        </select>
+                      </td>
+                      <td class="px-4 py-3">
+                        <select
+                          [id]="'roleRole_' + $index"
+                          class="kt-select w-full text-sm"
+                          data-kt-select="true"
+                          data-kt-select-placeholder="Rol seçiniz"
+                          data-kt-select-enable-search="true"
+                          data-kt-select-search-placeholder="Ara..."
+                          [attr.data-kt-select-config]="
+                            '{&quot;optionsClass&quot;: &quot;kt-scrollable overflow-auto max-h-[250px]&quot;}'
+                          "
+                          [ngModel]="role.roleId ?? ''"
+                          (ngModelChange)="
+                            updateEditRole($index, 'roleId', $event || null)
+                          "
+                          [ngModelOptions]="{ standalone: true }"
+                          [disabled]="editFormSubmitting()"
+                        >
+                          <option value=""></option>
+                          @for (role of roles(); track role.id) {
+                            <option [value]="role.id">{{ role.name }}</option>
+                          }
+                        </select>
+                      </td>
+                      <td class="px-4 py-3 text-center">
+                        @if (createEmployeeForm.roles().length > 1) {
+                          <button
+                            type="button"
+                            class="kt-btn kt-btn-sm kt-btn-icon kt-btn-light-danger"
+                            (click)="removeEditRole($index)"
+                            [disabled]="editFormSubmitting()"
+                            title="Sil"
+                          >
+                            <i class="ki-filled ki-trash text-sm"></i>
+                          </button>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+
+              @if (createEmployeeForm.roles().length === 0) {
+                <div
+                  class="text-center py-8 text-gray-500 dark:text-gray-400 text-sm"
+                >
+                  Henüz rol ataması eklenmedi
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Step 4: Eğitim Bilgileri -->
+        @if (editCurrentStep() === 4) {
+          <div class="space-y-4 animate-fadeIn">
+            @for (education of createEmployeeForm.education(); track $index) {
+              <div
+                class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-4 bg-gray-50 dark:bg-gray-800/50"
+              >
+                <!-- Eğitim Türü -->
+                <div>
+                  <div class="flex items-center justify-between mb-2">
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Eğitim Türü
+                    </label>
+                    <div class="flex items-center gap-2">
+                      <span
+                        class="text-sm font-semibold text-gray-900 dark:text-white"
+                      >
+                        Eğitim {{ $index + 1 }}
+                      </span>
+                      @if (createEmployeeForm.education().length > 1) {
+                        <button
+                          type="button"
+                          class="kt-btn kt-btn-sm kt-btn-icon kt-btn-light-danger"
+                          (click)="removeEditEducation($index)"
+                          [disabled]="editFormSubmitting()"
+                          title="Eğitimi Kaldır"
+                        >
+                          <i class="ki-filled ki-trash text-sm"></i>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                  <select
+                    [id]="'educationType_' + $index"
+                    class="kt-select w-full text-sm"
+                    data-kt-select="true"
+                    data-kt-select-placeholder="Eğitim türü seçiniz"
+                    data-kt-select-enable-search="true"
+                    data-kt-select-search-placeholder="Ara..."
+                    [attr.data-kt-select-config]="
+                      '{&quot;optionsClass&quot;: &quot;kt-scrollable overflow-auto max-h-[250px]&quot;}'
+                    "
+                    [ngModel]="education.educationTypeId ?? ''"
+                    (ngModelChange)="
+                      updateEditEducation(
+                        $index,
+                        'educationTypeId',
+                        $event !== '' ? $event : null
+                      )
+                    "
+                    [ngModelOptions]="{ standalone: true }"
+                    [disabled]="editFormSubmitting()"
+                  >
+                    <option value=""></option>
+                    @for (eduType of educationTypes(); track eduType.id) {
+                      <option [value]="eduType.id">{{ eduType.name }}</option>
+                    }
+                  </select>
+                </div>
+
+                <!-- Üniversite ve Bölüm -->
+                <div class="grid grid-cols-2 gap-4">
+                  <!-- Üniversite -->
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      Üniversite
+                    </label>
+                    <select
+                      [id]="'university_' + $index"
+                      class="kt-select w-full text-sm"
+                      data-kt-select="true"
+                      data-kt-select-placeholder="Üniversite seçiniz"
+                      data-kt-select-enable-search="true"
+                      data-kt-select-search-placeholder="Ara..."
+                      [attr.data-kt-select-config]="
+                        '{&quot;optionsClass&quot;: &quot;kt-scrollable overflow-auto max-h-[250px]&quot;}'
+                      "
+                      [ngModel]="education.universityId ?? ''"
+                      (ngModelChange)="
+                        updateEditEducation(
+                          $index,
+                          'universityId',
+                          $event !== '' ? $event : null
+                        )
+                      "
+                      [ngModelOptions]="{ standalone: true }"
+                      [disabled]="editFormSubmitting()"
+                    >
+                      <option value=""></option>
+                      @for (uni of universities(); track uni.id) {
+                        <option [value]="uni.id">{{ uni.name }}</option>
+                      }
+                    </select>
+                  </div>
+
+                  <!-- Bölüm -->
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      Bölüm
+                    </label>
+                    <select
+                      [id]="'department_' + $index"
+                      class="kt-select w-full text-sm"
+                      data-kt-select="true"
+                      data-kt-select-placeholder="Bölüm seçiniz"
+                      data-kt-select-enable-search="true"
+                      data-kt-select-search-placeholder="Ara..."
+                      [attr.data-kt-select-config]="
+                        '{&quot;optionsClass&quot;: &quot;kt-scrollable overflow-auto max-h-[250px]&quot;}'
+                      "
+                      [ngModel]="education.departmentId ?? ''"
+                      (ngModelChange)="
+                        updateEditEducation(
+                          $index,
+                          'departmentId',
+                          $event !== '' ? $event : null
+                        )
+                      "
+                      [ngModelOptions]="{ standalone: true }"
+                      [disabled]="editFormSubmitting()"
+                    >
+                      <option value=""></option>
+                      @for (dept of departments(); track dept.id) {
+                        <option [value]="dept.id">{{ dept.name }}</option>
+                      }
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Başlangıç ve Bitiş Tarihi -->
+                <div class="grid grid-cols-2 gap-4">
+                  <!-- Başlangıç Tarihi -->
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      Başlangıç Tarihi
+                    </label>
+                    <input
+                      type="text"
+                      class="kt-input w-full"
+                      placeholder="Tarih seçiniz"
+                      appDatepicker
+                      [ngModel]="education.startDate"
+                      (ngModelChange)="
+                        updateEditEducation($index, 'startDate', $event)
+                      "
+                      [ngModelOptions]="{ standalone: true }"
+                      [disabled]="editFormSubmitting()"
+                    />
+                  </div>
+
+                  <!-- Bitiş Tarihi -->
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      Bitiş Tarihi
+                    </label>
+                    <input
+                      type="text"
+                      class="kt-input w-full"
+                      placeholder="Tarih seçiniz"
+                      appDatepicker
+                      [ngModel]="education.endDate ?? ''"
+                      (ngModelChange)="
+                        updateEditEducation(
+                          $index,
+                          'endDate',
+                          $event !== '' ? $event : null
+                        )
+                      "
+                      [ngModelOptions]="{ standalone: true }"
+                      [disabled]="editFormSubmitting()"
+                    />
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Yeni Eğitim Ekle Button -->
+            <div class="flex items-center justify-end pt-2">
+              <button
+                type="button"
+                class="kt-btn kt-btn-sm kt-btn-primary"
+                (click)="addEditEducation()"
+                [disabled]="editFormSubmitting()"
+              >
+                <i class="ki-filled ki-plus text-sm"></i>
+                Yeni Eğitim Ekle
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Navigation Buttons -->
       <div
-        class="flex justify-end gap-2.5 px-6 py-4 border-t border-gray-200 dark:border-gray-700 sticky bottom-0 bg-white dark:bg-gray-800"
+        class="flex justify-between gap-2.5 px-6 py-4 border-t border-gray-200 dark:border-gray-700 sticky bottom-0 bg-white dark:bg-gray-800"
       >
-        <button
-          type="button"
-          class="kt-btn kt-btn-outline"
-          (click)="closeEditModal()"
-          [disabled]="editFormSubmitting()"
-        >
-          İptal
-        </button>
-        <button
-          type="button"
-          class="kt-btn kt-btn-primary"
-          (click)="submitEditForm()"
-          [disabled]="!isEditFormValid() || editFormSubmitting()"
-        >
-          @if (editFormSubmitting()) {
-            <span class="flex items-center gap-2">
-              <span
-                class="spinner animate-spin border-2 border-current border-t-transparent rounded-full w-4 h-4"
-              ></span>
-              Güncelleniyor...
-            </span>
-          } @else {
-            Güncelle
+        <div class="flex gap-2">
+          <!-- Geri Button -->
+          @if (editCurrentStep() > 1) {
+            <button
+              type="button"
+              class="kt-btn kt-btn-outline"
+              (click)="goToEditPreviousStep()"
+              [disabled]="editFormSubmitting()"
+            >
+              <i class="ki-filled ki-left text-sm"></i>
+              Geri
+            </button>
           }
-        </button>
+        </div>
+
+        <div class="flex gap-2">
+          <!-- İptal Button -->
+          <button
+            type="button"
+            class="kt-btn kt-btn-outline"
+            (click)="closeEditModal()"
+            [disabled]="editFormSubmitting()"
+          >
+            İptal
+          </button>
+
+          <!-- İleri Button - Show when not on last step -->
+          @if (editCurrentStep() < 4) {
+            <button
+              type="button"
+              class="kt-btn kt-btn-primary"
+              (click)="goToEditNextStep()"
+              [disabled]="!isEditCurrentStepValid() || editFormSubmitting()"
+            >
+              İleri
+              <i class="ki-filled ki-right text-sm"></i>
+            </button>
+          }
+
+          <!-- Kaydet Button - Show on last step (Step 4) -->
+          @if (editCurrentStep() === 4) {
+            <button
+              type="button"
+              class="kt-btn kt-btn-primary"
+              (click)="submitEditForm()"
+              [disabled]="!isEditFormValid() || editFormSubmitting()"
+            >
+              @if (editFormSubmitting()) {
+                <span class="flex items-center gap-2">
+                  <span
+                    class="spinner animate-spin border-2 border-current border-t-transparent rounded-full w-4 h-4"
+                  ></span>
+                  Güncelleniyor...
+                </span>
+              } @else {
+                <i class="ki-filled ki-check text-sm"></i>
+                Kaydet
+              }
+            </button>
+          }
+        </div>
       </div>
     </div>
   </div>
