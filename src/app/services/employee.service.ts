@@ -103,28 +103,53 @@ export interface EmployeeListItem {
   duty: string | null;
 }
 
+export interface UserRoleInfo {
+  roleId: string;
+  roleName?: string | null;
+  organizationId: string;
+  organizationName?: string | null;
+}
+
+export interface EducationInfo {
+  id: string;
+  educationTypeId: number;
+  educationTypeName?: string | null;
+  universityId?: number | null;
+  universityName?: string | null;
+  departmentId?: number | null;
+  departmentName?: string | null;
+  startDate: string;
+  endDate?: string | null;
+}
+
 export interface EmployeeDetailResponse {
   employeeId: string;
+  registrationNumber?: string | null;
+  name: string;
+  lastName: string;
+  isActive: boolean;
   userId: string;
   username: string;
   email: string;
-  name: string;
-  lastName: string;
   workPhone?: string | null;
   mobilePhone?: string | null;
+  citizenId: string;
   identityNumber?: string | null;
   birthDate?: string | null;
   birthPlace?: string | null;
-  registrationNumber?: string | null;
-  organizationId?: string | null;
-  dutyId?: number | null;
+  organizationId: string;
+  organizationName?: string | null;
+  dutyId: number;
+  dutyName?: string | null;
   titleId?: number | null;
-  startDate?: string | null;
+  titleName?: string | null;
+  startDate: string;
+  profileImageId?: string | null;
+  profileImageDescription?: string | null;
   workEmail?: string | null;
   personalEmail?: string | null;
-  roles?: UserRoleDto[] | null;
-  education?: EducationDto[] | null;
-  isActive: boolean;
+  roles?: UserRoleInfo[] | null;
+  education?: EducationInfo[] | null;
 }
 
 export interface PaginationMeta {
@@ -194,7 +219,7 @@ export class EmployeeService {
     employeeId: string,
   ): Observable<ApiResponse<EmployeeDetailResponse>> {
     return this.http.get<ApiResponse<EmployeeDetailResponse>>(
-      `${environment.apiUrl}/Organizations/${employeeId}`,
+      `${this.apiUrl}/${employeeId}`,
     );
   }
 }

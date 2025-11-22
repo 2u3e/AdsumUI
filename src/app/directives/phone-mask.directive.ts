@@ -51,9 +51,6 @@ export class PhoneMaskDirective {
     }
 
     this.previousValue = formattedValue;
-
-    // ngModel'e sadece rakamları gönder
-    input.dispatchEvent(new Event("input", { bubbles: true }));
   }
 
   @HostListener("keydown", ["$event"])
@@ -89,19 +86,30 @@ export class PhoneMaskDirective {
     const numbersOnly = pastedText.replace(/\D/g, "");
 
     const input = event.target as HTMLInputElement;
-    const start = input.selectionStart || 0;
-    const end = input.selectionEnd || 0;
-    const currentValue = input.value.replace(/\D/g, "");
 
-    // Yeni değeri oluştur
-    const newValue =
-      currentValue.substring(0, start) +
-      numbersOnly +
-      currentValue.substring(end);
+    // Maksimum 11 rakam
+    let value = numbersOnly.substring(0, 11);
 
-    // Input'a sadece rakamları ekle ve input event'ini tetikle
-    input.value = newValue;
-    input.dispatchEvent(new Event("input", { bubbles: true }));
+    // Formatla
+    let formattedValue = "";
+    if (value.length > 0) {
+      formattedValue = value.substring(0, 1);
+      if (value.length > 1) {
+        formattedValue += value.substring(1, 4);
+      }
+      if (value.length > 4) {
+        formattedValue += " " + value.substring(4, 7);
+      }
+      if (value.length > 7) {
+        formattedValue += " " + value.substring(7, 9);
+      }
+      if (value.length > 9) {
+        formattedValue += " " + value.substring(9, 11);
+      }
+    }
+
+    input.value = formattedValue;
+    this.previousValue = formattedValue;
   }
 
   private getCursorPosition(

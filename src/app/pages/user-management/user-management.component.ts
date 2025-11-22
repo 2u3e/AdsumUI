@@ -592,48 +592,88 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
     // Fetch full employee data from API
     this.employeeService.getEmployeeById(user.id).subscribe({
       next: (response) => {
+        console.log("=== API Response ===", response);
         const employee = response.data;
+        console.log("=== Employee Data ===", employee);
 
-        // Update form with full employee data
+        // Update createEmployeeForm with full employee data (edit modal uses createEmployeeForm)
+        console.log("Setting form values...");
+        this.createEmployeeForm.userAccount.username.set(
+          employee.username || "",
+        );
+        this.createEmployeeForm.userAccount.email.set(employee.email || "");
+        this.createEmployeeForm.userAccount.isActive.set(employee.isActive);
+        this.createEmployeeForm.name.set(employee.name || "");
+        this.createEmployeeForm.lastName.set(employee.lastName || "");
+
+        this.createEmployeeForm.citizen.identityNumber.set(
+          employee.identityNumber || "",
+        );
+        this.createEmployeeForm.citizen.birthDate.set(
+          employee.birthDate || null,
+        );
+        this.createEmployeeForm.citizen.birthPlace.set(
+          employee.birthPlace || "",
+        );
+
+        this.createEmployeeForm.communication.workPhone.set(
+          employee.workPhone || "",
+        );
+        this.createEmployeeForm.communication.mobilePhone.set(
+          employee.mobilePhone || "",
+        );
+        this.createEmployeeForm.communication.workEmail.set(
+          employee.workEmail || "",
+        );
+        this.createEmployeeForm.communication.personalEmail.set(
+          employee.personalEmail || "",
+        );
+
+        this.createEmployeeForm.position.registrationNumber.set(
+          employee.registrationNumber || "",
+        );
+        this.createEmployeeForm.position.organizationId.set(
+          employee.organizationId || null,
+        );
+        this.createEmployeeForm.position.dutyId.set(
+          employee.dutyId?.toString() || null,
+        );
+        this.createEmployeeForm.position.titleId.set(
+          employee.titleId?.toString() || null,
+        );
+        this.createEmployeeForm.position.startDate.set(
+          employee.startDate || "",
+        );
+
+        // Store IDs for update
         this.editForm.employeeId.set(employee.employeeId);
         this.editForm.userId.set(employee.userId);
-        this.editForm.firstName.set(employee.name || "");
-        this.editForm.lastName.set(employee.lastName || "");
-        this.editForm.email.set(employee.email || "");
-        this.editForm.username.set(employee.username || "");
-        this.editForm.identityNumber.set(employee.identityNumber || "");
-        this.editForm.birthDate.set(employee.birthDate || null);
-        this.editForm.birthPlace.set(employee.birthPlace || "");
-        this.editForm.workPhone.set(employee.workPhone || "");
-        this.editForm.mobilePhone.set(employee.mobilePhone || "");
-        this.editForm.workEmail.set(employee.workEmail || "");
-        this.editForm.personalEmail.set(employee.personalEmail || "");
-        this.editForm.registrationNumber.set(employee.registrationNumber || "");
-        this.editForm.organizationId.set(employee.organizationId || null);
-        this.editForm.dutyId.set(employee.dutyId || null);
-        this.editForm.titleId.set(employee.titleId || null);
-        this.editForm.startDate.set(employee.startDate || "");
-        this.editForm.isActive.set(employee.isActive);
 
-        // Set roles
+        // Set roles (map from UserRoleInfo to RoleAssignment)
         if (employee.roles && employee.roles.length > 0) {
-          this.editForm.roles.set(employee.roles);
+          const roleAssignments = employee.roles.map((role) => ({
+            organizationId: role.organizationId,
+            roleId: role.roleId,
+          }));
+          this.createEmployeeForm.roles.set(roleAssignments);
         } else {
-          this.editForm.roles.set([{ organizationId: null, roleId: null }]);
+          this.createEmployeeForm.roles.set([
+            { organizationId: null, roleId: null },
+          ]);
         }
 
-        // Set education (convert EducationDto to EducationInfo)
+        // Set education (map from EducationInfo to form structure)
         if (employee.education && employee.education.length > 0) {
-          const educationList = employee.education.map((edu: any) => ({
+          const educationList = employee.education.map((edu) => ({
             educationTypeId: edu.educationTypeId?.toString() || null,
             universityId: edu.universityId?.toString() || null,
             departmentId: edu.departmentId?.toString() || null,
             startDate: edu.startDate || "",
             endDate: edu.endDate || null,
           }));
-          this.editForm.education.set(educationList);
+          this.createEmployeeForm.education.set(educationList);
         } else {
-          this.editForm.education.set([
+          this.createEmployeeForm.education.set([
             {
               educationTypeId: null,
               universityId: null,
@@ -646,6 +686,36 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
 
         // Trigger select initialization after data is loaded
         this.editModalSelectsInitialized = false;
+
+        console.log("=== Final Form State ===");
+        console.log(
+          "username:",
+          this.createEmployeeForm.userAccount.username(),
+        );
+        console.log("name:", this.createEmployeeForm.name());
+        console.log("lastName:", this.createEmployeeForm.lastName());
+        console.log("email:", this.createEmployeeForm.userAccount.email());
+        console.log(
+          "workPhone:",
+          this.createEmployeeForm.communication.workPhone(),
+        );
+        console.log(
+          "mobilePhone:",
+          this.createEmployeeForm.communication.mobilePhone(),
+        );
+        console.log(
+          "organizationId:",
+          this.createEmployeeForm.position.organizationId(),
+        );
+        console.log("dutyId:", this.createEmployeeForm.position.dutyId());
+        console.log("titleId:", this.createEmployeeForm.position.titleId());
+        console.log("startDate:", this.createEmployeeForm.position.startDate());
+        console.log(
+          "identityNumber:",
+          this.createEmployeeForm.citizen.identityNumber(),
+        );
+        console.log("roles:", this.createEmployeeForm.roles());
+        console.log("education:", this.createEmployeeForm.education());
       },
       error: (error) => {
         console.error("Error fetching employee details:", error);
