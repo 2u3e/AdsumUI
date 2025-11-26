@@ -63,6 +63,14 @@ export class MetronicInitService {
   }
 
   initMenus() {
+    // Check if menu is already initialized using KTMenu.getInstance
+    const menuEl = document.querySelector("#sidebar_menu");
+    if (menuEl) {
+      const existingInstance = KTMenu.getInstance(menuEl);
+      if (existingInstance) {
+        return; // Already initialized
+      }
+    }
     KTMenu.init();
   }
 
