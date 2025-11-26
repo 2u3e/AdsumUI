@@ -232,4 +232,8 @@ export class EmployeeService {
       isActive,
     );
   }
+
+  deleteEmployee(employeeId: string): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/${employeeId}`);
+  }
 }

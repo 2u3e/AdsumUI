@@ -1812,14 +1812,22 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
   }
 
   confirmDelete() {
-    if (!this.selectedUser()) return;
+    const user = this.selectedUser();
+    if (!user) return;
 
-    console.log("Deleting user:", this.selectedUser());
-
-    // Simulate API call
-    setTimeout(() => {
-      this.closeDeleteModal();
-    }, 500);
+    this.employeeService.deleteEmployee(user.id).subscribe({
+      next: () => {
+        this.notificationService.success(
+          "Başarılı",
+          "Kullanıcı başarıyla silindi.",
+        );
+        this.closeDeleteModal();
+        this.loadEmployees();
+      },
+      error: () => {
+        this.closeDeleteModal();
+      },
+    });
   }
 
   // Helper methods
