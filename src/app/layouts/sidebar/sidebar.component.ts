@@ -3,8 +3,6 @@ import { Router, RouterModule } from "@angular/router";
 import { FormsModule } from "@angular/forms";
 import { CommonModule } from "@angular/common";
 
-declare const KTMenu: any;
-
 interface MenuItem {
   title: string;
   path: string;
@@ -104,15 +102,11 @@ export class SidebarComponent {
   }
 
   private expandMenuForPath(path: string): void {
-    console.log("expandMenuForPath:", path);
-
     // routerLinkActive class'ı ile aktif linki bul
     setTimeout(() => {
       const activeLink = document.querySelector(
         "#sidebar_menu a.kt-menu-item-active",
       ) as HTMLElement;
-
-      console.log("Active link found:", activeLink);
 
       if (activeLink) {
         this.expandParentMenus(activeLink);
