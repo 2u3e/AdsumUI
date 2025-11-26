@@ -32,15 +32,5 @@ export const CITIZEN_FILTER_CONFIG: FilterDrawerConfig = {
       clearable: true,
       colSpan: 2,
     },
-    {
-      key: "genderId",
-      label: "Cinsiyet",
-      type: "multiselect",
-      placeholder: "Cinsiyet seçiniz",
-      searchable: true,
-      clearable: true,
-      options: [], // Will be populated dynamically
-      colSpan: 2,
-    },
   ],
 };

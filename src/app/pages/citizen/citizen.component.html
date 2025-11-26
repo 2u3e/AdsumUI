@@ -779,11 +779,6 @@
                   <span class="kt-table-col-label">Yaş</span>
                 </span>
               </th>
-              <th scope="col" class="min-w-[120px]">
-                <span class="kt-table-col">
-                  <span class="kt-table-col-label">Cinsiyet</span>
-                </span>
-              </th>
               <th scope="col" class="w-24">
                 <span class="kt-table-col">
                   <span class="kt-table-col-label">İşlemler</span>
@@ -794,7 +789,7 @@
           <tbody>
             @if (loading()) {
               <tr>
-                <td colspan="7" class="text-center py-12">
+                <td colspan="6" class="text-center py-12">
                   <div class="flex flex-col items-center gap-3">
                     <div
                       class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary dark:border-primary"
@@ -851,11 +846,6 @@
                     </span>
                   </td>
                   <td>
-                    <span class="text-sm text-gray-600 dark:text-gray-300">
-                      {{ citizen.genderName || "-" }}
-                    </span>
-                  </td>
-                  <td>
                     <div class="flex items-center gap-2">
                       <button
                         type="button"
@@ -878,7 +868,7 @@
                 </tr>
               } @empty {
                 <tr>
-                  <td colspan="7" class="text-center py-8">
+                  <td colspan="6" class="text-center py-8">
                     <div class="flex flex-col items-center gap-2">
                       <i
                         class="ki-filled ki-information-2 text-4xl text-gray-400 dark:text-gray-600"
