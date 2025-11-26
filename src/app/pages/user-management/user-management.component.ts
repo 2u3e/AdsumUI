@@ -383,11 +383,48 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
 
     // Initialize edit modal selects only once when modal is open
     if (this.editModalOpen() && !this.editModalSelectsInitialized) {
-      const editModalOrganizationId = document.getElementById(
-        "editModalOrganizationId",
-      );
+      let editSelectsFound = false;
 
-      if (editModalOrganizationId) {
+      // Step 2: Check for organization, duty, and title selects
+      if (this.editCurrentStep() === 2) {
+        const editModalOrganizationId = document.getElementById(
+          "editModalOrganizationId",
+        );
+        const editModalDutyId = document.getElementById("editModalDutyId");
+        const editModalTitleId = document.getElementById("editModalTitleId");
+
+        if (editModalOrganizationId && editModalDutyId && editModalTitleId) {
+          editSelectsFound = true;
+        }
+      }
+
+      // Step 3: Check for role assignment selects
+      if (this.editCurrentStep() === 3) {
+        const roleOrgSelect = document.getElementById("roleOrganization_0");
+        const roleRoleSelect = document.getElementById("roleRole_0");
+
+        if (roleOrgSelect || roleRoleSelect) {
+          editSelectsFound = true;
+        }
+      }
+
+      // Step 4: Check for education selects
+      if (this.editCurrentStep() === 4) {
+        const educationTypeSelect = document.getElementById("educationType_0");
+        const universitySelect = document.getElementById("university_0");
+        const departmentSelect = document.getElementById("department_0");
+
+        if (educationTypeSelect || universitySelect || departmentSelect) {
+          editSelectsFound = true;
+        }
+      }
+
+      // Step 1: Always check for basic selects
+      if (this.editCurrentStep() === 1) {
+        editSelectsFound = true;
+      }
+
+      if (editSelectsFound) {
         setTimeout(() => {
           this.metronicInit.initSelect();
           this.editModalSelectsInitialized = true;
@@ -536,35 +573,38 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
     const firstName = nameParts[0] || "";
     const lastName = nameParts.slice(1).join(" ") || "";
 
-    // Set basic user data
-    this.editForm.employeeId.set(user.id);
-    this.editForm.userId.set(user.id);
-    this.editForm.firstName.set(firstName);
-    this.editForm.lastName.set(lastName);
-    this.editForm.email.set(user.email || "");
-    this.editForm.username.set(user.userName || "");
-    this.editForm.isActive.set(user.isActive);
+    // Reset createEmployeeForm with basic user data from list
+    this.createEmployeeForm.userAccount.username.set(user.userName || "");
+    this.createEmployeeForm.userAccount.email.set(user.email || "");
+    this.createEmployeeForm.userAccount.isActive.set(user.isActive);
+    this.createEmployeeForm.userAccount.password.set("");
+    this.createEmployeeForm.userAccount.passwordConfirm.set("");
+    this.createEmployeeForm.name.set(firstName);
+    this.createEmployeeForm.lastName.set(lastName);
+    this.createEmployeeForm.profileImage.imageFile.set(null);
+    this.createEmployeeForm.profileImage.imagePreview.set(null);
 
-    // Reset password fields
-    this.editForm.password.set("");
-    this.editForm.passwordConfirm.set("");
-    this.changePassword.set(false);
+    // Reset citizen info
+    this.createEmployeeForm.citizen.identityNumber.set("");
+    this.createEmployeeForm.citizen.birthDate.set(null);
+    this.createEmployeeForm.citizen.birthPlace.set("");
 
-    // Set additional fields (these will be empty for now, but ready for API data)
-    this.editForm.identityNumber.set("");
-    this.editForm.birthDate.set(null);
-    this.editForm.birthPlace.set("");
-    this.editForm.workPhone.set("");
-    this.editForm.mobilePhone.set("");
-    this.editForm.workEmail.set("");
-    this.editForm.personalEmail.set("");
-    this.editForm.registrationNumber.set("");
-    this.editForm.organizationId.set(null);
-    this.editForm.dutyId.set(null);
-    this.editForm.titleId.set(null);
-    this.editForm.startDate.set("");
-    this.editForm.roles.set([{ organizationId: null, roleId: null }]);
-    this.editForm.education.set([
+    // Reset communication info
+    this.createEmployeeForm.communication.workPhone.set("");
+    this.createEmployeeForm.communication.mobilePhone.set("");
+    this.createEmployeeForm.communication.workEmail.set("");
+    this.createEmployeeForm.communication.personalEmail.set("");
+
+    // Reset position info
+    this.createEmployeeForm.position.registrationNumber.set("");
+    this.createEmployeeForm.position.organizationId.set(null);
+    this.createEmployeeForm.position.dutyId.set(null);
+    this.createEmployeeForm.position.titleId.set(null);
+    this.createEmployeeForm.position.startDate.set("");
+
+    // Reset roles and education
+    this.createEmployeeForm.roles.set([{ organizationId: null, roleId: null }]);
+    this.createEmployeeForm.education.set([
       {
         educationTypeId: null,
         universityId: null,
@@ -574,17 +614,32 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
       },
     ]);
 
-    // Reset touched state
-    this.editFormTouched.firstName.set(false);
-    this.editFormTouched.lastName.set(false);
-    this.editFormTouched.email.set(false);
-    this.editFormTouched.username.set(false);
+    // Set editForm IDs for update
+    this.editForm.employeeId.set(user.id);
+    this.editForm.userId.set(user.id);
+
+    // Reset password fields
+    this.editForm.password.set("");
+    this.editForm.passwordConfirm.set("");
+    this.changePassword.set(false);
+
+    // Reset touched states
+    this.step1Touched.username.set(false);
+    this.step1Touched.password.set(false);
+    this.step1Touched.passwordConfirm.set(false);
+    this.step1Touched.email.set(false);
+    this.step1Touched.name.set(false);
+    this.step1Touched.lastName.set(false);
+
+    this.step2Touched.identityNumber.set(false);
+    this.step2Touched.workPhone.set(false);
+    this.step2Touched.mobilePhone.set(false);
+    this.step2Touched.organizationId.set(false);
+    this.step2Touched.dutyId.set(false);
+    this.step2Touched.startDate.set(false);
+
     this.editFormTouched.password.set(false);
     this.editFormTouched.passwordConfirm.set(false);
-    this.editFormTouched.identityNumber.set(false);
-    this.editFormTouched.organizationId.set(false);
-    this.editFormTouched.dutyId.set(false);
-    this.editFormTouched.startDate.set(false);
 
     this.editCurrentStep.set(1);
     this.editModalOpen.set(true);
@@ -683,39 +738,6 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
             },
           ]);
         }
-
-        // Trigger select initialization after data is loaded
-        this.editModalSelectsInitialized = false;
-
-        console.log("=== Final Form State ===");
-        console.log(
-          "username:",
-          this.createEmployeeForm.userAccount.username(),
-        );
-        console.log("name:", this.createEmployeeForm.name());
-        console.log("lastName:", this.createEmployeeForm.lastName());
-        console.log("email:", this.createEmployeeForm.userAccount.email());
-        console.log(
-          "workPhone:",
-          this.createEmployeeForm.communication.workPhone(),
-        );
-        console.log(
-          "mobilePhone:",
-          this.createEmployeeForm.communication.mobilePhone(),
-        );
-        console.log(
-          "organizationId:",
-          this.createEmployeeForm.position.organizationId(),
-        );
-        console.log("dutyId:", this.createEmployeeForm.position.dutyId());
-        console.log("titleId:", this.createEmployeeForm.position.titleId());
-        console.log("startDate:", this.createEmployeeForm.position.startDate());
-        console.log(
-          "identityNumber:",
-          this.createEmployeeForm.citizen.identityNumber(),
-        );
-        console.log("roles:", this.createEmployeeForm.roles());
-        console.log("education:", this.createEmployeeForm.education());
       },
       error: (error) => {
         console.error("Error fetching employee details:", error);
@@ -1358,8 +1380,8 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
 
   // Edit form role management
   addEditRole(): void {
-    const currentRoles = this.editForm.roles();
-    this.editForm.roles.set([
+    const currentRoles = this.createEmployeeForm.roles();
+    this.createEmployeeForm.roles.set([
       ...currentRoles,
       { organizationId: null, roleId: null },
     ]);
@@ -1367,24 +1389,26 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
   }
 
   removeEditRole(index: number): void {
-    const currentRoles = this.editForm.roles();
+    const currentRoles = this.createEmployeeForm.roles();
     if (currentRoles.length > 1) {
-      this.editForm.roles.set(currentRoles.filter((_, i) => i !== index));
+      this.createEmployeeForm.roles.set(
+        currentRoles.filter((_, i) => i !== index),
+      );
       this.editModalSelectsInitialized = false;
     }
   }
 
   updateEditRole(index: number, field: keyof RoleAssignment, value: any): void {
-    const currentRoles = this.editForm.roles();
+    const currentRoles = this.createEmployeeForm.roles();
     const updated = [...currentRoles];
     updated[index] = { ...updated[index], [field]: value };
-    this.editForm.roles.set(updated);
+    this.createEmployeeForm.roles.set(updated);
   }
 
   // Edit form education management
   addEditEducation(): void {
-    const currentEducation = this.editForm.education();
-    this.editForm.education.set([
+    const currentEducation = this.createEmployeeForm.education();
+    this.createEmployeeForm.education.set([
       ...currentEducation,
       {
         educationTypeId: null,
@@ -1398,9 +1422,9 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
   }
 
   removeEditEducation(index: number): void {
-    const currentEducation = this.editForm.education();
+    const currentEducation = this.createEmployeeForm.education();
     if (currentEducation.length > 0) {
-      this.editForm.education.set(
+      this.createEmployeeForm.education.set(
         currentEducation.filter((_, i) => i !== index),
       );
       this.editModalSelectsInitialized = false;
@@ -1412,10 +1436,10 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
     field: keyof EducationInfo,
     value: any,
   ): void {
-    const currentEducation = this.editForm.education();
+    const currentEducation = this.createEmployeeForm.education();
     const updated = [...currentEducation];
     updated[index] = { ...updated[index], [field]: value };
-    this.editForm.education.set(updated);
+    this.createEmployeeForm.education.set(updated);
   }
 
   // Edit Wizard Navigation
@@ -1451,16 +1475,16 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
   markEditStepAsTouched(step: number): void {
     switch (step) {
       case 1:
-        this.editFormTouched.firstName.set(true);
-        this.editFormTouched.lastName.set(true);
-        this.editFormTouched.email.set(true);
-        this.editFormTouched.username.set(true);
+        this.step1Touched.name.set(true);
+        this.step1Touched.lastName.set(true);
+        this.step1Touched.email.set(true);
+        this.step1Touched.username.set(true);
         break;
       case 2:
-        this.editFormTouched.identityNumber.set(true);
-        this.editFormTouched.organizationId.set(true);
-        this.editFormTouched.dutyId.set(true);
-        this.editFormTouched.startDate.set(true);
+        this.step2Touched.identityNumber.set(true);
+        this.step2Touched.organizationId.set(true);
+        this.step2Touched.dutyId.set(true);
+        this.step2Touched.startDate.set(true);
         break;
       case 3:
         break;
@@ -1477,10 +1501,10 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
     switch (stepNumber) {
       case 1:
         const step1Visited =
-          this.editFormTouched.firstName() ||
-          this.editFormTouched.lastName() ||
-          this.editFormTouched.email() ||
-          this.editFormTouched.username();
+          this.step1Touched.name() ||
+          this.step1Touched.lastName() ||
+          this.step1Touched.email() ||
+          this.step1Touched.username();
 
         if (!step1Visited && stepNumber < this.editCurrentStep()) {
           this.markEditStepAsTouched(1);
@@ -1494,10 +1518,10 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
 
       case 2:
         const step2Visited =
-          this.editFormTouched.identityNumber() ||
-          this.editFormTouched.organizationId() ||
-          this.editFormTouched.dutyId() ||
-          this.editFormTouched.startDate();
+          this.step2Touched.identityNumber() ||
+          this.step2Touched.organizationId() ||
+          this.step2Touched.dutyId() ||
+          this.step2Touched.startDate();
 
         if (!step2Visited && stepNumber < this.editCurrentStep()) {
           this.markEditStepAsTouched(2);
@@ -1539,10 +1563,10 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
   }
 
   isEditStep1Valid(): boolean {
-    const username = this.editForm.username();
-    const email = this.editForm.email();
-    const firstName = this.editForm.firstName();
-    const lastName = this.editForm.lastName();
+    const username = this.createEmployeeForm.userAccount.username();
+    const email = this.createEmployeeForm.userAccount.email();
+    const firstName = this.createEmployeeForm.name();
+    const lastName = this.createEmployeeForm.lastName();
 
     return (
       !!username &&
@@ -1554,46 +1578,51 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
   }
 
   isEditStep2Valid(): boolean {
-    const tc = this.editForm.identityNumber();
+    const tc = this.createEmployeeForm.citizen.identityNumber();
     return (
       !!tc &&
       tc.length === 11 &&
-      !!this.editForm.organizationId() &&
-      !!this.editForm.dutyId() &&
-      !!this.editForm.startDate()
+      !!this.createEmployeeForm.position.organizationId() &&
+      !!this.createEmployeeForm.position.dutyId() &&
+      !!this.createEmployeeForm.position.startDate()
     );
   }
 
   isEditStep3Valid(): boolean {
-    const roles = this.editForm.roles();
+    const roles = this.createEmployeeForm.roles();
     return roles.every((role) => !!role.organizationId && !!role.roleId);
   }
 
   // Edit Step 1 validation helpers
   shouldShowEditStep1UsernameError(): boolean {
-    return this.editFormTouched.username() && !this.editForm.username();
+    return (
+      this.step1Touched.username() &&
+      !this.createEmployeeForm.userAccount.username()
+    );
   }
 
   shouldShowEditStep1EmailError(): boolean {
     return (
-      this.editFormTouched.email() &&
-      (!this.editForm.email() || !this.isValidEmail(this.editForm.email()))
+      this.step1Touched.email() &&
+      (!this.createEmployeeForm.userAccount.email() ||
+        !this.isValidEmail(this.createEmployeeForm.userAccount.email()))
     );
   }
 
   getEditStep1EmailError(): string {
-    if (!this.editForm.email()) return "E-posta alanı zorunludur";
-    if (!this.isValidEmail(this.editForm.email()))
+    if (!this.createEmployeeForm.userAccount.email())
+      return "E-posta alanı zorunludur";
+    if (!this.isValidEmail(this.createEmployeeForm.userAccount.email()))
       return "Geçerli bir e-posta adresi giriniz";
     return "";
   }
 
   shouldShowEditStep1FirstNameError(): boolean {
-    return this.editFormTouched.firstName() && !this.editForm.firstName();
+    return this.step1Touched.name() && !this.createEmployeeForm.name();
   }
 
   shouldShowEditStep1LastNameError(): boolean {
-    return this.editFormTouched.lastName() && !this.editForm.lastName();
+    return this.step1Touched.lastName() && !this.createEmployeeForm.lastName();
   }
 
   shouldShowEditStep1NameError(): boolean {
@@ -1637,12 +1666,13 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
   // Edit Step 2 validation helpers
   shouldShowEditStep2IdentityError(): boolean {
     return (
-      this.editFormTouched.identityNumber() && !this.editForm.identityNumber()
+      this.step2Touched.identityNumber() &&
+      !this.createEmployeeForm.citizen.identityNumber()
     );
   }
 
   getEditStep2IdentityError(): string {
-    const tc = this.editForm.identityNumber();
+    const tc = this.createEmployeeForm.citizen.identityNumber();
     if (!tc) return "TC Kimlik Numarası zorunludur";
     if (tc.length !== 11) return "TC Kimlik Numarası 11 haneli olmalıdır";
     return "";
@@ -1650,16 +1680,22 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
 
   shouldShowEditStep2OrganizationError(): boolean {
     return (
-      this.editFormTouched.organizationId() && !this.editForm.organizationId()
+      this.step2Touched.organizationId() &&
+      !this.createEmployeeForm.position.organizationId()
     );
   }
 
   shouldShowEditStep2DutyError(): boolean {
-    return this.editFormTouched.dutyId() && !this.editForm.dutyId();
+    return (
+      this.step2Touched.dutyId() && !this.createEmployeeForm.position.dutyId()
+    );
   }
 
   shouldShowEditStep2StartDateError(): boolean {
-    return this.editFormTouched.startDate() && !this.editForm.startDate();
+    return (
+      this.step2Touched.startDate() &&
+      !this.createEmployeeForm.position.startDate()
+    );
   }
 
   isEditFormValid(): boolean {
@@ -1677,10 +1713,14 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
 
   submitEditForm() {
     // Mark all fields as touched
-    this.editFormTouched.firstName.set(true);
-    this.editFormTouched.lastName.set(true);
-    this.editFormTouched.email.set(true);
-    this.editFormTouched.username.set(true);
+    this.step1Touched.name.set(true);
+    this.step1Touched.lastName.set(true);
+    this.step1Touched.email.set(true);
+    this.step1Touched.username.set(true);
+    this.step2Touched.identityNumber.set(true);
+    this.step2Touched.organizationId.set(true);
+    this.step2Touched.dutyId.set(true);
+    this.step2Touched.startDate.set(true);
 
     if (this.changePassword()) {
       this.editFormTouched.password.set(true);
@@ -1697,27 +1737,33 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
     const command: UpdateEmployeeWithUserCommand = {
       employeeId: this.editForm.employeeId(),
       userId: this.editForm.userId(),
-      username: this.editForm.username() || null,
-      email: this.editForm.email() || null,
-      name: this.editForm.firstName() || null,
-      lastName: this.editForm.lastName() || null,
-      workPhone: this.editForm.workPhone() || null,
-      mobilePhone: this.editForm.mobilePhone() || null,
-      birthDate: this.editForm.birthDate()
-        ? new Date(this.editForm.birthDate()!)
+      username: this.createEmployeeForm.userAccount.username() || null,
+      email: this.createEmployeeForm.userAccount.email() || null,
+      name: this.createEmployeeForm.name() || null,
+      lastName: this.createEmployeeForm.lastName() || null,
+      workPhone: this.createEmployeeForm.communication.workPhone() || null,
+      mobilePhone: this.createEmployeeForm.communication.mobilePhone() || null,
+      birthDate: this.createEmployeeForm.citizen.birthDate()
+        ? new Date(this.createEmployeeForm.citizen.birthDate()!)
         : null,
-      birthPlace: this.editForm.birthPlace() || null,
-      registrationNumber: this.editForm.registrationNumber() || null,
-      organizationId: this.editForm.organizationId() || null,
-      dutyId: this.editForm.dutyId() || null,
-      titleId: this.editForm.titleId() || null,
-      workEmail: this.editForm.workEmail() || null,
-      personalEmail: this.editForm.personalEmail() || null,
-      roles: this.editForm.roles().map((r) => ({
+      birthPlace: this.createEmployeeForm.citizen.birthPlace() || null,
+      registrationNumber:
+        this.createEmployeeForm.position.registrationNumber() || null,
+      organizationId: this.createEmployeeForm.position.organizationId() || null,
+      dutyId: this.createEmployeeForm.position.dutyId()
+        ? parseInt(this.createEmployeeForm.position.dutyId()!)
+        : null,
+      titleId: this.createEmployeeForm.position.titleId()
+        ? parseInt(this.createEmployeeForm.position.titleId()!)
+        : null,
+      workEmail: this.createEmployeeForm.communication.workEmail() || null,
+      personalEmail:
+        this.createEmployeeForm.communication.personalEmail() || null,
+      roles: this.createEmployeeForm.roles().map((r) => ({
         organizationId: r.organizationId!,
         roleId: r.roleId!,
       })),
-      education: this.editForm.education().map((e) => ({
+      education: this.createEmployeeForm.education().map((e) => ({
         educationTypeId: e.educationTypeId
           ? parseInt(e.educationTypeId as any)
           : null,
@@ -1726,7 +1772,7 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
         startDate: e.startDate ? new Date(e.startDate) : new Date(),
         endDate: e.endDate ? new Date(e.endDate) : null,
       })),
-      isActive: this.editForm.isActive(),
+      isActive: this.createEmployeeForm.userAccount.isActive(),
     };
 
     this.employeeService

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable } from "@angular/core";
 
 // Declare all Metronic and KTUI components
 declare var KTToggle: any;
@@ -27,11 +27,10 @@ declare var KTSelect: any;
 declare var KTToast: any;
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: "root",
 })
 export class MetronicInitService {
-
-  constructor() { }
+  constructor() {}
 
   init() {
     this.initToggles();
