@@ -222,4 +222,14 @@ export class EmployeeService {
       `${this.apiUrl}/${employeeId}`,
     );
   }
+
+  updateEmployeeStatus(
+    employeeId: string,
+    isActive: boolean,
+  ): Observable<ApiResponse<void>> {
+    return this.http.patch<ApiResponse<void>>(
+      `${this.apiUrl}/${employeeId}/status`,
+      { isActive },
+    );
+  }
 }

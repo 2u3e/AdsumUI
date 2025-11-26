@@ -752,8 +752,8 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
   }
 
   toggleUserStatus(user: User) {
-    // Toggle status
     const newStatus = !user.isActive;
+    const previousStatus = user.isActive;
 
     // Update user status in the list optimistically
     const updatedUsers: User[] = this.users().map((u) =>
@@ -761,11 +761,22 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
     );
     this.users.set(updatedUsers);
 
-    // Here you would typically make an API call to update the status
-    console.log(`User ${user.fullName} status changed to: ${newStatus}`);
-
-    // TODO: Implement actual API call to update employee status
-    // this.employeeService.updateEmployeeStatus(user.id, newStatus).subscribe(...)
+    // Call API to update status
+    this.employeeService.updateEmployeeStatus(user.id, newStatus).subscribe({
+      next: () => {
+        this.notificationService.success(
+          "Başarılı",
+          `Kullanıcı durumu ${newStatus ? "aktif" : "pasif"} olarak güncellendi.`,
+        );
+      },
+      error: () => {
+        // Revert optimistic update on error
+        const revertedUsers: User[] = this.users().map((u) =>
+          u.id === user.id ? { ...u, isActive: previousStatus } : u,
+        );
+        this.users.set(revertedUsers);
+      },
+    });
   }
 
   changePage(page: number) {
