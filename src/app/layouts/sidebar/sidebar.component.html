@@ -54,6 +54,65 @@
       data-kt-menu-accordion-expand-all="false"
       id="sidebar_menu"
     >
+      <!-- Menu Search -->
+      <div class="relative mb-3 -mx-1">
+        <div class="kt-input">
+          <i class="ki-filled ki-magnifier text-muted-foreground text-base"></i>
+          <input
+            type="text"
+            placeholder="Menüde ara..."
+            [value]="searchQuery()"
+            (input)="onSearchInput($event)"
+            (focus)="onSearchFocus()"
+            (blur)="onSearchBlur()"
+            (keydown)="onSearchKeydown($event)"
+            class="w-full py-2.5"
+          />
+          @if (searchQuery()) {
+            <button
+              type="button"
+              class="kt-btn kt-btn-icon kt-btn-ghost kt-btn-sm"
+              (click)="clearSearch()"
+            >
+              <i class="ki-filled ki-cross text-muted-foreground"></i>
+            </button>
+          }
+        </div>
+        <!-- Search Results Dropdown -->
+        @if (filteredMenuItems().length > 0 && isSearchFocused()) {
+          <div
+            class="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-lg z-50 max-h-[300px] overflow-y-auto"
+          >
+            @for (item of filteredMenuItems(); track item.path) {
+              <a
+                [routerLink]="item.path"
+                (click)="onResultClick()"
+                class="flex flex-col px-3 py-2 hover:bg-accent/60 transition-colors cursor-pointer"
+              >
+                <span class="text-sm font-medium text-foreground">{{
+                  item.title
+                }}</span>
+                @if (item.parent) {
+                  <span class="text-xs text-muted-foreground">{{
+                    item.parent
+                  }}</span>
+                }
+              </a>
+            }
+          </div>
+        }
+        @if (
+          searchQuery() && filteredMenuItems().length === 0 && isSearchFocused()
+        ) {
+          <div
+            class="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-lg z-50 p-3"
+          >
+            <span class="text-sm text-muted-foreground">Sonuç bulunamadı</span>
+          </div>
+        }
+      </div>
+      <!-- End Menu Search -->
+
       <div
         class="kt-menu-item"
         data-kt-menu-item-toggle="accordion"
