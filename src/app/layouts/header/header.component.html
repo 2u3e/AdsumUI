@@ -31,7 +31,37 @@
       </div>
     </div>
     <!-- End of Mobile Logo -->
-    <div class="mt-5 lg:mb-7">Kullanıcı Yönetimi</div>
+
+    <!-- Page Info & Welcome Section -->
+    <div class="hidden lg:flex items-center py-3">
+      <!-- Breadcrumb -->
+      <nav class="flex items-center gap-1.5 text-sm">
+        @for (crumb of breadcrumbs(); track crumb.label; let last = $last) {
+          @if (crumb.path) {
+            <a
+              [routerLink]="crumb.path"
+              class="text-muted-foreground hover:text-primary transition-colors"
+            >
+              {{ crumb.label }}
+            </a>
+          } @else {
+            <span
+              [class]="
+                last ? 'text-foreground font-medium' : 'text-muted-foreground'
+              "
+            >
+              {{ crumb.label }}
+            </span>
+          }
+          @if (!last) {
+            <i
+              class="ki-filled ki-right text-[10px] text-muted-foreground/50"
+            ></i>
+          }
+        }
+      </nav>
+    </div>
+
     <!-- Topbar -->
     <div class="flex items-center gap-2.5">
       <!-- Notifications -->
