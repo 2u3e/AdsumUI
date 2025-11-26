@@ -3,6 +3,8 @@ import { Router, RouterModule } from "@angular/router";
 import { FormsModule } from "@angular/forms";
 import { CommonModule } from "@angular/common";
 
+declare const KTMenu: any;
+
 interface MenuItem {
   title: string;
   path: string;
@@ -83,20 +85,80 @@ export class SidebarComponent {
     }, 200);
   }
 
-  onResultClick(): void {
-    this.clearSearch();
-    this.isSearchFocused.set(false);
-  }
-
   onSearchKeydown(event: KeyboardEvent): void {
     if (event.key === "Enter") {
       const results = this.filteredMenuItems();
       if (results.length === 1) {
         this.router.navigate([results[0].path]);
         this.clearSearch();
-        // Input'tan focus'u kaldır
         (event.target as HTMLInputElement).blur();
+        setTimeout(() => this.expandMenuForPath(results[0].path), 100);
       }
     }
+  }
+
+  onResultClick(path: string): void {
+    this.clearSearch();
+    this.isSearchFocused.set(false);
+    setTimeout(() => this.expandMenuForPath(path), 100);
+  }
+
+  private expandMenuForPath(path: string): void {
+    console.log("expandMenuForPath:", path);
+
+    // routerLinkActive class'ı ile aktif linki bul
+    setTimeout(() => {
+      const activeLink = document.querySelector(
+        "#sidebar_menu a.kt-menu-item-active",
+      ) as HTMLElement;
+
+      console.log("Active link found:", activeLink);
+
+      if (activeLink) {
+        this.expandParentMenus(activeLink);
+      }
+    }, 50);
+  }
+
+  private expandParentMenus(element: HTMLElement): void {
+    // Önce tüm açık menüleri kapat
+    const openMenus = document.querySelectorAll(
+      "#sidebar_menu .kt-menu-item-show",
+    );
+    openMenus.forEach((menu) => {
+      menu.classList.remove("kt-menu-item-show");
+      const accordion = menu.querySelector(
+        ":scope > .kt-menu-accordion",
+      ) as HTMLElement;
+      if (accordion) {
+        accordion.style.display = "";
+      }
+    });
+
+    // Üst accordion'ları bul ve aç (en içten dışa)
+    const menuItems: HTMLElement[] = [];
+    let parent = element.closest(".kt-menu-accordion");
+
+    while (parent) {
+      const menuItem = parent.closest(".kt-menu-item") as HTMLElement;
+      if (menuItem) {
+        menuItems.push(menuItem);
+      }
+      parent = menuItem?.parentElement?.closest(".kt-menu-accordion") || null;
+    }
+
+    // Dıştan içe doğru aç - class ekleyerek
+    menuItems.reverse().forEach((menuItem) => {
+      if (!menuItem.classList.contains("kt-menu-item-show")) {
+        menuItem.classList.add("kt-menu-item-show");
+        // Accordion içeriğini göster
+        const accordion = menuItem.querySelector(
+          ":scope > .kt-menu-accordion",
+        ) as HTMLElement;
+        if (accordion) {
+          accordion.style.display = "flex";
+        }
+      }
+    });
   }
 }
