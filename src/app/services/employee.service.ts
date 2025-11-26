@@ -229,7 +229,7 @@ export class EmployeeService {
   ): Observable<ApiResponse<void>> {
     return this.http.patch<ApiResponse<void>>(
       `${this.apiUrl}/${employeeId}/status`,
-      { isActive },
+      isActive,
     );
   }
 }
