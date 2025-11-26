@@ -2805,3 +2805,13 @@
     </div>
   </div>
 }
+
+<!-- Offcanvas Filter -->
+<app-offcanvas-filter
+  [config]="filterDrawerConfig()"
+  [initialValues]="activeFilters()"
+  [isOpen]="filterOffcanvasOpen()"
+  (filtersApplied)="onFiltersApplied($event)"
+  (filtersCleared)="onFiltersCleared()"
+  (toggleOffcanvas)="onFilterOffcanvasToggle($event)"
+></app-offcanvas-filter>

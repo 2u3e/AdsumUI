@@ -27,6 +27,12 @@ import {
 } from "../../services/reference.service";
 import { NotificationService } from "../../core/services/notification.service";
 import { MetronicInitService } from "../../core/services/metronic-init.service";
+import { OffcanvasFilterComponent } from "../../shared/components/offcanvas-filter/offcanvas-filter.component";
+import {
+  FilterDrawerConfig,
+  FilterValues,
+} from "../../shared/components/filter-drawer/filter-config.interface";
+import { USER_MANAGEMENT_FILTER_CONFIG } from "./user-management-filter.config";
 
 // User Interface - Matches API Response
 interface User {
@@ -122,7 +128,13 @@ interface EditUserForm {
 @Component({
   selector: "app-user-management",
   standalone: true,
-  imports: [CommonModule, FormsModule, PhoneMaskDirective, DatepickerDirective],
+  imports: [
+    CommonModule,
+    FormsModule,
+    PhoneMaskDirective,
+    DatepickerDirective,
+    OffcanvasFilterComponent,
+  ],
   templateUrl: "./user-management.component.html",
   styleUrl: "./user-management.component.scss",
 })
@@ -140,6 +152,10 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
   searchTerm = signal("");
   selectedRole = signal("");
   selectedStatus = signal("");
+  filterDrawerConfig = signal<FilterDrawerConfig>(
+    USER_MANAGEMENT_FILTER_CONFIG,
+  );
+  activeFilters = signal<FilterValues>({});
 
   // Pagination
   currentPage = signal(1);
@@ -441,17 +457,20 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
   loadEmployees() {
     this.isLoading.set(true);
 
+    const filters = this.activeFilters();
+
     this.employeeService
       .getAllEmployeesPaged({
         pageNumber: this.currentPage(),
         pageSize: this.pageSize(),
-        fullName: this.searchTerm() || undefined,
-        organizationId: undefined,
-        userName: undefined,
-        email: undefined,
-        isActive: this.selectedStatus()
-          ? this.selectedStatus() === "active"
-          : undefined,
+        fullName: filters["fullName"] || this.searchTerm() || undefined,
+        organizationId: filters["organizationId"] || undefined,
+        userName: filters["userName"] || undefined,
+        email: filters["email"] || undefined,
+        isActive:
+          filters["isActive"] !== undefined && filters["isActive"] !== ""
+            ? filters["isActive"] === "true"
+            : undefined,
       })
       .subscribe({
         next: (response: any) => {
@@ -480,6 +499,7 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
       next: (response) => {
         if (response.data) {
           this.organizations.set(response.data);
+          this.updateFilterDrawerOptions();
         }
       },
       error: (error) => {
@@ -801,7 +821,24 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
     this.filterOffcanvasOpen.set(true);
   }
 
+  onFilterOffcanvasToggle(isOpen: boolean): void {
+    this.filterOffcanvasOpen.set(isOpen);
+  }
+
+  onFiltersApplied(filters: FilterValues): void {
+    this.activeFilters.set(filters);
+    this.currentPage.set(1);
+    this.loadEmployees();
+  }
+
+  onFiltersCleared(): void {
+    this.activeFilters.set({});
+    this.currentPage.set(1);
+    this.loadEmployees();
+  }
+
   clearAllFilters() {
+    this.activeFilters.set({});
     this.searchTerm.set("");
     this.selectedRole.set("");
     this.selectedStatus.set("");
@@ -810,10 +847,46 @@ export class UserManagementComponent implements OnInit, AfterViewChecked {
   }
 
   getActiveFilterCount(): number {
+    const filters = this.activeFilters();
     let count = 0;
-    if (this.selectedRole()) count++;
-    if (this.selectedStatus()) count++;
+
+    Object.keys(filters).forEach((key) => {
+      const value = filters[key];
+      if (value !== null && value !== undefined && value !== "") {
+        if (Array.isArray(value) && value.length > 0) {
+          count++;
+        } else if (!Array.isArray(value)) {
+          count++;
+        }
+      }
+    });
+
     return count;
+  }
+
+  private updateFilterDrawerOptions(): void {
+    if (this.organizations().length === 0) {
+      return;
+    }
+
+    // Deep clone the config
+    const config: FilterDrawerConfig = {
+      ...USER_MANAGEMENT_FILTER_CONFIG,
+      fields: USER_MANAGEMENT_FILTER_CONFIG.fields.map((field) => ({
+        ...field,
+      })),
+    };
+
+    // Update organizationId options
+    const orgField = config.fields.find((f) => f.key === "organizationId");
+    if (orgField) {
+      orgField.options = this.organizations().map((org) => ({
+        id: org.id,
+        name: org.name,
+      }));
+    }
+
+    this.filterDrawerConfig.set(config);
   }
 
   // Create Modal methods
