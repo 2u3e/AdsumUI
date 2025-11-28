@@ -87,6 +87,8 @@ export class SidebarComponent {
     if (event.key === "Enter") {
       const results = this.filteredMenuItems();
       if (results.length === 1) {
+        // Önce tüm açık menüleri kapat
+        this.closeAllMenus();
         this.router.navigate([results[0].path]);
         this.clearSearch();
         (event.target as HTMLInputElement).blur();
@@ -95,7 +97,24 @@ export class SidebarComponent {
     }
   }
 
+  private closeAllMenus(): void {
+    const openMenus = document.querySelectorAll(
+      "#sidebar_menu .kt-menu-item-show",
+    );
+    openMenus.forEach((menu) => {
+      menu.classList.remove("kt-menu-item-show");
+      const accordion = menu.querySelector(
+        ":scope > .kt-menu-accordion",
+      ) as HTMLElement;
+      if (accordion) {
+        accordion.style.display = "";
+      }
+    });
+  }
+
   onResultClick(path: string): void {
+    // Önce tüm açık menüleri kapat
+    this.closeAllMenus();
     this.clearSearch();
     this.isSearchFocused.set(false);
     setTimeout(() => this.expandMenuForPath(path), 100);
@@ -116,18 +135,7 @@ export class SidebarComponent {
 
   private expandParentMenus(element: HTMLElement): void {
     // Önce tüm açık menüleri kapat
-    const openMenus = document.querySelectorAll(
-      "#sidebar_menu .kt-menu-item-show",
-    );
-    openMenus.forEach((menu) => {
-      menu.classList.remove("kt-menu-item-show");
-      const accordion = menu.querySelector(
-        ":scope > .kt-menu-accordion",
-      ) as HTMLElement;
-      if (accordion) {
-        accordion.style.display = "";
-      }
-    });
+    this.closeAllMenus();
 
     // Üst accordion'ları bul ve aç (en içten dışa)
     const menuItems: HTMLElement[] = [];
