@@ -50,6 +50,11 @@ export class SidebarComponent {
       parent: "Organizasyon Yönetimi",
     },
     { title: "Rol Yönetimi", path: "/role", parent: "Organizasyon Yönetimi" },
+    {
+      title: "İş Tipi Yönetimi",
+      path: "/work-type",
+      parent: "İş Emri Yönetimi",
+    },
   ];
 
   // Filtrelenmiş menü öğeleri

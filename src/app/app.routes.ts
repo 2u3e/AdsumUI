@@ -12,6 +12,7 @@ import { CitizenComponent } from "./pages/citizen/citizen.component";
 import { OrganizationComponent } from "./pages/organization/organization.component";
 import { MenuComponent } from "./pages/menu/menu.component";
 import { RoleComponent } from "./pages/role/role.component";
+import { WorkTypeComponent } from "./pages/work-type/work-type.component";
 
 import { authGuard, loginGuard } from "./core/guards/auth.guard";
 
@@ -57,6 +58,10 @@ export const routes: Routes = [
       {
         path: "role",
         component: RoleComponent,
+      },
+      {
+        path: "work-type",
+        component: WorkTypeComponent,
       },
     ],
   },
