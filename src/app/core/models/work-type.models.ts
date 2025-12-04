@@ -9,8 +9,11 @@ export interface WorkTypeItem {
   /** WorkType adı */
   name: string;
 
-  /** Grup ID */
-  groupId?: string | null;
+  /** İş Grubu ID (int32) */
+  workGroupId: number;
+
+  /** İş Grubu Adı */
+  workGroupName?: string | null;
 
   /** Aktif mi? */
   isActive: boolean;
@@ -20,6 +23,9 @@ export interface WorkTypeItem {
 
   /** Düzenlenebilir mi? */
   isEditable: boolean;
+
+  /** Genel mi? */
+  isGeneral: boolean;
 }
 
 /**
@@ -33,17 +39,14 @@ export interface WorkTypeListItem {
   /** WorkType adı */
   name: string;
 
-  /** Grup ID */
-  groupId?: string | null;
+  /** İş Grubu Adı */
+  workGroupName?: string | null;
 
   /** Aktif mi? */
   isActive: boolean;
 
-  /** Oluşturulabilir mi? */
-  isCreatable: boolean;
-
-  /** Düzenlenebilir mi? */
-  isEditable: boolean;
+  /** Genel mi? */
+  isGeneral: boolean;
 }
 
 /**
@@ -60,14 +63,17 @@ export interface GetWorkTypesRequest {
   /** WorkType adı (arama) */
   name?: string;
 
-  /** Grup ID */
-  groupId?: string;
+  /** İş Grubu ID (int32) */
+  workGroupId?: number;
 
   /** Aktif mi? */
   isActive?: boolean;
 
   /** Oluşturulabilir mi? */
   isCreatable?: boolean;
+
+  /** Genel mi? */
+  isGeneral?: boolean;
 }
 
 /**
@@ -78,8 +84,8 @@ export interface CreateWorkTypeRequest {
   /** WorkType adı */
   name: string;
 
-  /** Grup ID */
-  groupId?: string | null;
+  /** İş Grubu ID (int32) */
+  workGroupId: number;
 
   /** Aktif mi? */
   isActive: boolean;
@@ -89,6 +95,9 @@ export interface CreateWorkTypeRequest {
 
   /** Düzenlenebilir mi? */
   isEditable: boolean;
+
+  /** Genel mi? */
+  isGeneral: boolean;
 }
 
 /**
@@ -102,8 +111,8 @@ export interface UpdateWorkTypeRequest {
   /** WorkType adı */
   name: string;
 
-  /** Grup ID */
-  groupId?: string | null;
+  /** İş Grubu ID (int32) */
+  workGroupId: number;
 
   /** Aktif mi? */
   isActive: boolean;
@@ -113,6 +122,9 @@ export interface UpdateWorkTypeRequest {
 
   /** Düzenlenebilir mi? */
   isEditable: boolean;
+
+  /** Genel mi? */
+  isGeneral: boolean;
 }
 
 /**

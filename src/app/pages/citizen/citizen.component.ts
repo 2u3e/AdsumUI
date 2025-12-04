@@ -12,13 +12,9 @@ import { FormsModule } from "@angular/forms";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 import { CitizenService } from "../../core/services/citizen.service";
-import { ReferenceService } from "../../core/services/reference.service";
 import { NotificationService } from "../../core/services/notification.service";
 import { MetronicInitService } from "../../core/services/metronic-init.service";
-import { KTSelectService } from "../../core/services/kt-select.service";
 import { CitizenListItem } from "../../core/models/citizen.models";
-import { ReferenceDataSelectItem } from "../../core/models/reference.models";
-import { ReferenceTypes } from "../../core/constants/reference-types";
 import { PaginationMeta } from "../../core/models/api.models";
 import { OffcanvasFilterComponent } from "../../shared/components/offcanvas-filter/offcanvas-filter.component";
 import {
@@ -36,14 +32,11 @@ import { CITIZEN_FILTER_CONFIG } from "./citizen-filter.config";
 })
 export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
   private citizenService = inject(CitizenService);
-  private referenceService = inject(ReferenceService);
   private notificationService = inject(NotificationService);
   private metronicInit = inject(MetronicInitService);
-  private ktSelectService = inject(KTSelectService);
 
   // Signals
   citizens = signal<CitizenListItem[]>([]);
-  genders = signal<ReferenceDataSelectItem[]>([]);
   pagination = signal<PaginationMeta | null>(null);
   loading = signal<boolean>(false);
   error = signal<string | null>(null);
@@ -59,7 +52,6 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
     lastName: signal<string>(""),
     birthDate: signal<string>(""),
     birthPlace: signal<string>(""),
-    genderId: signal<number | null>(null),
     isActive: signal<boolean>(true),
   };
   createFormSubmitting = signal<boolean>(false);
@@ -68,7 +60,6 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
     name: signal<boolean>(false),
     lastName: signal<boolean>(false),
     birthDate: signal<boolean>(false),
-    genderId: signal<boolean>(false),
   };
 
   // Edit form
@@ -78,7 +69,6 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
     lastName: signal<string>(""),
     birthDate: signal<string>(""),
     birthPlace: signal<string>(""),
-    genderId: signal<number | null>(null),
     isActive: signal<boolean>(true),
   };
   editFormSubmitting = signal<boolean>(false);
@@ -86,7 +76,6 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
     name: signal<boolean>(false),
     lastName: signal<boolean>(false),
     birthDate: signal<boolean>(false),
-    genderId: signal<boolean>(false),
   };
 
   // Search ve pagination parametreleri
@@ -201,9 +190,6 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
         this.loadCitizens();
       });
 
-    // Cinsiyet listesini yükle
-    this.loadGenders();
-
     // İlk yükleme
     this.loadCitizens();
 
@@ -216,88 +202,11 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
 
   ngAfterViewChecked(): void {
     if (this.needsSelectInit) {
-      const selectEl = document.getElementById(
-        "editModalGenderId",
-      ) as HTMLSelectElement;
-
-      // Native select'e değeri set et
-      if (selectEl && this.editForm.genderId()) {
-        const targetValue = this.editForm.genderId()!.toString();
-        const matchingOption = Array.from(selectEl.options).find(
-          (o) => o.value === targetValue,
-        );
-
-        if (matchingOption) {
-          selectEl.value = targetValue;
-          matchingOption.selected = true;
-        }
-      }
-
       // KT Select'i initialize et
       this.metronicInit.initSelect();
       this.metronicInit.initTooltips();
-
-      // KT Select instance'ını güncelle
-      if (selectEl && this.editForm.genderId()) {
-        setTimeout(() => {
-          const ktSelectInstance = (selectEl as any).instance;
-          if (ktSelectInstance) {
-            selectEl.value = this.editForm.genderId()!.toString();
-            selectEl.dispatchEvent(new Event("change", { bubbles: true }));
-
-            if (typeof ktSelectInstance.update === "function") {
-              ktSelectInstance.update();
-            }
-          }
-        }, 50);
-      }
-
       this.needsSelectInit = false;
     }
-  }
-
-  /**
-   * Cinsiyet listesini yükler
-   * ReferenceId = 105 (GenderType)
-   */
-  loadGenders(): void {
-    this.referenceService
-      .getDataForSelect(ReferenceTypes.GenderType.toString(), false)
-      .subscribe({
-        next: (response) => {
-          this.genders.set(response.data ?? []);
-          this.updateFilterDrawerOptions();
-        },
-        error: (err) => {
-          console.error("Gender loading error:", err);
-        },
-      });
-  }
-
-  /**
-   * Update filter drawer options with loaded data
-   */
-  updateFilterDrawerOptions(): void {
-    if (this.genders().length === 0) {
-      return;
-    }
-
-    // Deep clone the config to ensure Angular detects changes
-    const config: FilterDrawerConfig = {
-      ...CITIZEN_FILTER_CONFIG,
-      fields: CITIZEN_FILTER_CONFIG.fields.map((field) => ({ ...field })),
-    };
-
-    // Update genderId options
-    const genderField = config.fields.find((f) => f.key === "genderId");
-    if (genderField) {
-      genderField.options = this.genders().map((gender) => ({
-        id: gender.id,
-        name: gender.name,
-      }));
-    }
-
-    this.filterDrawerConfig.set(config);
   }
 
   /**
@@ -317,7 +226,6 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
           filters["identityNumber"] || this.searchTerm() || undefined,
         name: filters["name"] || undefined,
         lastName: filters["lastName"] || undefined,
-        genderId: filters["genderId"] ?? undefined,
       })
       .subscribe({
         next: (response) => {
@@ -429,7 +337,6 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
           const birthDate = new Date(citizenData.birthDate);
           this.editForm.birthDate.set(birthDate.toISOString().split("T")[0]);
           this.editForm.birthPlace.set(citizenData.birthPlace ?? "");
-          this.editForm.genderId.set(citizenData.genderId);
           this.editForm.isActive.set(citizenData.isActive);
           this.editModalOpen.set(true);
           this.needsSelectInit = true;
@@ -510,14 +417,12 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.createForm.lastName.set("");
     this.createForm.birthDate.set("");
     this.createForm.birthPlace.set("");
-    this.createForm.genderId.set(null);
     this.createForm.isActive.set(true);
     this.createFormSubmitting.set(false);
     this.createFormTouched.identityNumber.set(false);
     this.createFormTouched.name.set(false);
     this.createFormTouched.lastName.set(false);
     this.createFormTouched.birthDate.set(false);
-    this.createFormTouched.genderId.set(false);
   }
 
   /**
@@ -528,8 +433,7 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
       this.isCreateIdentityNumberValid() &&
       this.isCreateNameValid() &&
       this.isCreateLastNameValid() &&
-      this.isCreateBirthDateValid() &&
-      this.isCreateGenderValid()
+      this.isCreateBirthDateValid()
     );
   }
 
@@ -574,10 +478,6 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
     return this.createForm.birthDate().length > 0;
   }
 
-  isCreateGenderValid(): boolean {
-    return this.createForm.genderId() !== null;
-  }
-
   shouldShowCreateIdentityNumberError(): boolean {
     return (
       this.createFormTouched.identityNumber() &&
@@ -595,10 +495,6 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
 
   shouldShowCreateBirthDateError(): boolean {
     return this.createFormTouched.birthDate() && !this.isCreateBirthDateValid();
-  }
-
-  shouldShowCreateGenderError(): boolean {
-    return this.createFormTouched.genderId() && !this.isCreateGenderValid();
   }
 
   getCreateIdentityNumberError(): string {
@@ -645,13 +541,6 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
     return "";
   }
 
-  getCreateGenderError(): string {
-    if (!this.isCreateGenderValid()) {
-      return "Cinsiyet seçimi zorunludur";
-    }
-    return "";
-  }
-
   /**
    * Yeni citizen oluştur
    */
@@ -661,7 +550,6 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.createFormTouched.name.set(true);
     this.createFormTouched.lastName.set(true);
     this.createFormTouched.birthDate.set(true);
-    this.createFormTouched.genderId.set(true);
 
     if (!this.isCreateFormValid() || this.createFormSubmitting()) {
       return;
@@ -675,7 +563,6 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
       lastName: this.createForm.lastName().trim(),
       birthDate: this.createForm.birthDate(),
       birthPlace: this.createForm.birthPlace().trim() || undefined,
-      genderId: this.createForm.genderId()!,
       isActive: this.createForm.isActive(),
     };
 
@@ -714,13 +601,11 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.editForm.lastName.set("");
     this.editForm.birthDate.set("");
     this.editForm.birthPlace.set("");
-    this.editForm.genderId.set(null);
     this.editForm.isActive.set(true);
     this.editFormSubmitting.set(false);
     this.editFormTouched.name.set(false);
     this.editFormTouched.lastName.set(false);
     this.editFormTouched.birthDate.set(false);
-    this.editFormTouched.genderId.set(false);
   }
 
   /**
@@ -730,15 +615,10 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
     const name = this.editForm.name().trim();
     const lastName = this.editForm.lastName().trim();
     const birthDate = this.editForm.birthDate();
-    const genderId = this.editForm.genderId();
     const id = this.editForm.id();
 
     return (
-      id.length > 0 &&
-      name.length > 0 &&
-      lastName.length > 0 &&
-      !!birthDate &&
-      !!genderId
+      id.length > 0 && name.length > 0 && lastName.length > 0 && !!birthDate
     );
   }
 
@@ -757,10 +637,6 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
     return this.editForm.birthDate().length > 0;
   }
 
-  isEditGenderValid(): boolean {
-    return this.editForm.genderId() !== null;
-  }
-
   shouldShowEditNameError(): boolean {
     return this.editFormTouched.name() && !this.isEditNameValid();
   }
@@ -771,10 +647,6 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
 
   shouldShowEditBirthDateError(): boolean {
     return this.editFormTouched.birthDate() && !this.isEditBirthDateValid();
-  }
-
-  shouldShowEditGenderError(): boolean {
-    return this.editFormTouched.genderId() && !this.isEditGenderValid();
   }
 
   getEditNameError(): string {
@@ -798,13 +670,6 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
     return "";
   }
 
-  getEditGenderError(): string {
-    if (!this.isEditGenderValid()) {
-      return "Cinsiyet seçimi zorunludur";
-    }
-    return "";
-  }
-
   /**
    * Citizen güncelle
    */
@@ -813,7 +678,6 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.editFormTouched.name.set(true);
     this.editFormTouched.lastName.set(true);
     this.editFormTouched.birthDate.set(true);
-    this.editFormTouched.genderId.set(true);
 
     if (!this.isEditFormValid() || this.editFormSubmitting()) {
       return;
@@ -827,7 +691,6 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
       lastName: this.editForm.lastName().trim(),
       birthDate: this.editForm.birthDate(),
       birthPlace: this.editForm.birthPlace().trim() || undefined,
-      genderId: this.editForm.genderId()!,
       isActive: this.editForm.isActive(),
     };
 
@@ -853,14 +716,6 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
    */
   closeError(): void {
     this.error.set(null);
-  }
-
-  /**
-   * Cinsiyet adını ID'ye göre getir
-   */
-  getGenderName(genderId: number): string {
-    const gender = this.genders().find((g) => +g.id === genderId);
-    return gender?.name ?? "-";
   }
 
   /**
@@ -944,10 +799,7 @@ export class CitizenComponent implements OnInit, AfterViewChecked, OnDestroy {
    * Cleanup on component destroy
    */
   ngOnDestroy(): void {
-    // Destroy KT Select instances for modals
-    this.ktSelectService.destroyInstances(
-      "createModalGenderId",
-      "editModalGenderId",
-    );
+    // Subject cleanup
+    this.searchSubject.complete();
   }
 }

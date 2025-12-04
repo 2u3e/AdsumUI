@@ -17,6 +17,15 @@ export const WORK_TYPE_FILTER_CONFIG: FilterDrawerConfig = {
       colSpan: 2,
     },
     {
+      key: "workGroupId",
+      label: "İş Grubu",
+      type: "select",
+      placeholder: "İş grubu seçiniz",
+      clearable: true,
+      options: [],
+      colSpan: 2,
+    },
+    {
       key: "isActive",
       label: "Durum",
       type: "select",
@@ -29,8 +38,8 @@ export const WORK_TYPE_FILTER_CONFIG: FilterDrawerConfig = {
       colSpan: 2,
     },
     {
-      key: "isCreatable",
-      label: "Oluşturulabilir",
+      key: "isGeneral",
+      label: "Genel",
       type: "select",
       placeholder: "Seçiniz",
       clearable: true,

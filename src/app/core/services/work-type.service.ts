@@ -42,8 +42,8 @@ export class WorkTypeService extends BaseHttpService {
       params.name = request.name;
     }
 
-    if (request.groupId) {
-      params.groupId = request.groupId;
+    if (request.workGroupId !== undefined) {
+      params.workGroupId = request.workGroupId;
     }
 
     if (request.isActive !== undefined) {
@@ -52,6 +52,10 @@ export class WorkTypeService extends BaseHttpService {
 
     if (request.isCreatable !== undefined) {
       params.isCreatable = request.isCreatable;
+    }
+
+    if (request.isGeneral !== undefined) {
+      params.isGeneral = request.isGeneral;
     }
 
     return this.get<WorkTypeListItem[]>(`${this.endpoint}`, {

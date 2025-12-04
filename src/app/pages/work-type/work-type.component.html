@@ -61,8 +61,8 @@
 
       <!-- Form Content -->
       <div class="p-6 space-y-4">
-        <!-- 1. Satır: Ad -->
-        <div class="grid grid-cols-1 gap-4">
+        <!-- 1. Satır: Ad ve İş Grubu -->
+        <div class="grid grid-cols-2 gap-4">
           <!-- Name Field -->
           <div>
             <label
@@ -92,10 +92,55 @@
               </div>
             }
           </div>
+
+          <!-- Work Group Field -->
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              İş Grubu
+              <span class="text-red-500">*</span>
+            </label>
+            <div [class.validation-error]="shouldShowCreateWorkGroupError()">
+              <select
+                id="createModalWorkGroupId"
+                class="kt-select w-full text-sm"
+                data-kt-select="true"
+                data-kt-select-placeholder="İş grubu seçiniz"
+                data-kt-select-enable-search="true"
+                data-kt-select-search-placeholder="Ara..."
+                [attr.data-kt-select-config]="
+                  '{&quot;optionsClass&quot;: &quot;kt-scrollable overflow-auto max-h-[250px]&quot;}'
+                "
+                [ngModel]="createForm.workGroupId() ?? ''"
+                (ngModelChange)="
+                  createForm.workGroupId.set(
+                    $event !== '' && $event !== null ? +$event : null
+                  )
+                "
+                (blur)="createFormTouched.workGroupId.set(true)"
+                [ngModelOptions]="{ standalone: true }"
+                [disabled]="createFormSubmitting()"
+              >
+                <option value=""></option>
+                @for (group of workGroups(); track group.id) {
+                  <option [value]="group.id">{{ group.name }}</option>
+                }
+              </select>
+            </div>
+            @if (shouldShowCreateWorkGroupError()) {
+              <div class="flex items-center gap-1.5 mt-1.5">
+                <i class="ki-filled ki-information text-sm text-red-500"></i>
+                <span class="text-xs text-red-600 dark:text-red-400">
+                  {{ getCreateWorkGroupError() }}
+                </span>
+              </div>
+            }
+          </div>
         </div>
 
         <!-- 2. Satır: Durum Seçenekleri -->
-        <div class="grid grid-cols-3 gap-4">
+        <div class="grid grid-cols-4 gap-4">
           <!-- Is Active Switch -->
           <div>
             <label
@@ -173,6 +218,32 @@
               </label>
             </div>
           </div>
+
+          <!-- Is General Switch -->
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Genel
+            </label>
+            <div class="flex items-center gap-2 mt-1">
+              <input
+                type="checkbox"
+                class="kt-switch"
+                id="createIsGeneral"
+                [ngModel]="createForm.isGeneral()"
+                (ngModelChange)="createForm.isGeneral.set($event)"
+                [ngModelOptions]="{ standalone: true }"
+                [disabled]="createFormSubmitting()"
+              />
+              <label
+                for="createIsGeneral"
+                class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+              >
+                {{ createForm.isGeneral() ? "Evet" : "Hayır" }}
+              </label>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -243,8 +314,8 @@
 
       <!-- Form Content -->
       <div class="p-6 space-y-4">
-        <!-- 1. Satır: Ad -->
-        <div class="grid grid-cols-1 gap-4">
+        <!-- 1. Satır: Ad ve İş Grubu -->
+        <div class="grid grid-cols-2 gap-4">
           <!-- Name Field -->
           <div>
             <label
@@ -274,10 +345,55 @@
               </div>
             }
           </div>
+
+          <!-- Work Group Field -->
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              İş Grubu
+              <span class="text-red-500">*</span>
+            </label>
+            <div [class.validation-error]="shouldShowEditWorkGroupError()">
+              <select
+                id="editModalWorkGroupId"
+                class="kt-select w-full text-sm"
+                data-kt-select="true"
+                data-kt-select-placeholder="İş grubu seçiniz"
+                data-kt-select-enable-search="true"
+                data-kt-select-search-placeholder="Ara..."
+                [attr.data-kt-select-config]="
+                  '{&quot;optionsClass&quot;: &quot;kt-scrollable overflow-auto max-h-[250px]&quot;}'
+                "
+                [ngModel]="editForm.workGroupId() ?? ''"
+                (ngModelChange)="
+                  editForm.workGroupId.set(
+                    $event !== '' && $event !== null ? +$event : null
+                  )
+                "
+                (blur)="editFormTouched.workGroupId.set(true)"
+                [ngModelOptions]="{ standalone: true }"
+                [disabled]="editFormSubmitting()"
+              >
+                <option value=""></option>
+                @for (group of workGroups(); track group.id) {
+                  <option [value]="group.id">{{ group.name }}</option>
+                }
+              </select>
+            </div>
+            @if (shouldShowEditWorkGroupError()) {
+              <div class="flex items-center gap-1.5 mt-1.5">
+                <i class="ki-filled ki-information text-sm text-red-500"></i>
+                <span class="text-xs text-red-600 dark:text-red-400">
+                  {{ getEditWorkGroupError() }}
+                </span>
+              </div>
+            }
+          </div>
         </div>
 
         <!-- 2. Satır: Durum Seçenekleri -->
-        <div class="grid grid-cols-3 gap-4">
+        <div class="grid grid-cols-4 gap-4">
           <!-- Is Active Switch -->
           <div>
             <label
@@ -352,6 +468,32 @@
                 class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
               >
                 {{ editForm.isEditable() ? "Evet" : "Hayır" }}
+              </label>
+            </div>
+          </div>
+
+          <!-- Is General Switch -->
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Genel
+            </label>
+            <div class="flex items-center gap-2 mt-1">
+              <input
+                type="checkbox"
+                class="kt-switch"
+                id="editIsGeneral"
+                [ngModel]="editForm.isGeneral()"
+                (ngModelChange)="editForm.isGeneral.set($event)"
+                [ngModelOptions]="{ standalone: true }"
+                [disabled]="editFormSubmitting()"
+              />
+              <label
+                for="editIsGeneral"
+                class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+              >
+                {{ editForm.isGeneral() ? "Evet" : "Hayır" }}
               </label>
             </div>
           </div>
@@ -441,6 +583,14 @@
               <p class="text-base font-semibold text-gray-900 dark:text-white">
                 {{ selectedWorkType()!.name }}
               </p>
+              @if (selectedWorkType()!.workGroupName) {
+                <p class="text-sm text-gray-500 dark:text-gray-300 mt-1">
+                  İş Grubu:
+                  <span class="font-medium text-gray-700 dark:text-gray-200">{{
+                    selectedWorkType()!.workGroupName
+                  }}</span>
+                </p>
+              }
             </div>
           </div>
         }
@@ -559,19 +709,19 @@
                   <span class="kt-table-col-label">Durum</span>
                 </span>
               </th>
-              <th scope="col" class="min-w-[300px]">
+              <th scope="col" class="min-w-[250px]">
                 <span class="kt-table-col">
                   <span class="kt-table-col-label">İş Tipi Adı</span>
                 </span>
               </th>
-              <th scope="col" class="min-w-[120px]">
+              <th scope="col" class="min-w-[200px]">
                 <span class="kt-table-col">
-                  <span class="kt-table-col-label">Oluşturulabilir</span>
+                  <span class="kt-table-col-label">İş Grubu</span>
                 </span>
               </th>
-              <th scope="col" class="min-w-[120px]">
+              <th scope="col" class="min-w-[100px]">
                 <span class="kt-table-col">
-                  <span class="kt-table-col-label">Düzenlenebilir</span>
+                  <span class="kt-table-col-label">Genel</span>
                 </span>
               </th>
               <th scope="col" class="w-24">
@@ -619,18 +769,12 @@
                     </span>
                   </td>
                   <td>
-                    @if (workType.isCreatable) {
-                      <span class="kt-badge kt-badge-light kt-badge-success">
-                        Evet
-                      </span>
-                    } @else {
-                      <span class="kt-badge kt-badge-light kt-badge-warning">
-                        Hayır
-                      </span>
-                    }
+                    <span class="text-sm text-gray-600 dark:text-gray-300">
+                      {{ workType.workGroupName || "-" }}
+                    </span>
                   </td>
                   <td>
-                    @if (workType.isEditable) {
+                    @if (workType.isGeneral) {
                       <span class="kt-badge kt-badge-light kt-badge-success">
                         Evet
                       </span>

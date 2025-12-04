@@ -12,9 +12,12 @@ import { FormsModule } from "@angular/forms";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 import { WorkTypeService } from "../../core/services/work-type.service";
+import { ReferenceService } from "../../core/services/reference.service";
 import { NotificationService } from "../../core/services/notification.service";
 import { MetronicInitService } from "../../core/services/metronic-init.service";
+import { KTSelectService } from "../../core/services/kt-select.service";
 import { WorkTypeListItem } from "../../core/models/work-type.models";
+import { ReferenceDataSelectItem } from "../../core/models/reference.models";
 import { PaginationMeta } from "../../core/models/api.models";
 import { OffcanvasFilterComponent } from "../../shared/components/offcanvas-filter/offcanvas-filter.component";
 import {
@@ -32,11 +35,14 @@ import { WORK_TYPE_FILTER_CONFIG } from "./work-type-filter.config";
 })
 export class WorkTypeComponent implements OnInit, AfterViewChecked, OnDestroy {
   private workTypeService = inject(WorkTypeService);
+  private referenceService = inject(ReferenceService);
   private notificationService = inject(NotificationService);
   private metronicInit = inject(MetronicInitService);
+  private ktSelectService = inject(KTSelectService);
 
   // Signals
   workTypes = signal<WorkTypeListItem[]>([]);
+  workGroups = signal<ReferenceDataSelectItem[]>([]);
   pagination = signal<PaginationMeta | null>(null);
   loading = signal<boolean>(false);
   error = signal<string | null>(null);
@@ -48,28 +54,32 @@ export class WorkTypeComponent implements OnInit, AfterViewChecked, OnDestroy {
   // Create form
   createForm = {
     name: signal<string>(""),
-    groupId: signal<string | null>(null),
+    workGroupId: signal<number | null>(null),
     isActive: signal<boolean>(true),
     isCreatable: signal<boolean>(true),
     isEditable: signal<boolean>(true),
+    isGeneral: signal<boolean>(false),
   };
   createFormSubmitting = signal<boolean>(false);
   createFormTouched = {
     name: signal<boolean>(false),
+    workGroupId: signal<boolean>(false),
   };
 
   // Edit form
   editForm = {
     id: signal<string>(""),
     name: signal<string>(""),
-    groupId: signal<string | null>(null),
+    workGroupId: signal<number | null>(null),
     isActive: signal<boolean>(true),
     isCreatable: signal<boolean>(true),
     isEditable: signal<boolean>(true),
+    isGeneral: signal<boolean>(false),
   };
   editFormSubmitting = signal<boolean>(false);
   editFormTouched = {
     name: signal<boolean>(false),
+    workGroupId: signal<boolean>(false),
   };
 
   // Search ve pagination parametreleri
@@ -185,6 +195,9 @@ export class WorkTypeComponent implements OnInit, AfterViewChecked, OnDestroy {
         this.loadWorkTypes();
       });
 
+    // İş gruplarını yükle
+    this.loadWorkGroups();
+
     // İlk yükleme
     this.loadWorkTypes();
 
@@ -198,19 +211,73 @@ export class WorkTypeComponent implements OnInit, AfterViewChecked, OnDestroy {
   ngAfterViewChecked(): void {
     // Initialize create modal selects only once when modal is open
     if (this.createModalOpen() && !this.createModalSelectsInitialized) {
-      setTimeout(() => {
-        this.metronicInit.initSelect();
-        this.createModalSelectsInitialized = true;
-      }, 0);
+      const createModalWorkGroupSelect = document.getElementById(
+        "createModalWorkGroupId",
+      );
+
+      if (createModalWorkGroupSelect) {
+        setTimeout(() => {
+          this.metronicInit.initSelect();
+          this.createModalSelectsInitialized = true;
+        }, 0);
+      }
     }
 
     // Initialize edit modal selects only once when modal is open
     if (this.editModalOpen() && !this.editModalSelectsInitialized) {
-      setTimeout(() => {
-        this.metronicInit.initSelect();
-        this.editModalSelectsInitialized = true;
-      }, 0);
+      const editModalWorkGroupSelect = document.getElementById(
+        "editModalWorkGroupId",
+      );
+
+      if (editModalWorkGroupSelect) {
+        setTimeout(() => {
+          this.metronicInit.initSelect();
+          this.editModalSelectsInitialized = true;
+        }, 0);
+      }
     }
+  }
+
+  /**
+   * İş gruplarını yükler
+   * ReferenceId = 105 (WorkGroupType)
+   */
+  loadWorkGroups(): void {
+    this.referenceService.getDataForSelect("105", false).subscribe({
+      next: (response) => {
+        this.workGroups.set(response.data ?? []);
+        this.updateFilterDrawerOptions();
+      },
+      error: (err) => {
+        console.error("Work groups loading error:", err);
+      },
+    });
+  }
+
+  /**
+   * Update filter drawer options with loaded data
+   */
+  updateFilterDrawerOptions(): void {
+    if (this.workGroups().length === 0) {
+      return;
+    }
+
+    // Deep clone the config to ensure Angular detects changes
+    const config: FilterDrawerConfig = {
+      ...WORK_TYPE_FILTER_CONFIG,
+      fields: WORK_TYPE_FILTER_CONFIG.fields.map((field) => ({ ...field })),
+    };
+
+    // Update workGroupId options
+    const workGroupField = config.fields.find((f) => f.key === "workGroupId");
+    if (workGroupField) {
+      workGroupField.options = this.workGroups().map((group) => ({
+        id: group.id,
+        name: group.name,
+      }));
+    }
+
+    this.filterDrawerConfig.set(config);
   }
 
   /**
@@ -227,15 +294,17 @@ export class WorkTypeComponent implements OnInit, AfterViewChecked, OnDestroy {
         pageNumber: this.currentPage(),
         pageSize: this.pageSize(),
         name: filters["name"] || this.searchTerm() || undefined,
+        workGroupId: filters["workGroupId"]
+          ? +filters["workGroupId"]
+          : undefined,
         isActive:
           filters["isActive"] !== undefined && filters["isActive"] !== ""
             ? filters["isActive"] === "true"
             : undefined,
-        isCreatable:
-          filters["isCreatable"] !== undefined && filters["isCreatable"] !== ""
-            ? filters["isCreatable"] === "true"
+        isGeneral:
+          filters["isGeneral"] !== undefined && filters["isGeneral"] !== ""
+            ? filters["isGeneral"] === "true"
             : undefined,
-        groupId: filters["groupId"] || undefined,
       })
       .subscribe({
         next: (response) => {
@@ -334,11 +403,17 @@ export class WorkTypeComponent implements OnInit, AfterViewChecked, OnDestroy {
         if (workTypeData) {
           this.editForm.id.set(workTypeData.id);
           this.editForm.name.set(workTypeData.name);
-          this.editForm.groupId.set(workTypeData.groupId ?? null);
+          this.editForm.workGroupId.set(workTypeData.workGroupId);
           this.editForm.isActive.set(workTypeData.isActive);
           this.editForm.isCreatable.set(workTypeData.isCreatable);
           this.editForm.isEditable.set(workTypeData.isEditable);
+          this.editForm.isGeneral.set(workTypeData.isGeneral);
           this.editModalOpen.set(true);
+
+          // Update KT Select UI after values are set
+          setTimeout(() => {
+            this.updateEditModalSelectUI();
+          }, 100);
         }
       },
       error: (err) => {
@@ -383,7 +458,6 @@ export class WorkTypeComponent implements OnInit, AfterViewChecked, OnDestroy {
         this.loadWorkTypes();
       },
       error: (err) => {
-        // Hata otomatik gösterilir (error-handler interceptor)
         console.error("Delete error:", err);
         this.closeDeleteModal();
       },
@@ -412,12 +486,14 @@ export class WorkTypeComponent implements OnInit, AfterViewChecked, OnDestroy {
    */
   resetCreateForm(): void {
     this.createForm.name.set("");
-    this.createForm.groupId.set(null);
+    this.createForm.workGroupId.set(null);
     this.createForm.isActive.set(true);
     this.createForm.isCreatable.set(true);
     this.createForm.isEditable.set(true);
+    this.createForm.isGeneral.set(false);
     this.createFormSubmitting.set(false);
     this.createFormTouched.name.set(false);
+    this.createFormTouched.workGroupId.set(false);
   }
 
   /**
@@ -425,9 +501,10 @@ export class WorkTypeComponent implements OnInit, AfterViewChecked, OnDestroy {
    */
   isCreateFormValid(): boolean {
     const name = this.createForm.name().trim();
+    const workGroupId = this.createForm.workGroupId();
 
     // Zorunlu alanlar
-    if (name.length === 0) {
+    if (name.length === 0 || !workGroupId) {
       return false;
     }
 
@@ -441,13 +518,30 @@ export class WorkTypeComponent implements OnInit, AfterViewChecked, OnDestroy {
     return this.createForm.name().trim().length > 0;
   }
 
+  isCreateWorkGroupValid(): boolean {
+    return this.createForm.workGroupId() !== null;
+  }
+
   shouldShowCreateNameError(): boolean {
     return this.createFormTouched.name() && !this.isCreateNameValid();
+  }
+
+  shouldShowCreateWorkGroupError(): boolean {
+    return (
+      this.createFormTouched.workGroupId() && !this.isCreateWorkGroupValid()
+    );
   }
 
   getCreateNameError(): string {
     if (!this.isCreateNameValid()) {
       return "İş tipi adı zorunludur";
+    }
+    return "";
+  }
+
+  getCreateWorkGroupError(): string {
+    if (!this.isCreateWorkGroupValid()) {
+      return "İş grubu seçimi zorunludur";
     }
     return "";
   }
@@ -458,6 +552,7 @@ export class WorkTypeComponent implements OnInit, AfterViewChecked, OnDestroy {
   submitCreateForm(): void {
     // Mark all fields as touched to show validation errors
     this.createFormTouched.name.set(true);
+    this.createFormTouched.workGroupId.set(true);
 
     if (!this.isCreateFormValid() || this.createFormSubmitting()) {
       return;
@@ -467,10 +562,11 @@ export class WorkTypeComponent implements OnInit, AfterViewChecked, OnDestroy {
 
     const request = {
       name: this.createForm.name().trim(),
-      groupId: this.createForm.groupId() || undefined,
+      workGroupId: this.createForm.workGroupId()!,
       isActive: this.createForm.isActive(),
       isCreatable: this.createForm.isCreatable(),
       isEditable: this.createForm.isEditable(),
+      isGeneral: this.createForm.isGeneral(),
     };
 
     this.workTypeService.create(request).subscribe({
@@ -483,7 +579,6 @@ export class WorkTypeComponent implements OnInit, AfterViewChecked, OnDestroy {
         this.loadWorkTypes();
       },
       error: (err) => {
-        // Hata otomatik gösterilir (error-handler interceptor)
         console.error("Create error:", err);
         this.createFormSubmitting.set(false);
       },
@@ -506,12 +601,14 @@ export class WorkTypeComponent implements OnInit, AfterViewChecked, OnDestroy {
   resetEditForm(): void {
     this.editForm.id.set("");
     this.editForm.name.set("");
-    this.editForm.groupId.set(null);
+    this.editForm.workGroupId.set(null);
     this.editForm.isActive.set(true);
     this.editForm.isCreatable.set(true);
     this.editForm.isEditable.set(true);
+    this.editForm.isGeneral.set(false);
     this.editFormSubmitting.set(false);
     this.editFormTouched.name.set(false);
+    this.editFormTouched.workGroupId.set(false);
   }
 
   /**
@@ -519,9 +616,10 @@ export class WorkTypeComponent implements OnInit, AfterViewChecked, OnDestroy {
    */
   isEditFormValid(): boolean {
     const name = this.editForm.name().trim();
+    const workGroupId = this.editForm.workGroupId();
     const id = this.editForm.id();
 
-    return id.length > 0 && name.length > 0;
+    return id.length > 0 && name.length > 0 && !!workGroupId;
   }
 
   /**
@@ -531,13 +629,28 @@ export class WorkTypeComponent implements OnInit, AfterViewChecked, OnDestroy {
     return this.editForm.name().trim().length > 0;
   }
 
+  isEditWorkGroupValid(): boolean {
+    return this.editForm.workGroupId() !== null;
+  }
+
   shouldShowEditNameError(): boolean {
     return this.editFormTouched.name() && !this.isEditNameValid();
+  }
+
+  shouldShowEditWorkGroupError(): boolean {
+    return this.editFormTouched.workGroupId() && !this.isEditWorkGroupValid();
   }
 
   getEditNameError(): string {
     if (!this.isEditNameValid()) {
       return "İş tipi adı zorunludur";
+    }
+    return "";
+  }
+
+  getEditWorkGroupError(): string {
+    if (!this.isEditWorkGroupValid()) {
+      return "İş grubu seçimi zorunludur";
     }
     return "";
   }
@@ -548,6 +661,7 @@ export class WorkTypeComponent implements OnInit, AfterViewChecked, OnDestroy {
   submitEditForm(): void {
     // Mark all fields as touched to show validation errors
     this.editFormTouched.name.set(true);
+    this.editFormTouched.workGroupId.set(true);
 
     if (!this.isEditFormValid() || this.editFormSubmitting()) {
       return;
@@ -558,10 +672,11 @@ export class WorkTypeComponent implements OnInit, AfterViewChecked, OnDestroy {
     const request = {
       id: this.editForm.id(),
       name: this.editForm.name().trim(),
-      groupId: this.editForm.groupId() || undefined,
+      workGroupId: this.editForm.workGroupId()!,
       isActive: this.editForm.isActive(),
       isCreatable: this.editForm.isCreatable(),
       isEditable: this.editForm.isEditable(),
+      isGeneral: this.editForm.isGeneral(),
     };
 
     this.workTypeService.update(request.id, request).subscribe({
@@ -574,7 +689,6 @@ export class WorkTypeComponent implements OnInit, AfterViewChecked, OnDestroy {
         this.loadWorkTypes();
       },
       error: (err) => {
-        // Hata otomatik gösterilir (error-handler interceptor)
         console.error("Update error:", err);
         this.editFormSubmitting.set(false);
       },
@@ -653,10 +767,44 @@ export class WorkTypeComponent implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   /**
+   * Update KT Select UI for edit modal to reflect current values
+   */
+  private updateEditModalSelectUI(): void {
+    const selectIds = ["editModalWorkGroupId"];
+
+    selectIds.forEach((selectId) => {
+      const element = document.getElementById(selectId) as HTMLSelectElement;
+
+      if (element) {
+        // Trigger change event to sync native select with Angular
+        element.dispatchEvent(new Event("change", { bubbles: true }));
+
+        // Update KT Select UI using getInstance API
+        const KTSelect = (window as any).KTSelect;
+        if (KTSelect && typeof KTSelect.getInstance === "function") {
+          const ktSelectInstance = KTSelect.getInstance(element);
+          if (
+            ktSelectInstance &&
+            typeof ktSelectInstance.update === "function"
+          ) {
+            ktSelectInstance.update();
+          }
+        }
+      }
+    });
+  }
+
+  /**
    * Cleanup on component destroy
    */
   ngOnDestroy(): void {
     // Subject cleanup
     this.searchSubject.complete();
+
+    // Destroy KT Select instances for modals
+    this.ktSelectService.destroyInstances(
+      "createModalWorkGroupId",
+      "editModalWorkGroupId",
+    );
   }
 }

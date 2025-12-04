@@ -34,7 +34,7 @@ export enum ReferenceTypes {
   EmployeeDutyType = 102, // Çalışan Görev Tipi
   EmployeePassivityReasonType = 103, // Çalışan Pasiflik Nedeni Tipi
   EmployeeTitleType = 104, // Çalışan Ünvan Tipi
-  GenderType = 105, // Cinsiyet Tipi
+  WorkGroup = 105, // İş Grubu
   OrganizationType = 106, // Organizasyon Tipi
   PhoneNumberType = 107, // Telefon Numarası Tipi
   EducationType = 108, // Eğitim Tipi
@@ -78,10 +78,6 @@ export class ReferenceService {
   }
 
   // Convenience methods for specific reference data
-  getGenders(): Observable<ApiResponse<SelectItemResponse[]>> {
-    return this.getSelectItemsByReferenceId(ReferenceTypes.GenderType);
-  }
-
   getOrganizationTypes(): Observable<ApiResponse<SelectItemResponse[]>> {
     return this.getSelectItemsByReferenceId(ReferenceTypes.OrganizationType);
   }

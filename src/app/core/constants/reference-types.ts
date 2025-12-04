@@ -18,8 +18,8 @@ export enum ReferenceTypes {
   /** Çalışan Unvan Tipi */
   EmployeeTitleType = 104,
 
-  /** Cinsiyet Tipi */
-  GenderType = 105,
+  /** İş Grubu */
+  WorkGroup = 105,
 
   /** Organizasyon Tipi */
   OrganizationType = 106,
@@ -44,6 +44,12 @@ export enum ReferenceTypes {
 
   /** Uyruk Tipi */
   NationalityType = 113,
+
+  /** Menü Tipi */
+  MenuType = 114,
+
+  /** İzin Tipi */
+  PermissionType = 115,
 }
 
 /**
@@ -56,8 +62,8 @@ export const ReferenceTypeDisplayNames: Record<ReferenceTypes, string> = {
   [ReferenceTypes.EmployeeDutyType]: "Çalışan Görev Tipi",
   [ReferenceTypes.EmployeePassivityReasonType]: "Çalışan Pasiflik Nedeni Tipi",
   [ReferenceTypes.EmployeeTitleType]: "Çalışan Unvan Tipi",
-  [ReferenceTypes.GenderType]: "Cinsiyet Tipi",
-  [ReferenceTypes.OrganizationType]: "Birim Tipi",
+  [ReferenceTypes.WorkGroup]: "İş Grubu",
+  [ReferenceTypes.OrganizationType]: "Organizasyon Tipi",
   [ReferenceTypes.PhoneNumberType]: "Telefon Numarası Tipi",
   [ReferenceTypes.EducationType]: "Eğitim Tipi",
   [ReferenceTypes.University]: "Üniversite",
@@ -65,6 +71,8 @@ export const ReferenceTypeDisplayNames: Record<ReferenceTypes, string> = {
   [ReferenceTypes.MaritalStatusType]: "Medeni Durum Tipi",
   [ReferenceTypes.BloodType]: "Kan Grubu",
   [ReferenceTypes.NationalityType]: "Uyruk Tipi",
+  [ReferenceTypes.MenuType]: "Menü Tipi",
+  [ReferenceTypes.PermissionType]: "İzin Tipi",
 };
 
 /**
@@ -77,8 +85,8 @@ export const ReferenceTypeShortNames: Record<ReferenceTypes, string> = {
   [ReferenceTypes.EmployeeDutyType]: "Görev",
   [ReferenceTypes.EmployeePassivityReasonType]: "Pasiflik",
   [ReferenceTypes.EmployeeTitleType]: "Unvan",
-  [ReferenceTypes.GenderType]: "Cinsiyet",
-  [ReferenceTypes.OrganizationType]: "Birim",
+  [ReferenceTypes.WorkGroup]: "İş Grubu",
+  [ReferenceTypes.OrganizationType]: "Organizasyon",
   [ReferenceTypes.PhoneNumberType]: "Telefon",
   [ReferenceTypes.EducationType]: "Eğitim",
   [ReferenceTypes.University]: "Üniversite",
@@ -86,4 +94,6 @@ export const ReferenceTypeShortNames: Record<ReferenceTypes, string> = {
   [ReferenceTypes.MaritalStatusType]: "Medeni Durum",
   [ReferenceTypes.BloodType]: "Kan Grubu",
   [ReferenceTypes.NationalityType]: "Uyruk",
+  [ReferenceTypes.MenuType]: "Menü",
+  [ReferenceTypes.PermissionType]: "İzin",
 };

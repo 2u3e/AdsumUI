@@ -51,10 +51,6 @@ export class CitizenService extends BaseHttpService {
       params.lastName = request.lastName;
     }
 
-    if (request.genderId !== undefined) {
-      params.genderId = request.genderId;
-    }
-
     if (request.isActive !== undefined) {
       params.isActive = request.isActive;
     }

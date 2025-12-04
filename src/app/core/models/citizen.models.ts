@@ -27,12 +27,6 @@ export interface CitizenItem {
   /** Yaş (readonly) */
   age?: number;
 
-  /** Cinsiyet ID */
-  genderId: number;
-
-  /** Cinsiyet Adı */
-  genderName?: string;
-
   /** Aktif mi? */
   isActive: boolean;
 
@@ -78,9 +72,6 @@ export interface CitizenListItem {
   /** Yaş */
   age: number;
 
-  /** Cinsiyet Adı */
-  genderName?: string;
-
   /** Aktif mi? */
   isActive: boolean;
 }
@@ -104,9 +95,6 @@ export interface GetCitizensRequest {
 
   /** Soyad (arama) */
   lastName?: string;
-
-  /** Cinsiyet ID */
-  genderId?: number;
 
   /** Sadece aktif kayıtlar mı? */
   isActive?: boolean;
@@ -132,9 +120,6 @@ export interface CreateCitizenRequest {
   /** Doğum Yeri */
   birthPlace?: string;
 
-  /** Cinsiyet ID */
-  genderId: number;
-
   /** Aktif mi? */
   isActive: boolean;
 }
@@ -158,9 +143,6 @@ export interface UpdateCitizenRequest {
 
   /** Doğum Yeri */
   birthPlace?: string;
-
-  /** Cinsiyet ID */
-  genderId: number;
 
   /** Aktif mi? */
   isActive: boolean;

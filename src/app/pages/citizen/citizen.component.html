@@ -156,78 +156,32 @@
           </div>
         </div>
 
-        <!-- 2. Satır: Doğum Tarihi ve Cinsiyet -->
-        <div class="grid grid-cols-2 gap-4">
-          <!-- BirthDate Field -->
-          <div>
-            <label
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Doğum Tarihi
-              <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              class="kt-input w-full"
-              [class.!border-red-500]="shouldShowCreateBirthDateError()"
-              [ngModel]="createForm.birthDate()"
-              (ngModelChange)="createForm.birthDate.set($event)"
-              (blur)="createFormTouched.birthDate.set(true)"
-              [ngModelOptions]="{ standalone: true }"
-              [disabled]="createFormSubmitting()"
-            />
-            @if (shouldShowCreateBirthDateError()) {
-              <div class="flex items-center gap-1.5 mt-1.5">
-                <i class="ki-filled ki-information text-sm text-red-500"></i>
-                <span class="text-xs text-red-600 dark:text-red-400">
-                  {{ getCreateBirthDateError() }}
-                </span>
-              </div>
-            }
-          </div>
-
-          <!-- Gender Field -->
-          <div>
-            <label
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Cinsiyet
-              <span class="text-red-500">*</span>
-            </label>
-            <div [class.validation-error]="shouldShowCreateGenderError()">
-              <select
-                id="createModalGenderId"
-                class="kt-select w-full text-sm"
-                data-kt-select="true"
-                data-kt-select-placeholder="Cinsiyet seçiniz"
-                [attr.data-kt-select-config]="
-                  '{&quot;optionsClass&quot;: &quot;kt-scrollable overflow-auto max-h-[250px]&quot;}'
-                "
-                [ngModel]="createForm.genderId() ?? ''"
-                (ngModelChange)="
-                  createForm.genderId.set(
-                    $event !== '' && $event !== null ? +$event : null
-                  )
-                "
-                (blur)="createFormTouched.genderId.set(true)"
-                [ngModelOptions]="{ standalone: true }"
-                [disabled]="createFormSubmitting()"
-              >
-                <option value=""></option>
-                @for (gender of genders(); track gender.id) {
-                  <option [value]="gender.id">{{ gender.name }}</option>
-                }
-              </select>
+        <!-- 2. Satır: Doğum Tarihi -->
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            Doğum Tarihi
+            <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="date"
+            class="kt-input w-full"
+            [class.!border-red-500]="shouldShowCreateBirthDateError()"
+            [ngModel]="createForm.birthDate()"
+            (ngModelChange)="createForm.birthDate.set($event)"
+            (blur)="createFormTouched.birthDate.set(true)"
+            [ngModelOptions]="{ standalone: true }"
+            [disabled]="createFormSubmitting()"
+          />
+          @if (shouldShowCreateBirthDateError()) {
+            <div class="flex items-center gap-1.5 mt-1.5">
+              <i class="ki-filled ki-information text-sm text-red-500"></i>
+              <span class="text-xs text-red-600 dark:text-red-400">
+                {{ getCreateBirthDateError() }}
+              </span>
             </div>
-            @if (shouldShowCreateGenderError()) {
-              <div class="flex items-center gap-1.5 mt-1.5">
-                <i class="ki-filled ki-information text-sm text-red-500"></i>
-                <span class="text-xs text-red-600 dark:text-red-400">
-                  {{ getCreateGenderError() }}
-                </span>
-              </div>
-            }
-          </div>
+          }
         </div>
 
         <!-- 3. Satır: Doğum Yeri ve Aktif/Pasif -->
@@ -428,78 +382,32 @@
           </div>
         </div>
 
-        <!-- 2. Satır: Doğum Tarihi ve Cinsiyet -->
-        <div class="grid grid-cols-2 gap-4">
-          <!-- Birth Date Field -->
-          <div>
-            <label
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Doğum Tarihi
-              <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              class="kt-input w-full"
-              [class.!border-red-500]="shouldShowEditBirthDateError()"
-              [ngModel]="editForm.birthDate()"
-              (ngModelChange)="editForm.birthDate.set($event)"
-              (blur)="editFormTouched.birthDate.set(true)"
-              [ngModelOptions]="{ standalone: true }"
-              [disabled]="editFormSubmitting()"
-            />
-            @if (shouldShowEditBirthDateError()) {
-              <div class="flex items-center gap-1.5 mt-1.5">
-                <i class="ki-filled ki-information text-sm text-red-500"></i>
-                <span class="text-xs text-red-600 dark:text-red-400">
-                  {{ getEditBirthDateError() }}
-                </span>
-              </div>
-            }
-          </div>
-
-          <!-- Gender Field -->
-          <div>
-            <label
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Cinsiyet
-              <span class="text-red-500">*</span>
-            </label>
-            <div [class.validation-error]="shouldShowEditGenderError()">
-              <select
-                id="editModalGenderId"
-                class="kt-select w-full text-sm"
-                data-kt-select="true"
-                data-kt-select-placeholder="Cinsiyet seçiniz"
-                [attr.data-kt-select-config]="
-                  '{&quot;optionsClass&quot;: &quot;kt-scrollable overflow-auto max-h-[250px]&quot;}'
-                "
-                [ngModel]="editForm.genderId() ?? ''"
-                (ngModelChange)="
-                  editForm.genderId.set(
-                    $event !== '' && $event !== null ? +$event : null
-                  )
-                "
-                (blur)="editFormTouched.genderId.set(true)"
-                [ngModelOptions]="{ standalone: true }"
-                [disabled]="editFormSubmitting()"
-              >
-                <option value=""></option>
-                @for (gender of genders(); track gender.id) {
-                  <option [value]="gender.id">{{ gender.name }}</option>
-                }
-              </select>
+        <!-- 2. Satır: Doğum Tarihi -->
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            Doğum Tarihi
+            <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="date"
+            class="kt-input w-full"
+            [class.!border-red-500]="shouldShowEditBirthDateError()"
+            [ngModel]="editForm.birthDate()"
+            (ngModelChange)="editForm.birthDate.set($event)"
+            (blur)="editFormTouched.birthDate.set(true)"
+            [ngModelOptions]="{ standalone: true }"
+            [disabled]="editFormSubmitting()"
+          />
+          @if (shouldShowEditBirthDateError()) {
+            <div class="flex items-center gap-1.5 mt-1.5">
+              <i class="ki-filled ki-information text-sm text-red-500"></i>
+              <span class="text-xs text-red-600 dark:text-red-400">
+                {{ getEditBirthDateError() }}
+              </span>
             </div>
-            @if (shouldShowEditGenderError()) {
-              <div class="flex items-center gap-1.5 mt-1.5">
-                <i class="ki-filled ki-information text-sm text-red-500"></i>
-                <span class="text-xs text-red-600 dark:text-red-400">
-                  {{ getEditGenderError() }}
-                </span>
-              </div>
-            }
-          </div>
+          }
         </div>
 
         <!-- 3. Satır: Doğum Yeri ve Aktif/Pasif -->
